@@ -20,6 +20,7 @@ describe('ChannelHeaderText', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        (openModal as jest.Mock).mockReturnValue({type: 'MOCK_OPEN_MODAL'});
     });
 
     test('should render channel header text when header exists for a channel', () => {
