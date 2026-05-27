@@ -9,8 +9,8 @@ import {openModal} from 'actions/views/modals';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
 import {ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderText from './channel_header_text';
 
