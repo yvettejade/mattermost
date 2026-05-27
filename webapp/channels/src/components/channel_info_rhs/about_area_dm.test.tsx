@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -236,6 +236,30 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
+    });
+
+    test('should display add channel header empty state for non-bot DMs', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            } as Channel,
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        fireEvent.click(screen.getByText('Add a channel header'));
+
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
     });
 
     test('should not display channel header for bots', () => {
