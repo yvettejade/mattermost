@@ -6,7 +6,7 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -146,6 +146,32 @@ describe('channel_info_rhs/about_area_channel', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
+    });
+
+    test('should display add channel header empty state when channel properties are editable', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                ...defaultProps.actions,
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByText('Add a channel header'));
+
+        expect(screen.getByText('Channel Header')).toBeInTheDocument();
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
     });
 
     test('should trigger editChannelName when clicking channel display name', () => {

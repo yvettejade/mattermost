@@ -3,7 +3,12 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {openModal} from 'actions/views/modals';
+
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderText from './channel_header_text';
@@ -66,33 +71,33 @@ describe('ChannelHeaderText', () => {
         expect(container.childNodes.length).toBe(0);
     });
 
-    test('should return null for DM channels without header', () => {
+    test('should render add channel header button for DM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'D', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
     });
 
-    test('should return null for GM channels without header', () => {
+    test('should render add channel header button for GM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'G', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
     });
 
-    test('should return null for public channels without header regardless of permissions', () => {
+    test('should render add channel header button for public channels without header when user can manage channel properties', async () => {
         const channel = TestHelper.getChannelMock({
             type: 'O',
             header: '',
@@ -132,14 +137,23 @@ describe('ChannelHeaderText', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {store} = renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
             state,
+            {useMockedStore: true},
         );
 
-        expect(container.childNodes.length).toBe(0);
+        await userEvent.click(screen.getByRole('button', {name: 'Add a channel header'}));
+
+        expect((store as any).getActions()).toEqual([
+            openModal({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+                dialogType: EditChannelHeaderModal,
+                dialogProps: {channel},
+            }),
+        ]);
     });
 });
