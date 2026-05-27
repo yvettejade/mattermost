@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderText from './channel_header_text';
@@ -77,6 +78,24 @@ describe('ChannelHeaderText', () => {
         );
 
         expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should open edit channel header modal when clicking add header button', async () => {
+        const channel = TestHelper.getChannelMock({type: 'D', header: ''});
+
+        const {store} = renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+        );
+
+        await userEvent.click(screen.getByText('Add a channel header'));
+
+        expect(store.getState().views.modals.modalState[ModalIdentifiers.EDIT_CHANNEL_HEADER]).toEqual(expect.objectContaining({
+            open: true,
+            dialogProps: {channel},
+        }));
     });
 
     test('should show add header button for GM channels without header', () => {
