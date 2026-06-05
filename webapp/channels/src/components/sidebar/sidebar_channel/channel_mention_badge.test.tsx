@@ -151,6 +151,19 @@ describe('ChannelMentionBadge', () => {
         expect(container.firstChild).toBeNull();
     });
 
+    it('should keep 99+ display when count decreases but stays above cap (ST-4)', () => {
+        const {rerender} = renderWithContext(
+            <ChannelMentionBadge unreadMentions={120}/>,
+        );
+
+        expect(screen.getByText('99+')).toBeInTheDocument();
+
+        rerender(<ChannelMentionBadge unreadMentions={101}/>);
+
+        expect(screen.getByText('99+')).toBeInTheDocument();
+        expect(screen.queryByText('101')).not.toBeInTheDocument();
+    });
+
     it('should have non-zero offsetHeight when badge is visible (EC-7)', () => {
         Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
             configurable: true,
