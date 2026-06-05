@@ -1,0 +1,102 @@
+name: QA Bugbot
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to run QA Bugbot on
+        required: true
+        type: string
+
+concurrency:
+  group: qa-bugbot-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  qa-bugbot:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.draft == false &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: .agents/qa-bugbot
+
+    env:
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+      REPO_URL: https://github.com/${{ github.repository }}
+      STARTING_REF: ${{ github.event.pull_request.base.ref || 'master' }}
+      TARGET_PR_URL: ${{ github.event.pull_request.html_url || format('https://github.com/{0}/pull/{1}', github.repository, github.event.inputs.pr_number) }}
+      MODEL_ID: composer-2.5
+      MAX_QA_ITERATIONS: "3"
+      POST_PR_COMMENT: "0"
+
+    steps:
+      - name: Require CURSOR_API_KEY
+        run: |
+          if [ -z "${CURSOR_API_KEY}" ]; then
+            echo "::error::Add CURSOR_API_KEY in repo Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: .agents/qa-bugbot/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run QA Bugbot chain
+        run: npm start
+
+      - name: Post QA summary comment
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SESSION=$(ls -t runs/session-*.json 2>/dev/null | head -1 || true)
+          if [ -z "$SESSION" ]; then
+            echo "No session log found; skipping PR comment"
+            exit 0
+          fi
+          BODY=$(node -e "
+            const fs = require('fs');
+            const s = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+            const step = (s.steps || []).find((x) => x.label === '4-Summary');
+            const text = step?.finalText || '';
+            if (!text) process.exit(0);
+            const max = 60000;
+            process.stdout.write(text.length > max ? text.slice(0, max) + '\n\n…(truncated)' : text);
+          " "$SESSION")
+          if [ -z "$BODY" ]; then
+            echo "No summary text in session; skipping PR comment"
+            exit 0
+          fi
+          gh pr comment "${{ github.event.pull_request.number }}" --body "$BODY"
+
+      - name: Upload session log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b5404b8745bee9aee358ddfe # v4.6.2
+        with:
+          name: qa-bugbot-session-${{ github.run_id }}
+          path: .agents/qa-bugbot/runs/
+          if-no-files-found: ignore
