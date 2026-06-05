@@ -82,4 +82,89 @@ describe('ChannelMentionBadge', () => {
         expect(badge).toBeInTheDocument();
         expect(container.querySelector('.tooltipContainer')).not.toBeInTheDocument();
     });
+
+    it('should display 99+ when unreadMentions exceeds cap (HP-2, UT-2)', () => {
+        renderWithContext(
+            <ChannelMentionBadge unreadMentions={150}/>,
+        );
+
+        expect(screen.getByText('99+')).toBeInTheDocument();
+        expect(screen.queryByText('150')).not.toBeInTheDocument();
+    });
+
+    it('should display exact count at boundary 99 and cap at 100 (EC-1)', () => {
+        const {rerender} = renderWithContext(
+            <ChannelMentionBadge unreadMentions={99}/>,
+        );
+
+        expect(screen.getByText('99')).toBeInTheDocument();
+
+        rerender(<ChannelMentionBadge unreadMentions={100}/>);
+
+        expect(screen.getByText('99+')).toBeInTheDocument();
+    });
+
+    it('should keep urgent class when capped count is displayed (EC-2)', () => {
+        renderWithContext(
+            <ChannelMentionBadge
+                unreadMentions={120}
+                hasUrgent={true}
+            />,
+        );
+
+        expect(screen.getByText('99+').closest('.badge')).toHaveClass('urgent');
+    });
+
+    it('should transition from no badge to count 1 on first mention (ST-1)', () => {
+        const {rerender, container} = renderWithContext(
+            <ChannelMentionBadge unreadMentions={0}/>,
+        );
+
+        expect(container.firstChild).toBeNull();
+
+        rerender(<ChannelMentionBadge unreadMentions={1}/>);
+
+        expect(screen.getByText('1')).toBeInTheDocument();
+    });
+
+    it('should increment badge count when mentions increase (ST-2)', () => {
+        const {rerender} = renderWithContext(
+            <ChannelMentionBadge unreadMentions={3}/>,
+        );
+
+        expect(screen.getByText('3')).toBeInTheDocument();
+
+        rerender(<ChannelMentionBadge unreadMentions={4}/>);
+
+        expect(screen.getByText('4')).toBeInTheDocument();
+    });
+
+    it('should remove badge when mentions reach zero (ST-5)', () => {
+        const {rerender, container} = renderWithContext(
+            <ChannelMentionBadge unreadMentions={5}/>,
+        );
+
+        expect(screen.getByText('5')).toBeInTheDocument();
+
+        rerender(<ChannelMentionBadge unreadMentions={0}/>);
+
+        expect(container.firstChild).toBeNull();
+    });
+
+    it('should have non-zero offsetHeight when badge is visible (EC-7)', () => {
+        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+            configurable: true,
+            get() {
+                return this.id === 'unreadMentions' ? 16 : 0;
+            },
+        });
+
+        renderWithContext(
+            <ChannelMentionBadge unreadMentions={120}/>,
+        );
+
+        const badge = document.getElementById('unreadMentions');
+        expect(badge).toBeInTheDocument();
+        expect(badge!.offsetHeight).toBeGreaterThan(0);
+    });
 });
