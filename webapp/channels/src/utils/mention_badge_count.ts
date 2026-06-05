@@ -10,11 +10,11 @@ export const MENTION_BADGE_CAP = 99;
  */
 export function formatMentionBadgeCount(
     count: number,
-    cap: number = 50,
+    cap: number = MENTION_BADGE_CAP,
 ): string {
     if (count <= cap) {
         return String(count);
     }
 
-    return String(cap);
+    return `${cap}+`;
 }

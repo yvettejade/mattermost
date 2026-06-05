@@ -114,3 +114,7 @@ bash /workspace/.cursor/scripts/cloud-agent-start.sh  # Docker CLI missing
 ## Manual testing note
 
 Eight manual/integration scenarios were skipped because the Cloud Agent environment lacks Docker and the Mattermost stack was not running. Automated RTL/Jest coverage substitutes for component-level behavior where possible.
+
+## Fixer note (Agent 3)
+
+Fixed `formatMentionBadgeCount`: default cap now `MENTION_BADGE_CAP` (99); above-cap return is `` `${cap}+` ``. Re-ran targeted Jest suites — 48/48 tests pass (HP-2, EC-1, EC-2, EC-8, ST-3, UT-1, UT-2).
