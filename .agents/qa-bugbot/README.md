@@ -2,9 +2,46 @@
 
 Chained **Cursor SDK cloud agents** that QA a pull request: plan happy path / edge cases / state transitions, test, fix on the PR branch, summarize.
 
-## Two ways to run
+## Three ways to run
 
-### 1. GitHub webhook (recommended for “on every PR push”)
+### 1. GitHub Actions (recommended — automatic on every PR)
+
+Workflow: [`.github/workflows/qa-bugbot.yml`](../../.github/workflows/qa-bugbot.yml)
+
+Runs `npm start` on `pull_request` (`opened`, `synchronize`, `reopened`). No `TARGET_PR_URL`, ngrok, or always-on server.
+
+**One-time setup:**
+
+1. Repo → **Settings → Secrets and variables → Actions**
+2. Add secret `CURSOR_API_KEY` (from Cursor → Settings → Integrations)
+3. Ensure the repo is connected for **cloud agents** in Cursor (same account as the API key)
+
+Push to a PR branch (or **Actions → QA Bugbot → Run workflow** with a PR number). The workflow posts the QA summary as a PR comment and uploads `runs/session-*.json` as an artifact.
+
+Skips **draft** PRs and **fork** PRs (secrets are not exposed to external forks).
+
+### 2. GitHub webhook (self-hosted listener)
+
+No `TARGET_PR_URL` needed. GitHub POSTs to your server on PR events.
+
+**Quick setup:**
+
+```bash
+cd .agents/qa-bugbot
+npm install
+cp .env.example .env   # CURSOR_API_KEY, REPO_URL
+npm run setup-webhook    # prints step-by-step; generates secret if missing
+```
+
+Then follow the printed steps: `npm run webhook`, expose `:8788` (ngrok), add the GitHub webhook.
+
+Optional — create the webhook via `gh` once you have a tunnel URL:
+
+```bash
+PUBLIC_BASE_URL=https://<your-ngrok-host> npm run create-github-webhook
+```
+
+### 2b. GitHub webhook (details)
 
 When someone pushes commits to a PR (or opens/reopens it), GitHub notifies your server and the full QA chain runs automatically.
 
@@ -40,7 +77,7 @@ npm run webhook   # terminal 1
 npm run simulate  # terminal 2 — uses SIMULATE_PR_NUMBER or SIMULATE_PR_URL
 ```
 
-### 2. CLI (single PR, manual)
+### 3. CLI (single PR, manual)
 
 ```bash
 TARGET_PR_URL=https://github.com/org/repo/pull/99 npm start
@@ -80,4 +117,5 @@ The webhook server stays up; failures are recorded in the webhook JSON file.
 - Node 18+
 - `CURSOR_API_KEY`
 - `REPO_URL` connected in Cursor for cloud agents
-- For webhook: `GITHUB_WEBHOOK_SECRET` and a reachable public URL
+- **Actions:** `CURSOR_API_KEY` repo secret (see workflow above)
+- **Webhook:** `GITHUB_WEBHOOK_SECRET` and a reachable public URL

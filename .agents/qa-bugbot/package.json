@@ -7,6 +7,8 @@
   "scripts": {
     "start": "tsx src/pipeline.ts",
     "webhook": "tsx src/server.ts",
+    "setup-webhook": "bash scripts/setup-webhook.sh",
+    "create-github-webhook": "bash scripts/create-github-webhook.sh",
     "simulate": "tsx src/simulate.ts",
     "typecheck": "tsc --noEmit"
   },

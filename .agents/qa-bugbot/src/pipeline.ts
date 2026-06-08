@@ -7,6 +7,7 @@ import { Agent, CursorSdkError } from "@cursor/sdk";
 import type { CloudAgentOptions, Run, RunResult } from "@cursor/sdk";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadEnv, type Env } from "./env.js";
 import { parseTesterMarker } from "./parseTesterMarker.js";
 import {
@@ -377,7 +378,14 @@ async function main(): Promise<void> {
     if (session.needsHuman || (session.finalFail ?? 0) > 0) process.exit(2);
 }
 
-main().catch((err) => {
-    console.error(err instanceof Error ? err.message : err);
-    process.exit(1);
-});
+const isCliEntry =
+    process.argv[1] != null &&
+    path.resolve(process.argv[1]) ===
+        path.resolve(fileURLToPath(import.meta.url));
+
+if (isCliEntry) {
+    main().catch((err) => {
+        console.error(err instanceof Error ? err.message : err);
+        process.exit(1);
+    });
+}
