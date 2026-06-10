@@ -6,7 +6,7 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -167,5 +167,54 @@ describe('channel_info_rhs/about_area_channel', () => {
         const editButtons = screen.getAllByLabelText('Edit');
         fireEvent.click(editButtons[0]);
         expect(props.actions.editChannelName).toHaveBeenCalled();
+    });
+
+    test('should show empty channel header affordance and trigger editChannelHeader when editable', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                ...defaultProps.actions,
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        const addHeaderButton = screen.getByText('Add a channel header');
+        expect(addHeaderButton).toBeInTheDocument();
+
+        await userEvent.click(addHeaderButton);
+
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('should not show channel header section for empty header when not editable', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            canEditChannelProperties: false,
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Channel Header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 });
