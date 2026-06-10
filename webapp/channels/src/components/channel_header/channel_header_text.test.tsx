@@ -26,6 +26,9 @@ describe('ChannelHeaderText', () => {
                 myMembers: {
                     [channelId]: {channel_id: channelId, roles: 'channel_role'},
                 },
+                roles: {
+                    [channelId]: new Set(['channel_role']),
+                },
             },
             teams: {
                 myMembers: {
