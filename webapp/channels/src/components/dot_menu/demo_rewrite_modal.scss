@@ -1,0 +1,40 @@
+.DemoRewriteModal {
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-height: 120px;
+    }
+
+    &__loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 120px;
+    }
+
+    &__messageBlock {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        &--original {
+            .DemoRewriteModal__text {
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+            }
+        }
+    }
+
+    &__label {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    &__text {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+}

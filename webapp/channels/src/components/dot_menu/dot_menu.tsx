@@ -50,6 +50,7 @@ import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
+import DemoRewriteSubmenu from './demo_rewrite_submenu';
 import PostReminderSubMenu from './post_reminder_submenu';
 
 import './dot_menu.scss';
@@ -595,6 +596,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showPin = Boolean(!isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost);
         const showMove = Boolean(!isSystemMessage && this.props.canMove);
         const showShowTranslation = !isSystemMessage && showTranslation;
+        const showRewrite = !isSystemMessage && Boolean(this.props.post.message?.trim());
         const showCopyText = !isSystemMessage && !isBurnOnReadPost;
         const showCopyLink = !isSystemMessage && (!isBurnOnReadPost || this.props.post.user_id === this.props.userId);
         const showEdit = this.state.canEdit && !isBurnOnReadPost;
@@ -606,7 +608,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
 
         const firstSectionHasItems = showReply || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
-        const secondSectionHasItems = showShowTranslation || showCopyText || showCopyLink;
+        const secondSectionHasItems = showShowTranslation || showRewrite || showCopyText || showCopyLink;
         const thirdSectionHasItems = showEdit || showDelete || showFlagContent;
 
         return (
@@ -765,6 +767,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleShowTranslation}
                     />
                 )}
+                {showRewrite &&
+                    <DemoRewriteSubmenu
+                        post={this.props.post}
+                        openModal={this.props.actions.openModal}
+                    />
+                }
                 {showCopyText &&
                     <Menu.Item
                         id={`copy_${this.props.post.id}`}
