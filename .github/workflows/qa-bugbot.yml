@@ -95,7 +95,7 @@ jobs:
 
       - name: Upload session log
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b5404b8745bee9aee358ddfe # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: qa-bugbot-session-${{ github.run_id }}
           path: .agents/qa-bugbot/runs/
