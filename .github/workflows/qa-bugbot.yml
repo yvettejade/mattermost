@@ -45,17 +45,22 @@ jobs:
       POST_PR_COMMENT: "0"
 
     steps:
-      - name: Require CURSOR_API_KEY
-        run: |
-          if [ -z "${CURSOR_API_KEY}" ]; then
-            echo "::error::Add CURSOR_API_KEY in repo Settings → Secrets and variables → Actions"
-            exit 1
-          fi
-
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Check CURSOR_API_KEY
+        id: prereq
+        working-directory: .
+        run: |
+          if [ -z "${CURSOR_API_KEY}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CURSOR_API_KEY not configured; skipping QA Bugbot"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node
+        if: steps.prereq.outputs.enabled == 'true'
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: "24"
@@ -63,13 +68,15 @@ jobs:
           cache-dependency-path: .agents/qa-bugbot/package-lock.json
 
       - name: Install dependencies
+        if: steps.prereq.outputs.enabled == 'true'
         run: npm ci
 
       - name: Run QA Bugbot chain
+        if: steps.prereq.outputs.enabled == 'true'
         run: npm start
 
       - name: Post QA summary comment
-        if: always() && github.event_name == 'pull_request'
+        if: always() && steps.prereq.outputs.enabled == 'true' && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -94,7 +101,7 @@ jobs:
           gh pr comment "${{ github.event.pull_request.number }}" --body "$BODY"
 
       - name: Upload session log
-        if: always()
+        if: always() && steps.prereq.outputs.enabled == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: qa-bugbot-session-${{ github.run_id }}
