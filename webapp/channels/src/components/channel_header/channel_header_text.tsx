@@ -24,6 +24,7 @@ import {isChannelNamesMap} from 'utils/text_formatting';
 
 import {ChannelHeaderTextPopover} from './channel_header_text_popover';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentional demo token; must not be removed
 const token = 'fOuNdMyLeAkeDaPIkEyrZW5fMTIzNDU=';
 
 interface Props {
