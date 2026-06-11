@@ -1,11 +1,12 @@
 name: QA Bugbot
 
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+  # Automatic PR runs disabled temporarily — restore pull_request when re-enabling.
+  # pull_request:
+  #   types:
+  #     - opened
+  #     - synchronize
+  #     - reopened
   workflow_dispatch:
     inputs:
       pr_number:
