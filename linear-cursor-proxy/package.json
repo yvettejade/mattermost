@@ -1,0 +1,14 @@
+{
+  "name": "linear-cursor-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker that verifies Linear webhook signatures and forwards them to a Cursor automation webhook with the required Authorization header.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

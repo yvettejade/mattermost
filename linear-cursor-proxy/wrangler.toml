@@ -1,0 +1,13 @@
+name = "linear-cursor-proxy"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+# Non-secret config. The Cursor automation webhook URL is safe to keep here.
+# Signing secrets and the bearer token are stored as secrets, not vars (see README).
+[vars]
+CURSOR_WEBHOOK_URL = "https://api2.cursor.sh/automations/webhook/13d7a213-cf20-4350-8402-20f07c8aae2f"
+
+# Secrets (set via `wrangler secret put`, do NOT commit real values):
+#   wrangler secret put CURSOR_AUTH_TOKEN       # required
+#   wrangler secret put JIRA_WEBHOOK_SECRET     # required if forwarding Jira
+#   wrangler secret put LINEAR_WEBHOOK_SECRET   # required if forwarding Linear

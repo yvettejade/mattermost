@@ -1,0 +1,5 @@
+# Copy to `.dev.vars` for local `wrangler dev`. Never commit the real file.
+CURSOR_AUTH_TOKEN="crsr_..."
+# Set whichever sources you use (either or both):
+JIRA_WEBHOOK_SECRET="..."
+LINEAR_WEBHOOK_SECRET="lin_wh_..."
