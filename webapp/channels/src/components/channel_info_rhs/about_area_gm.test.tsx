@@ -173,13 +173,13 @@ describe('channel_info_rhs/about_area_gm', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
-    test('should display empty channel header affordance and trigger editChannelHeader', async () => {
+    test('should display add channel header empty state and trigger edit', async () => {
         const props = {
             ...defaultProps,
             channel: {
                 ...defaultProps.channel,
                 header: '',
-            },
+            } as Channel,
             actions: {
                 editChannelHeader: jest.fn(),
             },

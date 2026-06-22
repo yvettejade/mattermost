@@ -238,6 +238,30 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
+    test('should display add channel header empty state and trigger edit for non-bot DMs', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            } as Channel,
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByText('Add a channel header'));
+
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
     test('should not display channel header for bots', () => {
         const props = {
             ...defaultProps,
@@ -259,38 +283,13 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
     });
 
-    test('should display empty channel header affordance and trigger editChannelHeader', async () => {
+    test('should not display add channel header empty state for bot DMs', () => {
         const props = {
             ...defaultProps,
             channel: {
                 ...defaultProps.channel,
                 header: '',
-            },
-            actions: {
-                editChannelHeader: jest.fn(),
-            },
-        };
-
-        renderWithContext(
-            <AboutAreaDM
-                {...props}
-            />,
-            initialState,
-        );
-
-        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
-        await userEvent.click(screen.getByText('Add a channel header'));
-
-        expect(props.actions.editChannelHeader).toHaveBeenCalled();
-    });
-
-    test('should not display empty channel header affordance for bots', () => {
-        const props = {
-            ...defaultProps,
-            channel: {
-                ...defaultProps.channel,
-                header: '',
-            },
+            } as Channel,
             dmUser: {
                 ...defaultProps.dmUser,
                 user: {

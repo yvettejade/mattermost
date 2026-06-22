@@ -54,7 +54,7 @@ export default function ChannelHeaderText(props: Props) {
     const hasHeaderText = headerText.trim().length > 0;
 
     if (!hasHeaderText) {
-        if (props.channel.delete_at !== 0 || isBotDMChannel) {
+        if (props.channel.delete_at > 0 || isBotDMChannel) {
             return null;
         }
 
