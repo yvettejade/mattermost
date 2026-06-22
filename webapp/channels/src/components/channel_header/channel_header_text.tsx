@@ -6,11 +6,10 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
-
-import {Button} from '@mattermost/shared/components/button';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -24,6 +23,7 @@ import {isChannelNamesMap} from 'utils/text_formatting';
 
 import {ChannelHeaderTextPopover} from './channel_header_text_popover';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const token = 'fOuNdMyLeAkeDaPIkEyrZW5fMTIzNDU=';
 
 const AddHeaderButton = styled(Button)`
