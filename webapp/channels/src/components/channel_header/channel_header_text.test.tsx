@@ -3,12 +3,11 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
-
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderText from './channel_header_text';
 
