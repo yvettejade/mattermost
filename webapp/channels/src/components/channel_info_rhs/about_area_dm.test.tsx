@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -257,5 +257,56 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
+    });
+
+    test('should display empty channel header affordance and trigger editChannelHeader', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+        await userEvent.click(screen.getByText('Add a channel header'));
+
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('should not display empty channel header affordance for bots', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            dmUser: {
+                ...defaultProps.dmUser,
+                user: {
+                    ...defaultProps.dmUser.user,
+                    is_bot: true,
+                },
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 });
