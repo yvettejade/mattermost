@@ -1,0 +1,150 @@
+# Mattermost .cursorignore
+# Cursor already respects .gitignore; this file adds exclusions for tracked
+# assets and generated content that are low value for AI-assisted development.
+
+# --- Dependencies & build output ---
+
+**/node_modules/
+**/dist/
+**/lib/
+**/.cache/
+**/.parcel-cache/
+**/.rollup.cache/
+**/.eslintcache/
+**/.sass-cache/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.tox/
+**/.yarn/
+**/.pnp/
+**/.pnp.js/
+**/coverage/
+**/__pycache__/
+**/.next/
+**/.nuxt/
+**/.gradle/
+**/.ipynb_checkpoints/
+
+# Compiled / generated binaries
+*.o
+*.a
+*.so
+*.exe
+*.test
+*.prof
+*.dll
+*bundle.js
+*.tsbuildinfo
+
+# Lock files (large, rarely edited by hand)
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+**/Gemfile.lock
+**/composer.lock
+**/bun.lockb
+**/go.work
+**/go.work.sum
+
+# Logs & local runtime data
+*.log
+*.log.jsonl
+*.log.gz
+/data/
+**/test-results/
+**/playwright-report/
+**/junit.xml
+**/report.xml
+**/cover.out
+**/ecover.out
+
+# --- Translations (keep English source strings) ---
+
+server/i18n/*.json
+!server/i18n/en.json
+webapp/channels/src/i18n/*.json
+!webapp/channels/src/i18n/en.json
+
+# --- Generated Go code ---
+
+**/*_serial_gen.go
+**/mocks/
+server/public/plugin/client_rpc_generated.go
+
+# --- Binary & static assets ---
+
+# Emoji sprites dominate the tracked image count (~3k files)
+webapp/channels/src/images/emoji/
+
+# Favicons, themes, and marketing/card art
+webapp/channels/src/images/favicon/
+webapp/channels/src/images/cloud/
+webapp/channels/src/images/themes/
+webapp/channels/src/images/gif_picker/
+
+# Server-side test fixtures and sample media
+server/tests/exif_samples/
+server/tests/**/*.png
+server/tests/**/*.jpg
+server/tests/**/*.gif
+
+# Raster images and fonts (SVG UI icons under webapp/channels/src/images/ remain indexed)
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.bmp
+**/*.webp
+**/*.ico
+**/*.woff
+**/*.woff2
+**/*.eot
+**/*.ttf
+**/*.otf
+**/*.mp4
+**/*.mov
+**/*.mp3
+**/*.wav
+**/*.zip
+**/*.tar.gz
+**/*.pdf
+
+# --- E2E test artifacts ---
+
+e2e-tests/cypress/tests/fixtures/
+e2e-tests/cypress/tests/downloads/
+e2e-tests/cypress/tests/screenshots/
+e2e-tests/cypress/tests/videos/
+e2e-tests/cypress/results/
+e2e-tests/playwright/specs/**/*-snapshots/
+e2e-tests/playwright/asset/
+e2e-tests/playwright/storage_state/
+e2e-tests/playwright/results/
+
+# --- Email / notification templates ---
+
+server/templates/
+
+# --- Local-only or ancillary tooling ---
+
+/enterprise/
+/de-engineer/
+/linear-cursor-proxy/
+/prepackaged_plugins/
+/plugins/
+/debug/
+/client/
+/.planning/
+/.notice/
+/.notice-work/
+
+# Secrets & local config (belt-and-suspenders; also in .gitignore)
+.env
+.env.*
+**/*.license
+**/*.mattermost-license
+**/credentials.json
+**/*.key
+**/*.pem
+config/config.json
+config/*.crt
