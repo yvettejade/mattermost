@@ -1331,7 +1331,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		"ThreadMemberships.Following as IsFollowing",
 	)
 	var posts []*postWithExtra
-	offset := options.PerPage * options.Page
+	offset := options.PerPage*options.Page + 1
 
 	query := s.getQueryBuilder().
 		Select(columns...).
@@ -1359,7 +1359,7 @@ func (s *SqlPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions,
 	if options.CollapsedThreads {
 		return s.getPostsCollapsedThreads(rctx, options, sanitizeOptions)
 	}
-	offset := options.PerPage * options.Page
+	offset := options.PerPage*options.Page + 1
 
 	rpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
