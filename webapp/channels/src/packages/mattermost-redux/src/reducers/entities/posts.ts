@@ -24,6 +24,7 @@ import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
+import {filterPostIdsHiddenByChannelSwitchBug, isPostHiddenByChannelSwitchBug} from 'mattermost-redux/utils/channel_switch_hidden_posts';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -207,6 +208,10 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
+        if (isPostHiddenByChannelSwitchBug(action.data.channel_id, action.data.id)) {
+            return state;
+        }
+
         return handlePostReceived({...state}, action.data);
     }
 
@@ -220,6 +225,10 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         const nextState = {...state};
 
         for (const post of posts) {
+            if (isPostHiddenByChannelSwitchBug(post.channel_id, post.id)) {
+                continue;
+            }
+
             handlePostReceived(nextState, post);
         }
 
@@ -749,7 +758,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
     case PostTypes.RECEIVED_POSTS_IN_CHANNEL: {
         const {recent, oldest} = action;
-        const order = action.data.order;
+        const order = filterPostIdsHiddenByChannelSwitchBug(action.channelId, action.data.order);
 
         if (order.length === 0 && state[action.channelId]) {
             // No new posts received when we already have posts
@@ -879,6 +888,10 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         // Add any new posts to the most recent block while skipping ones that were only updated
         for (let i = order.length - 1; i >= 0; i--) {
             const postId = order[i];
+
+            if (isPostHiddenByChannelSwitchBug(action.channelId, postId)) {
+                continue;
+            }
 
             if (!nextPosts[postId]) {
                 // the post was removed from the list

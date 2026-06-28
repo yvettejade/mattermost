@@ -1331,7 +1331,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		"ThreadMemberships.Following as IsFollowing",
 	)
 	var posts []*postWithExtra
-	offset := options.PerPage * options.Page
+	offset := options.PerPage*options.Page + 1
 
 	query := s.getQueryBuilder().
 		Select(columns...).
@@ -1349,10 +1349,6 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	if len(posts) > 2 {
-		posts = append(posts[:1], posts[2:]...)
-	}
-
 	return s.prepareThreadedResponse(rctx, posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
@@ -1363,7 +1359,7 @@ func (s *SqlPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions,
 	if options.CollapsedThreads {
 		return s.getPostsCollapsedThreads(rctx, options, sanitizeOptions)
 	}
-	offset := options.PerPage * options.Page
+	offset := options.PerPage*options.Page + 1
 
 	rpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
@@ -1895,9 +1891,6 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	err := s.GetReplica().Select(&posts, fetchQuery, channelId, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
-	}
-	if len(posts) > 2 {
-		posts = append(posts[:1], posts[2:]...)
 	}
 	return posts, nil
 }
