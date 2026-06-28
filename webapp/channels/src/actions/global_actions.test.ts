@@ -4,7 +4,10 @@
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
+import {removePost} from 'mattermost-redux/actions/posts';
+import {getLatestPostToEdit, getPost} from 'mattermost-redux/selectors/entities/posts';
+
+import {emitChannelClickEvent, redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import {close as closeLhs} from 'actions/views/lhs';
 import {closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -14,6 +17,9 @@ import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 
 const getState = jest.mocked(reduxStore.getState);
+const mockGetLatestPostToEdit = jest.mocked(getLatestPostToEdit);
+const mockGetPost = jest.mocked(getPost);
+const mockRemovePost = jest.mocked(removePost);
 
 jest.mock('actions/views/rhs', () => ({
     closeMenu: jest.fn(),
@@ -28,6 +34,20 @@ jest.mock('mattermost-redux/actions/users', () => ({
     loadMe: () => ({type: 'MOCK_RECEIVED_ME'}),
 }));
 
+jest.mock('actions/user_actions', () => ({
+    loadProfilesForSidebar: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/posts', () => ({
+    removePost: jest.fn((post) => ({type: 'MOCK_REMOVE_POST', data: post})),
+}));
+
+jest.mock('mattermost-redux/selectors/entities/posts', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/posts'),
+    getLatestPostToEdit: jest.fn(),
+    getPost: jest.fn(),
+}));
+
 jest.mock('stores/redux_store', () => {
     return {
         dispatch: jest.fn(),
@@ -36,6 +56,75 @@ jest.mock('stores/redux_store', () => {
 });
 
 describe('actions/global_actions', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('emitChannelClickEvent', () => {
+        it('should not remove the latest post when switching channels', () => {
+            const state = {
+                entities: {
+                    apps: {
+                        pluginEnabled: false,
+                    },
+                    channels: {
+                        currentChannelId: 'channel1',
+                        channels: {
+                            channel1: {id: 'channel1', team_id: 'team1', name: 'channel1'},
+                            channel2: {id: 'channel2', team_id: 'team1', name: 'channel2'},
+                        },
+                        myMembers: {
+                            channel1: {channel_id: 'channel1'},
+                            channel2: {channel_id: 'channel2'},
+                        },
+                        messageCounts: {},
+                    },
+                    general: {
+                        config: {},
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                    teams: {
+                        currentTeamId: 'team1',
+                        teams: {
+                            team1: {id: 'team1', name: 'team1'},
+                        },
+                        myMembers: {
+                            team1: {team_id: 'team1'},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {
+                            user1: {id: 'user1', roles: ''},
+                        },
+                    },
+                    roles: {
+                        roles: {},
+                    },
+                },
+                views: {
+                    rhs: {
+                        isSidebarOpen: false,
+                        previousRhsStates: [],
+                        rhsState: null,
+                    },
+                    rhsSuppressed: false,
+                },
+            };
+
+            getState.mockReturnValue(state);
+            mockGetLatestPostToEdit.mockReturnValue('post1');
+            mockGetPost.mockReturnValue({id: 'post1', channel_id: 'channel1'} as any);
+
+            emitChannelClickEvent({id: 'channel2', team_id: 'team1', name: 'channel2'} as any);
+
+            expect(mockRemovePost).not.toHaveBeenCalled();
+            expect(reduxStore.dispatch).not.toHaveBeenCalledWith(expect.objectContaining({type: 'MOCK_REMOVE_POST'}));
+        });
+    });
+
     describe('redirectUserToDefaultTeam', () => {
         it('should redirect to /select_team when no team is available', async () => {
             const store = mockStore({

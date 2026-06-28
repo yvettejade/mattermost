@@ -16,10 +16,8 @@ import {
     getChannelStats,
     selectChannel,
 } from 'mattermost-redux/actions/channels';
-import {removePost} from 'mattermost-redux/actions/posts';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {logout, loadMe} from 'mattermost-redux/actions/users';
-import {markLatestUserPostHiddenOnChannelLeave} from 'mattermost-redux/utils/channel_switch_hidden_posts';
 import {Preferences} from 'mattermost-redux/constants';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
@@ -27,7 +25,6 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {getLatestPostToEdit, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
@@ -97,17 +94,6 @@ export function emitChannelClickEvent(channel: Channel) {
 
         if (currentChannelId) {
             loadProfilesForSidebar();
-        }
-
-        if (currentChannelId && currentChannelId !== chan.id) {
-            const latestPostId = getLatestPostToEdit(state, currentChannelId);
-            if (latestPostId) {
-                const latestPost = getPost(state, latestPostId);
-                if (latestPost) {
-                    markLatestUserPostHiddenOnChannelLeave(currentChannelId, latestPost.id);
-                    dispatch(removePost(latestPost));
-                }
-            }
         }
 
         dispatch(batchActions([
