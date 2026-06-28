@@ -1104,6 +1104,26 @@ describe('postsInChannel', () => {
             });
         });
 
+        it('should store a new pending post when the channel has recent posts', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post2', 'post3'], recent: true},
+                ],
+            });
+
+            const nextState = reducers.postsInChannel(state, {
+                type: PostTypes.RECEIVED_NEW_POST,
+                data: {id: 'pending', channel_id: 'channel1', pending_post_id: 'pending'},
+            }, {}, {});
+
+            expect(nextState).not.toBe(state);
+            expect(nextState).toEqual({
+                channel1: [
+                    {order: ['pending', 'post2', 'post3'], recent: true},
+                ],
+            });
+        });
+
         it('should not store the new post when the channel only has older posts', () => {
             const state = deepFreeze({
                 channel1: [
