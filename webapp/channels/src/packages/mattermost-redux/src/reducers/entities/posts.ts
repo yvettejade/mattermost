@@ -633,6 +633,10 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;
 
+        if (post.pending_post_id) {
+            return state;
+        }
+
         if (action.features?.crtEnabled && post.root_id) {
             return state;
         }
