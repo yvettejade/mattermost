@@ -65,10 +65,6 @@ source "$SCRIPT_DIR/reset-demo.lib.sh"
 
 cd "$SERVER_DIR"
 
-log "Restoring tracked files in repo (git restore .)"
-git -C "$REPO_DIR" restore .
-ok "Working tree restored"
-
 log "Stopping prior Mattermost dev processes"
 make stop >/dev/null 2>&1 || true
 ok "Stopped server, webapp, and skipped docker"
