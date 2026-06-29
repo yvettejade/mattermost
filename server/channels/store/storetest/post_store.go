@@ -2675,6 +2675,14 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.NotNil(t, postList.Posts[post6.Id])
 	})
 
+	t.Run("should return the newest post on the first page", func(t *testing.T) {
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 1, SkipFetchThreads: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		require.Equal(t, []string{post6.Id}, postList.Order)
+		require.NotNil(t, postList.Posts[post6.Id])
+	})
+
 	t.Run("should return the last posts created in a channel and the threads and the reply count must be 0", func(t *testing.T) {
 		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 2, SkipFetchThreads: false}, false, map[string]bool{})
 		assert.NoError(t, err)
