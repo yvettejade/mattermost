@@ -88,6 +88,21 @@ RUN case "$(dpkg --print-architecture)" in \
     install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${gh_arch}/bin/gh" /usr/local/bin/gh && \
     rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_${gh_arch}"
 
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 30 -fsSL \
+      https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" \
+      > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+      docker-ce \
+      docker-ce-cli \
+      containerd.io \
+      docker-buildx-plugin \
+      docker-compose-plugin && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /etc/docker && \
     printf '%s\n' \
     '{' \
