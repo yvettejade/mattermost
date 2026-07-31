@@ -136,6 +136,8 @@ RUN case "$(dpkg --print-architecture)" in \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli && \
     rm -rf /tmp/aws /tmp/awscliv2.zip
 
+RUN curl --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 30 -fsSL https://aka.ms/InstallAzureCLIDeb | bash
+
 RUN install -m 0755 -d /var/run/sshd && \
     printf '%s\n' 'PasswordAuthentication no' 'ChallengeResponseAuthentication no' 'UsePAM no' > /etc/ssh/sshd_config.d/disable_password_auth.conf && \
     if ! id -u ubuntu >/dev/null 2>&1; then useradd -m -s /bin/bash ubuntu; fi && \
@@ -145,6 +147,8 @@ RUN install -m 0755 -d /var/run/sshd && \
     chmod 0440 /etc/sudoers.d/ubuntu && \
     echo "ubuntu:ubuntu" | chpasswd && \
     install -d -o ubuntu -g ubuntu "${NVM_DIR}" "${GOPATH}"
+
+RUN su ubuntu -c "az extension add --name azure-devops"
 
 RUN git clone --depth 1 --branch "v${NVM_VERSION}" https://github.com/nvm-sh/nvm.git "${NVM_DIR}" && \
     chown -R ubuntu:ubuntu "${NVM_DIR}" "${GOPATH}" && \
