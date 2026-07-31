@@ -238,6 +238,25 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
+    test('should display add channel header empty state when header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            } as Channel,
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
     test('should not display channel header for bots', () => {
         const props = {
             ...defaultProps,
@@ -257,5 +276,31 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
+    });
+
+    test('should not display add channel header empty state for bots', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            } as Channel,
+            dmUser: {
+                ...defaultProps.dmUser,
+                user: {
+                    ...defaultProps.dmUser.user,
+                    is_bot: true,
+                },
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 });
