@@ -1,5 +1,24 @@
 @use 'utils/variables';
 
+.channel-header-text {
+    display: flex;
+    overflow: hidden;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.channel-header-text__toggle {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 20px;
+    padding: 0 4px;
+    font-size: 12px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
 .channel-header-text-popover-floating-overlay {
     z-index: variables.$z-index-popover;
 }

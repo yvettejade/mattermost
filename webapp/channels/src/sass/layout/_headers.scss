@@ -6,12 +6,16 @@
     position: relative;
     z-index: variables.$z-index-channel-header;
     width: 100%;
-    max-height: 56px;
+    max-height: 80px;
     padding: 12px;
     border-radius: 12px 12px 0 0;
     border-bottom: var(--border-default);
     background: functions.v(center-channel-bg);
     font-size: 14px;
+
+    &:has(.header-description__text.expanded) {
+        max-height: none;
+    }
 
     #channelHeaderDropdownButton {
         display: flex;
@@ -344,7 +348,9 @@
 
     .channel-header__title {
         display: flex;
-        height: 24px;
+        height: auto;
+        min-height: 24px;
+        align-items: center;
 
         .channel-header__favorites {
             flex: 0 0 auto;
@@ -379,7 +385,9 @@
         position: relative;
         display: flex;
         overflow: hidden;
-        height: 24px;
+        height: auto;
+        min-height: 24px;
+        max-height: 48px;
         flex: 1;
         align-items: center;
         margin: 0;
@@ -387,6 +395,11 @@
         gap: 8px;
         line-height: 24px;
         text-overflow: ellipsis;
+
+        &:has(.header-description__text.expanded) {
+            max-height: none;
+            overflow: visible;
+        }
 
         span[data-emoticon] {
             .emoticon {
@@ -444,11 +457,20 @@
         }
 
         .header-description__text {
-            overflow: hidden;
-            height: 24px;
-            line-height: inherit;
+            @include mixins.text-clamp(2, 24);
+
+            height: auto;
+            line-height: 24px;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
+
+            &.expanded {
+                display: block;
+                overflow: auto;
+                -webkit-line-clamp: unset;
+                max-height: 200px;
+                white-space: normal;
+            }
 
             ul {
                 &:first-child {
