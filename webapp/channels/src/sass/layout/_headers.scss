@@ -397,8 +397,8 @@
         text-overflow: ellipsis;
 
         &:has(.header-description__text.expanded) {
-            max-height: none;
             overflow: visible;
+            max-height: none;
         }
 
         span[data-emoticon] {
@@ -467,8 +467,8 @@
             &.expanded {
                 display: block;
                 overflow: auto;
-                -webkit-line-clamp: unset;
                 max-height: 200px;
+                -webkit-line-clamp: unset;
                 white-space: normal;
             }
 
