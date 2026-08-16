@@ -8,7 +8,7 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 - Ubuntu 24.04.
 - Docker CE 28.5.2 with `fuse-overlayfs` and `iptables-legacy`, matching Cursor's Docker-in-Cloud guidance for complex compose setups.
-- Go 1.25.9 from `server/.go-version`.
+- Go 1.26.3 from `server/.go-version`.
 - Node 24.11.1/npm 11 via nvm, matching `.nvmrc` and `webapp/package.json`.
 - `agent-browser@0.27.0` and browser dependencies for screenshot workflows.
 - AWS CLI v2 for S3 uploads.
