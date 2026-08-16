@@ -34,8 +34,8 @@ describe('components/export_monitor/ExportMonitor', () => {
 
         expect(screen.getByRole('heading', {name: 'Export monitor'})).toBeVisible();
         expect(screen.getByTestId('export-connector-status')).toHaveTextContent('On');
-        expect(screen.getByText('EXP-1042')).toBeVisible();
-        expect(screen.getByText('Q3 field travel')).toBeVisible();
+        expect(screen.getAllByText('EXP-1042')).toHaveLength(2);
+        expect(screen.getAllByText('Q3 field travel')).toHaveLength(2);
         expect(screen.getAllByTestId('export-payload')).toHaveLength(3);
         expect(screen.queryByRole('button', {name: 'Turn connector on'})).not.toBeInTheDocument();
         expect(mockSelectLhsItem).toHaveBeenCalledWith(LhsItemType.Page, LhsPage.Drafts);
