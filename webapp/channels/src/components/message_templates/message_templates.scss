@@ -19,10 +19,10 @@
         display: flex;
         overflow: auto;
         flex-direction: column;
-        grid-area: list;
-        margin: 0;
         padding: 24px;
+        margin: 0;
         gap: 12px;
+        grid-area: list;
         list-style: none;
     }
 
