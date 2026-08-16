@@ -2202,6 +2202,7 @@ export const PageLoadContext = {
 
 export const DRAFT_URL_SUFFIX = 'drafts';
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
+export const EXPORT_MONITOR_URL_SUFFIX = 'export-monitor';
 
 export const scheduledPosts = {
     RECENTLY_USED_CUSTOM_TIME: 'recently_used_custom_time',
