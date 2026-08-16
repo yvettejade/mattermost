@@ -4,12 +4,9 @@
 import React, {useCallback} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom';
+import {useHistory, useParams} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
-
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import Header from 'components/widgets/header';
 
@@ -21,15 +18,14 @@ type Props = {
 
 export default function DraftsAndSchedulePostsPageHeader(props: Props) {
     const history = useHistory();
-    const currentTeam = useSelector(getCurrentTeam);
-    const currentTeamName = currentTeam?.name ?? '';
+    const {team: teamName} = useParams<{team: string}>();
 
     const handleOpenTemplates = useCallback(() => {
-        if (!currentTeamName) {
+        if (!teamName) {
             return;
         }
-        history.push(`/${currentTeamName}/${TEMPLATES_URL_SUFFIX}`);
-    }, [currentTeamName, history]);
+        history.push(`/${teamName}/${TEMPLATES_URL_SUFFIX}`);
+    }, [history, teamName]);
 
     return (
         <div
@@ -58,7 +54,7 @@ export default function DraftsAndSchedulePostsPageHeader(props: Props) {
                         emphasis='tertiary'
                         size='sm'
                         onClick={handleOpenTemplates}
-                        disabled={!currentTeamName}
+                        disabled={!teamName}
                     >
                         <FormattedMessage
                             id='drafts.templates'

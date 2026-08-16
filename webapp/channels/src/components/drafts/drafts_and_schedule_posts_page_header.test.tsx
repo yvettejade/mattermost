@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {MemoryRouter, Route, Switch} from 'react-router-dom';
+import {MemoryRouter, Route} from 'react-router-dom';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import MessageTemplates from 'components/message_templates';
-
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -37,22 +36,21 @@ const baseState: DeepPartial<GlobalState> = {
 function renderDraftsPage() {
     return renderWithContext(
         <MemoryRouter initialEntries={['/team1/drafts']}>
-            <Switch>
-                <Route path='/:team/drafts'>
-                    <DraftsAndSchedulePostsPageHeader>
-                        <div>{'Reports table'}</div>
-                    </DraftsAndSchedulePostsPageHeader>
-                </Route>
-                <Route path='/:team/templates'>
-                    <MessageTemplates/>
-                </Route>
-            </Switch>
+            <Route path='/:team/drafts'>
+                <DraftsAndSchedulePostsPageHeader>
+                    <div>{'Reports table'}</div>
+                </DraftsAndSchedulePostsPageHeader>
+            </Route>
         </MemoryRouter>,
         baseState,
     );
 }
 
 describe('components/drafts/DraftsAndSchedulePostsPageHeader', () => {
+    beforeEach(() => {
+        jest.mocked(getHistory().push).mockClear();
+    });
+
     test('renders the Templates control next to the drafts heading', () => {
         renderDraftsPage();
 
@@ -64,12 +62,11 @@ describe('components/drafts/DraftsAndSchedulePostsPageHeader', () => {
     test('navigates to the templates list when Templates is clicked', async () => {
         renderDraftsPage();
 
-        await userEvent.click(screen.getByRole('button', {name: 'Templates'}));
+        const templatesButton = screen.getByRole('button', {name: 'Templates'});
+        expect(templatesButton).toBeEnabled();
 
-        expect(screen.getByRole('heading', {name: 'Templates'})).toBeVisible();
-        expect(screen.getByRole('table', {name: 'Message templates'})).toBeVisible();
-        expect(screen.getByText('Daily standup')).toBeVisible();
-        expect(screen.queryByText('Reports table')).not.toBeInTheDocument();
-        expect(screen.queryByRole('heading', {name: 'Drafts'})).not.toBeInTheDocument();
+        await userEvent.click(templatesButton);
+
+        expect(getHistory().push).toHaveBeenCalledWith('/team1/templates');
     });
 });

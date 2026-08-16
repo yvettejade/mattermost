@@ -3,12 +3,10 @@
 
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom';
+import {useDispatch} from 'react-redux';
+import {useHistory, useParams} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
-
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
@@ -48,8 +46,7 @@ const MESSAGE_TEMPLATES = [
 export default function MessageTemplates() {
     const dispatch = useDispatch();
     const history = useHistory();
-    const currentTeam = useSelector(getCurrentTeam);
-    const currentTeamName = currentTeam?.name ?? '';
+    const {team: teamName} = useParams<{team: string}>();
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Drafts));
@@ -61,10 +58,10 @@ export default function MessageTemplates() {
     }, [dispatch]);
 
     const handleBackToDrafts = () => {
-        if (!currentTeamName) {
+        if (!teamName) {
             return;
         }
-        history.push(`/${currentTeamName}/${DRAFT_URL_SUFFIX}`);
+        history.push(`/${teamName}/${DRAFT_URL_SUFFIX}`);
     };
 
     return (
@@ -94,7 +91,7 @@ export default function MessageTemplates() {
                         emphasis='tertiary'
                         size='sm'
                         onClick={handleBackToDrafts}
-                        disabled={!currentTeamName}
+                        disabled={!teamName}
                     >
                         <FormattedMessage
                             id='message_templates.backToDrafts'
