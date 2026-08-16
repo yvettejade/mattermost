@@ -31,13 +31,15 @@ Migration progress:
 
 ### Skills and rules to load
 
-| When | Load |
-|------|------|
-| Always before editing | `webapp/AGENTS.md`, `webapp/STYLE_GUIDE.md`, `.cursor/skills/webapp-react.mdc` |
-| Editing any `.ts`/`.tsx` | `typescript-best-practices` skill (if available) |
-| Adding/changing tests | workspace rule `unit-tests.mdc` (RTL via `utils/react_testing_utils`, no new snapshots) |
-| Unclear ownership / “how do actions look here?” | `how` skill, or spawn a readonly explore Task (below) |
-| User asks for PR review after | `review-bugbot` / `review-security` only if they explicitly request |
+
+| When                                            | Load                                                                                    |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Always before editing                           | `webapp/AGENTS.md`, `webapp/STYLE_GUIDE.md`, `.cursor/skills/webapp-react.mdc`          |
+| Editing any `.ts`/`.tsx`                        | `typescript-best-practices` skill (if available)                                        |
+| Adding/changing tests                           | workspace rule `unit-tests.mdc` (RTL via `utils/react_testing_utils`, no new snapshots) |
+| Unclear ownership / “how do actions look here?” | `how` skill, or spawn a readonly explore Task (below)                                   |
+| User asks for PR review after                   | `review-bugbot` / `review-security` only if they explicitly request                     |
+
 
 Do **not** load server/Go skills for this workflow.
 
@@ -45,23 +47,25 @@ Do **not** load server/Go skills for this workflow.
 
 Use the **Task** tool. Prefer readonly explore for research; do conversion in the parent agent unless the file is huge.
 
-| Step | Spawn? | How |
-|------|--------|-----|
-| Scope importers + dependents | Yes if >1 obvious entry or unclear blast radius | `subagent_type: explore`, thoroughness `quick` or `medium`. Prompt: find all imports of `<module path>`, list call sites, note hard-coded `.js` extensions. |
-| Neighbor pattern | Yes if no obvious sibling `.ts` | `explore`, `quick`. Prompt: find nearest migrated file of same kind (action / component / selector / util) under `webapp/channels/src/` and summarize typing conventions (`ActionFunc`, `@mattermost/types`, etc.). |
-| Convert single small/medium file (~≤400 lines) | No | Parent agent converts directly. |
-| Convert large leftover (e.g. `suggestion_box.jsx` ~800+) | Optional | `generalPurpose` with a tight prompt: rename, type only, no behavior change; return diff summary + remaining `tsc` errors. Or split across PRs. |
-| Parallel independent files | Only if user asked for a batch | One explore for shared conventions, then sequential converts (avoid parallel edits fighting on shared imports). |
+
+| Step                                                     | Spawn?                                          | How                                                                                                                                                                                                                 |
+| -------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scope importers + dependents                             | Yes if >1 obvious entry or unclear blast radius | `subagent_type: explore`, thoroughness `quick` or `medium`. Prompt: find all imports of `<module path>`, list call sites, note hard-coded `.js` extensions.                                                         |
+| Neighbor pattern                                         | Yes if no obvious sibling `.ts`                 | `explore`, `quick`. Prompt: find nearest migrated file of same kind (action / component / selector / util) under `webapp/channels/src/` and summarize typing conventions (`ActionFunc`, `@mattermost/types`, etc.). |
+| Convert single small/medium file (~≤400 lines)           | No                                              | Parent agent converts directly.                                                                                                                                                                                     |
+| Convert large leftover (e.g. `suggestion_box.jsx` ~800+) | Optional                                        | `generalPurpose` with a tight prompt: rename, type only, no behavior change; return diff summary + remaining `tsc` errors. Or split across PRs.                                                                     |
+| Parallel independent files                               | Only if user asked for a batch                  | One explore for shared conventions, then sequential converts (avoid parallel edits fighting on shared imports).                                                                                                     |
+
 
 Never spawn subagents for `npm run check-types` / lint / jest — run those in the parent via Shell.
 
 ## Playbook
 
+
+
 ### 0. Confirm target
 
-Default demo-quality target if unspecified: `webapp/channels/src/actions/emoji_actions.js` (+ `emoji_actions.test.js`).
-
-Prefer leaf modules first. Defer huge components unless requested.
+Ask which leftover `.js`/`.jsx` module to migrate if unspecified. Prefer leaf modules first. Defer huge components unless requested.
 
 ### 1. Scope
 
@@ -69,15 +73,21 @@ Prefer leaf modules first. Defer huge components unless requested.
 - Map importers (Grep or explore subagent).
 - Classify: action | component | selector | util — drives typing template.
 
+
+
 ### 2. Neighbor pattern
 
 Open a same-kind already-migrated file and match it:
 
-| Kind | Pattern anchors |
-|------|-----------------|
-| Actions | `ActionFunc` / `ActionFuncAsync` from `types/store`; see `actions/status_actions.ts`, `actions/post_actions.ts` |
-| Domain types | `@mattermost/types/...` |
-| Components | `.tsx`, functional + hooks; no new `connect` |
+
+| Kind         | Pattern anchors                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| Actions      | `ActionFunc` / `ActionFuncAsync` from `types/store`; see `actions/status_actions.ts`, `actions/post_actions.ts` |
+| Domain types | `@mattermost/types/...`                                                                                         |
+| Components   | `.tsx`, functional + hooks; no new `connect`                                                                    |
+
+
+
 
 ### 3. Convert (mechanical)
 
@@ -95,6 +105,8 @@ export function loadRecentlyUsedCustomEmojis(): ActionFunc {
     return (dispatch, getState) => { /* unchanged body */ };
 }
 ```
+
+
 
 ### 4. Validate types
 
@@ -116,6 +128,8 @@ npm run check
 npm run fix
 ```
 
+
+
 ### 6. Tests
 
 ```bash
@@ -126,15 +140,19 @@ npm test -- <module_basename>
 - If typing forced a behavior fix: add/adjust unit tests per `unit-tests.mdc`.
 - Prefer migrating the test file to `.ts`/`.tsx` in the same PR.
 
+
+
 ### 7. Smoke (UI-facing only)
 
-If the module feeds visible UI (emoji picker, composer, etc.): one manual path in the running app to catch broken imports after rename.
+If the module feeds visible UI: one manual path in the running app to catch broken imports after rename.
 
 ### 8. Land
 
 - One file (or one small cluster + tests) per PR.
 - Diff should be mostly rename + types.
 - Commit only when the user asks; message focuses on finishing TS migration for X.
+
+
 
 ## Done checklist
 
@@ -144,12 +162,16 @@ If the module feeds visible UI (emoji picker, composer, etc.): one manual path i
 - [ ] Targeted Jest passes
 - [ ] No intentional behavior change (or tested fix called out)
 
+
+
 ## Batching order
 
-1. Leaf utils / constants  
-2. Actions / selectors  
-3. Legacy components  
-4. Huge leftovers — multi-PR or background agent, not a single sitting  
+1. Leaf utils / constants
+2. Actions / selectors
+3. Legacy components
+4. Huge leftovers — multi-PR or background agent, not a single sitting
+
+
 
 ## Anti-patterns
 
@@ -158,3 +180,4 @@ If the module feeds visible UI (emoji picker, composer, etc.): one manual path i
 - Inventing new typing style instead of matching neighbors
 - Skipping `check-types` because “it’s just a rename”
 - Spawning write-capable subagents that also run unrelated refactors
+
