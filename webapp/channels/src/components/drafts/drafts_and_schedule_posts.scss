@@ -5,6 +5,10 @@
     &__header {
         border-bottom: var(--border-default);
         grid-area: header;
+
+        #templatesButton {
+            margin-left: 8px;
+        }
     }
 
     .channel-header__icon,

@@ -1,0 +1,76 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.MessageTemplates {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'list';
+    grid-template-columns: var(--list);
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    }
+
+    &__main {
+        grid-area: list;
+        overflow: auto;
+        padding: 24px;
+    }
+
+    &__table {
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
+        border-collapse: collapse;
+        background: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-s);
+
+        caption.sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--center-channel-color);
+            font-size: 14px;
+            line-height: 20px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        thead th {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+        }
+
+        tbody th {
+            font-weight: 600;
+        }
+
+        tbody tr:last-child th,
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+    }
+}
