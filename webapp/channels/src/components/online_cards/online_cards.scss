@@ -17,8 +17,8 @@
 
     &__headerActions {
         display: flex;
-        padding-right: 16px;
         align-items: center;
+        padding-right: 16px;
         gap: 8px;
     }
 
@@ -128,9 +128,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
         color: var(--center-channel-color);
         font-size: 14px;
+        gap: 12px;
         line-height: 20px;
     }
 

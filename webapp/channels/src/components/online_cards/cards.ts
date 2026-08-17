@@ -4,7 +4,6 @@
 import {CARD_IDS} from './types';
 import type {CardId, CardLock, CardLockState, SeededCard} from './types';
 
-
 export const ONLINE_CARD_LOCKS_STORAGE_KEY = 'mm_online_card_locks';
 
 type ReadableStorage = Pick<Storage, 'getItem'>;
