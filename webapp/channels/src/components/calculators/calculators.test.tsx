@@ -7,8 +7,8 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
-import {calculateRepayment, EXAMPLE_HOME_LOAN_PRINCIPAL, EXAMPLE_HOME_LOAN_TERM_YEARS} from './repayment_math';
 import Calculators from './calculators';
+import {calculateRepayment, EXAMPLE_HOME_LOAN_PRINCIPAL, EXAMPLE_HOME_LOAN_TERM_YEARS} from './repayment_math';
 
 const mockSelectLhsItem = jest.fn((type: string, id?: string) => {
     return {type: 'SELECT_LHS_ITEM', meta: {lhsType: type, id}};

@@ -44,7 +44,7 @@ export function calculateRepayment({
     }
 
     const growth = Math.pow(1 + periodicRate, periods);
-    return roundToCents(principal * periodicRate * growth / (growth - 1));
+    return roundToCents((principal * periodicRate * growth) / (growth - 1));
 }
 
 export function indicativeWeeklyRepayment(annualRatePercent: number): number {

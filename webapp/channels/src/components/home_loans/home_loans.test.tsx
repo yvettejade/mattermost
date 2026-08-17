@@ -10,10 +10,12 @@ import {
     EXAMPLE_HOME_LOAN_TERM_YEARS,
     indicativeWeeklyRepayment,
 } from 'components/calculators/repayment_math';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {LhsItemType, LhsPage} from 'types/store/lhs';
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
+
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import {HOME_LOAN_SPECIALS} from './home_loan_specials';
 import HomeLoans from './home_loans';

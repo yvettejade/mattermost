@@ -124,12 +124,11 @@ export default function HomeLoans() {
                                         <FormattedMessage {...special.name}/>
                                     </h3>
                                     <p className='HomeLoans__specialMeta'>
-                                        <FormattedMessage {...special.rateType}/>
-                                        {' · '}
                                         <FormattedMessage
-                                            id='home_loans.comparison_rate'
-                                            defaultMessage='Comparison {rate}'
+                                            id='home_loans.special_meta'
+                                            defaultMessage='{rateType} · Comparison {rate}'
                                             values={{
+                                                rateType: <FormattedMessage {...special.rateType}/>,
                                                 rate: (
                                                     <FormattedNumber
                                                         value={special.comparisonRatePercent / 100}
