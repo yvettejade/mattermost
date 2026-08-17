@@ -21,8 +21,8 @@
 
     &:focus,
     &:focus-visible {
-        transform: translateY(0);
         outline: 2px solid var(--button-color);
         outline-offset: 2px;
+        transform: translateY(0);
     }
 }
