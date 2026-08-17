@@ -1,0 +1,148 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.OnlineCards {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'body';
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    &__headerActions {
+        display: flex;
+        padding-right: 16px;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__body {
+        display: flex;
+        overflow: auto;
+        flex-direction: column;
+        padding: 24px;
+        gap: 16px;
+        grid-area: body;
+    }
+
+    &__toast {
+        padding: 8px 12px;
+        border: var(--border-default);
+        border-radius: 4px;
+        margin: 0;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__list {
+        display: grid;
+        padding: 0;
+        margin: 0;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        list-style: none;
+    }
+
+    &__card {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        gap: 16px;
+
+        &.locked {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    &__cardHeader {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__cardTitleRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &__cardName {
+        padding: 0;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__card.locked &__cardName {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    &__status {
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: rgba(var(--online-indicator-rgb), 0.16);
+        color: var(--online-indicator);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 16px;
+
+        &.locked {
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+    }
+
+    &__cardNumber {
+        padding: 0;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__lockedHelp {
+        padding: 0;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__control {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__card.locked &__control {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-rows: 0 1fr;
+
+        > .Header {
+            display: none;
+        }
+    }
+}
