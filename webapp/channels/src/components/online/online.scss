@@ -1,0 +1,221 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Online {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'body';
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    &__nav {
+        display: flex;
+        padding-right: 16px;
+        gap: 8px;
+    }
+
+    &__navLink {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 4px;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        text-decoration: none;
+
+        &.active,
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+        }
+    }
+
+    &__body {
+        display: flex;
+        overflow: auto;
+        flex-direction: column;
+        padding: 24px;
+        gap: 16px;
+        grid-area: body;
+    }
+
+    &__sectionTitle {
+        padding-bottom: 12px;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__position {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        gap: 4px;
+    }
+
+    &__positionLabel {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__positionValue {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 24px;
+        font-weight: 600;
+        line-height: 32px;
+    }
+
+    &__accounts {
+        display: grid;
+        padding: 0;
+        margin: 0;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        list-style: none;
+    }
+
+    &__account {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        gap: 12px;
+        text-align: left;
+        text-decoration: none;
+    }
+
+    &__accountName {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__accountNumber,
+    &__muted,
+    &__goalCopy,
+    &__goalLabel {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__accountAvailable {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 24px;
+    }
+
+    &__detailHeader {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        gap: 8px;
+    }
+
+    &__goalHint,
+    &__goalProgress {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    &__progress {
+        overflow: hidden;
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+
+        &--compact {
+            height: 6px;
+        }
+    }
+
+    &__progressFill {
+        height: 100%;
+        background: var(--button-bg);
+    }
+
+    &__form {
+        display: flex;
+        max-width: 480px;
+        flex-direction: column;
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        gap: 12px;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__label {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    &__field input {
+        padding: 8px 12px;
+        border: var(--border-default);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    &__status {
+        min-height: 20px;
+        margin: 0;
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-rows: 0 1fr;
+
+        > .Header {
+            display: none;
+        }
+    }
+}
