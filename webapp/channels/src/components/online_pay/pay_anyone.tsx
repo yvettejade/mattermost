@@ -247,19 +247,24 @@ export default function PayAnyone() {
                             className='PayAnyone__form'
                             onSubmit={handleReview}
                         >
-                            <label className='PayAnyone__field'>
-                                <span className='PayAnyone__label'>
+                            <div className='PayAnyone__field'>
+                                <label
+                                    className='PayAnyone__label'
+                                    htmlFor='pay-anyone-from'
+                                >
                                     <FormattedMessage
                                         id='online.pay.from'
                                         defaultMessage='From account'
                                     />
-                                </span>
+                                </label>
                                 <select
+                                    id='pay-anyone-from'
                                     className='PayAnyone__control'
                                     name='fromAccountId'
                                     value={form.fromAccountId}
                                     onChange={handleFieldChange}
                                     disabled={Boolean(pending)}
+                                    aria-describedby='pay-anyone-available'
                                 >
                                     {PAY_FROM_ACCOUNTS.map((account) => (
                                         <option
@@ -270,7 +275,10 @@ export default function PayAnyone() {
                                         </option>
                                     ))}
                                 </select>
-                                <span className='PayAnyone__help'>
+                                <span
+                                    id='pay-anyone-available'
+                                    className='PayAnyone__help'
+                                >
                                     <FormattedMessage
                                         id='online.pay.amount.available'
                                         defaultMessage='Available {amount}'
@@ -287,7 +295,7 @@ export default function PayAnyone() {
                                         }}
                                     />
                                 </span>
-                            </label>
+                            </div>
                             <label className='PayAnyone__field'>
                                 <span className='PayAnyone__label'>
                                     <FormattedMessage
@@ -353,14 +361,18 @@ export default function PayAnyone() {
                                     disabled={Boolean(pending)}
                                 />
                             </label>
-                            <label className='PayAnyone__field'>
-                                <span className='PayAnyone__label'>
+                            <div className='PayAnyone__field'>
+                                <label
+                                    className='PayAnyone__label'
+                                    htmlFor='pay-anyone-when'
+                                >
                                     <FormattedMessage
                                         id='online.pay.date'
                                         defaultMessage='When'
                                     />
-                                </span>
+                                </label>
                                 <input
+                                    id='pay-anyone-when'
                                     className='PayAnyone__control'
                                     name='when'
                                     type='date'
@@ -368,14 +380,18 @@ export default function PayAnyone() {
                                     value={form.when}
                                     onChange={handleFieldChange}
                                     disabled={Boolean(pending)}
+                                    aria-describedby='pay-anyone-when-help'
                                 />
-                                <span className='PayAnyone__help'>
+                                <span
+                                    id='pay-anyone-when-help'
+                                    className='PayAnyone__help'
+                                >
                                     <FormattedMessage
                                         id='online.pay.date.help'
                                         defaultMessage='Leave blank to send today'
                                     />
                                 </span>
-                            </label>
+                            </div>
                             {error && (
                                 <p
                                     className='PayAnyone__error'

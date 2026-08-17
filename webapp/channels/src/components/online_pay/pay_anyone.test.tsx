@@ -7,8 +7,8 @@ import {fireEvent, renderWithContext, screen, userEvent, within} from 'tests/rea
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
-import {PAY_ANYONE_STORAGE_KEY} from './payments';
 import PayAnyone from './pay_anyone';
+import {PAY_ANYONE_STORAGE_KEY} from './payments';
 
 const mockSelectLhsItem = jest.fn((type: string, id?: string) => {
     return {type: 'SELECT_LHS_ITEM', meta: {lhsType: type, id}};
