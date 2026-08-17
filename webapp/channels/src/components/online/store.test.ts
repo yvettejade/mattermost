@@ -70,7 +70,7 @@ describe('online/store', () => {
             'home-loan',
         ]);
         expect(transferableAccounts(state.accounts)).toHaveLength(2);
-        expect(overallPositionCents(state.accounts)).toBe(428055 + 1864000 - 61240 - 41200000);
+        expect(overallPositionCents(state.accounts)).toBe((428055 + 1864000) - 61240 - 41200000);
         expect(formatAudFromCents(428055)).toBe('$4,280.55');
     });
 

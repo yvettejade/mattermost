@@ -5,10 +5,9 @@ import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
-
-import {TestHelper} from 'utils/test_helper';
 
 import Online from './online';
 import {EVERYDAY_MONEY_STORAGE_KEY} from './store';
