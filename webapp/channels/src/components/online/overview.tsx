@@ -117,15 +117,26 @@ export default function Overview({state}: Props) {
                                             data-testid='online-goal-hint'
                                         >
                                             <p className='Online__goalCopy'>
-                                                <FormattedMessage
-                                                    id='online.goal.of'
-                                                    defaultMessage='{current} of {goal}'
-                                                    values={{
-                                                        current: formatAudFromCents(account.availableCents),
-                                                        goal: formatAudFromCents(rapidSaveGoal.amountCents),
-                                                    }}
-                                                />
-                                                {rapidSaveGoal.label ? ` · ${rapidSaveGoal.label}` : null}
+                                                {rapidSaveGoal.label ? (
+                                                    <FormattedMessage
+                                                        id='online.goal.of_with_label'
+                                                        defaultMessage='{current} of {goal} · {label}'
+                                                        values={{
+                                                            current: formatAudFromCents(account.availableCents),
+                                                            goal: formatAudFromCents(rapidSaveGoal.amountCents),
+                                                            label: rapidSaveGoal.label,
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <FormattedMessage
+                                                        id='online.goal.of'
+                                                        defaultMessage='{current} of {goal}'
+                                                        values={{
+                                                            current: formatAudFromCents(account.availableCents),
+                                                            goal: formatAudFromCents(rapidSaveGoal.amountCents),
+                                                        }}
+                                                    />
+                                                )}
                                             </p>
                                             <div
                                                 className='Online__progress Online__progress--compact'

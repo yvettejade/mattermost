@@ -5,12 +5,11 @@ import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-
-import {LhsItemType, LhsPage} from 'types/store/lhs';
-
 import {getHistory} from 'utils/browser_history';
 import {ONLINE_URL_SUFFIX} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import Online from './online';
 import {EVERYDAY_MONEY_STORAGE_KEY, saveSavingsGoal} from './store';

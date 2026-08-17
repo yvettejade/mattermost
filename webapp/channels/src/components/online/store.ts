@@ -201,11 +201,15 @@ export function loadEverydayMoneyState(storage: ReadableStorage = localStorage):
 
 export function saveEverydayMoneyState(state: EverydayMoneyState, storage: WritableStorage = localStorage): void {
     const existing = readExistingRecord(storage);
+    const existingSettings = isRecord(existing.settings) ? existing.settings : {};
     storage.setItem(EVERYDAY_MONEY_STORAGE_KEY, JSON.stringify({
         ...existing,
         accounts: state.accounts,
         goals: state.goals,
-        settings: state.settings,
+        settings: {
+            ...existingSettings,
+            ...state.settings,
+        },
     }));
 }
 

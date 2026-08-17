@@ -13,10 +13,10 @@ import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 
 import Header from 'components/widgets/header';
 
-import {LhsItemType, LhsPage} from 'types/store/lhs';
-
 import {ONLINE_URL_SUFFIX} from 'utils/constants';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import AccountDetail from './account_detail';
 import Overview from './overview';

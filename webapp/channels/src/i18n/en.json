@@ -5793,6 +5793,7 @@
   "online.goal.label": "Label",
   "online.goal.label.placeholder": "House deposit",
   "online.goal.of": "{current} of {goal}",
+  "online.goal.of_with_label": "{current} of {goal} · {label}",
   "online.goal.progress": "Savings goal progress",
   "online.goal.save": "Save goal",
   "online.goal.set": "Set a savings goal",
