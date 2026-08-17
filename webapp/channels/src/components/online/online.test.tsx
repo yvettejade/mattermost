@@ -95,7 +95,12 @@ describe('components/online/Online', () => {
         expect(createObjectURL).toHaveBeenCalled();
         const blob = createObjectURL.mock.calls[0][0] as Blob;
         expect(blob.type).toBe('text/csv');
-        const csv = await blob.text();
+        const csv = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(blob);
+        });
         expect(csv).toContain(CSV_HEADER);
         expect(csv).toContain('Woolworths');
         expect(csv).toContain('-186.40');
