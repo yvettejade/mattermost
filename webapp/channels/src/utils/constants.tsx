@@ -2202,6 +2202,8 @@ export const PageLoadContext = {
 
 export const DRAFT_URL_SUFFIX = 'drafts';
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
+export const HOME_URL_SUFFIX = 'home';
+export const BANK_ACCOUNTS_URL_SUFFIX = 'bank-accounts';
 
 export const scheduledPosts = {
     RECENTLY_USED_CUSTOM_TIME: 'recently_used_custom_time',
