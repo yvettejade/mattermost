@@ -143,11 +143,9 @@ export default function Online() {
                                     onClick={handleAddAccount}
                                 >
                                     <span
-                                        className='Online__addAccountPlus'
+                                        className='icon icon-plus Online__addAccountPlus'
                                         aria-hidden={true}
-                                    >
-                                        {'+'}
-                                    </span>
+                                    />
                                     <FormattedMessage
                                         id='online.addAccount'
                                         defaultMessage='Add an account'
