@@ -32,7 +32,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
 import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
-import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+import {ONLINE_URL_SUFFIX, PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
@@ -52,6 +52,7 @@ const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => imp
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
 const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
 const Login = makeAsyncComponent('LoginController', lazy(() => import('components/login/login')));
+const InternationalMoney = makeAsyncComponent('InternationalMoney', lazy(() => import('components/international_money')));
 const PasswordResetSendLink = makeAsyncComponent('PasswordResedSendLink', lazy(() => import('components/password_reset_send_link')));
 const PasswordResetForm = makeAsyncComponent('PasswordResetForm', lazy(() => import('components/password_reset_form')));
 const Signup = makeAsyncComponent('SignupController', lazy(() => import('components/signup/signup')));
@@ -152,6 +153,11 @@ export default class Root extends React.PureComponent<Props, State> {
 
         // We don't want to show when resetting the password
         if (this.props.location.pathname === '/reset_password_complete') {
+            return;
+        }
+
+        // Public international money quote is available before log on
+        if (this.props.location.pathname === '/international') {
             return;
         }
 
@@ -320,6 +326,10 @@ export default class Root extends React.PureComponent<Props, State> {
                     <HFRoute
                         path={'/login'}
                         component={Login}
+                    />
+                    <HFRoute
+                        path={'/international'}
+                        component={InternationalMoney}
                     />
                     <HFTRoute
                         path={'/reset_password'}
@@ -507,7 +517,7 @@ export default class Root extends React.PureComponent<Props, State> {
 export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
     // Note: we have specifically added admin_console to the negative lookahead as admin_console can have integrations as subpaths (admin_console/integrations/bot_accounts)
     // and we don't want to treat those as team controller routes.
-    const TEAM_CONTROLLER_PATH_PATTERN = new RegExp(`^/(?!admin_console)([a-z0-9\\-_]+)/(channels|messages|threads|recaps|drafts|integrations|emoji|${SCHEDULED_POST_URL_SUFFIX})(/.*)?$`);
+    const TEAM_CONTROLLER_PATH_PATTERN = new RegExp(`^/(?!admin_console)([a-z0-9\\-_]+)/(channels|messages|threads|recaps|drafts|integrations|emoji|${SCHEDULED_POST_URL_SUFFIX}|${ONLINE_URL_SUFFIX})(/.*)?$`);
 
     return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }
