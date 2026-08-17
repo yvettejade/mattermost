@@ -6,6 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {mainContentProps} from 'components/skip_to_content/skip_to_content';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {ErrorPageTypes, Constants} from 'utils/constants';
@@ -134,7 +135,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
         }
 
         const errorPage = (
-            <div className='container-fluid'>
+            <main
+                className='container-fluid'
+                {...mainContentProps}
+            >
                 <div className='error__container'>
                     <div className='error__icon'>
                         <WarningIcon/>
@@ -153,7 +157,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
                     />
                     {backButton}
                 </div>
-            </div>
+            </main>
         );
 
         return (

@@ -12,6 +12,7 @@ import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 import {useTeamByName} from 'components/common/hooks/use_team';
 import RhsPluginPopout from 'components/rhs_plugin_popout';
 import RhsSearchPopout from 'components/rhs_search_popout';
+import {mainContentProps} from 'components/skip_to_content/skip_to_content';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import type {GlobalState} from 'types/store';
@@ -50,7 +51,10 @@ export default function RhsPopout() {
     return (
         <>
             <UnreadsStatusHandler/>
-            <div className='main-wrapper rhs-popout'>
+            <main
+                className='main-wrapper rhs-popout'
+                {...mainContentProps}
+            >
                 <div className='sidebar--right'>
                     <div className='sidebar-right__body'>
                         <Switch>
@@ -65,7 +69,7 @@ export default function RhsPopout() {
                         </Switch>
                     </div>
                 </div>
-            </div>
+            </main>
         </>
     );
 }
