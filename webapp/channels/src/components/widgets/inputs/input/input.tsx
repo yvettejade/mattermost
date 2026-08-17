@@ -206,6 +206,13 @@ const Input = React.forwardRef((
     const showLegend = Boolean(focused || value);
     const error = customInputLabel?.type === ItemStatus.ERROR;
     const warning = customInputLabel?.type === ItemStatus.WARNING;
+    const {
+        'aria-describedby': describedByFromProps,
+        ...restOtherProps
+    } = otherProps;
+    const describedBy = [customInputLabel ? errorId : undefined, describedByFromProps].
+        filter((id): id is string => Boolean(id)).
+        join(' ') || undefined;
 
     const clearButton = value && clearable ? (
         <WithTooltip
@@ -234,12 +241,12 @@ const Input = React.forwardRef((
                     value={value}
                     placeholder={placeholderValue}
                     aria-label={ariaLabel}
-                    aria-describedby={customInputLabel ? errorId : undefined}
+                    aria-describedby={describedBy}
                     aria-invalid={error || hasError}
                     rows={rows || 3}
                     name={name}
                     disabled={disabled}
-                    {...otherProps}
+                    {...restOtherProps}
                     maxLength={limit ? undefined : maxLength}
                     onFocus={handleOnFocus}
                     onBlur={handleOnBlur}
@@ -254,11 +261,11 @@ const Input = React.forwardRef((
                 value={value}
                 placeholder={placeholderValue}
                 aria-label={ariaLabel}
-                aria-describedby={customInputLabel ? errorId : undefined}
+                aria-describedby={describedBy}
                 aria-invalid={error || hasError}
                 name={name}
                 disabled={disabled}
-                {...otherProps}
+                {...restOtherProps}
                 maxLength={limit ? undefined : maxLength}
                 onFocus={handleOnFocus}
                 onBlur={handleOnBlur}

@@ -88,6 +88,8 @@ const AlertBanner = ({
                 className,
                 `AlertBanner--${variant}`,
             )}
+            role={mode === 'danger' || mode === 'warning' ? 'alert' : undefined}
+            aria-live={mode === 'danger' ? 'assertive' : mode === 'warning' ? 'polite' : undefined}
         >
             {!hideIcon && (
                 <div className='AlertBanner__icon'>
