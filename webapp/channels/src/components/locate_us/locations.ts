@@ -124,24 +124,19 @@ export function getAucklandClock(now: Date): {weekday: number; minutes: number} 
 }
 
 export function hoursCover(hours: HoursSpec, minutes: number): boolean {
-    switch (hours.kind) {
-    case 'closed':
+    if (hours.kind === 'closed') {
         return false;
-    case 'always':
+    }
+    if (hours.kind === 'always') {
         return true;
-    case 'window': {
-        const open = parseMinutes(hours.open);
-        const close = parseMinutes(hours.close);
-        if (close <= open) {
-            return minutes >= open || minutes < close;
-        }
-        return minutes >= open && minutes < close;
     }
-    default: {
-        const _exhaustive: never = hours;
-        return _exhaustive;
+
+    const open = parseMinutes(hours.open);
+    const close = parseMinutes(hours.close);
+    if (close <= open) {
+        return minutes >= open || minutes < close;
     }
-    }
+    return minutes >= open && minutes < close;
 }
 
 export function isLocationOpenAt(location: LocateLocation, now: Date): boolean {
