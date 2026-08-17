@@ -337,9 +337,14 @@ export default function AccountDetail({now = new Date()}: Props) {
                                     <div>
                                         <p className='AccountDetail__description'>{transaction.description}</p>
                                         <p className='AccountDetail__meta'>
-                                            {formatTransactionDate(transaction.date)}
-                                            {' · '}
-                                            {transaction.category}
+                                            <FormattedMessage
+                                                id='account_detail.meta'
+                                                defaultMessage='{date} · {category}'
+                                                values={{
+                                                    date: formatTransactionDate(transaction.date),
+                                                    category: transaction.category,
+                                                }}
+                                            />
                                         </p>
                                     </div>
                                     <p className='AccountDetail__amount'>{formatNzd(transaction.amount)}</p>

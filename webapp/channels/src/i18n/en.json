@@ -42,6 +42,7 @@
   "account_detail.date.to": "To",
   "account_detail.empty": "No transactions match these filters.",
   "account_detail.heading": "Account",
+  "account_detail.meta": "{date} · {category}",
   "account_detail.rapid_save.name": "Rapid Save",
   "account_detail.rapid_save.type": "Savings account",
   "account_detail.result_count": "{count, plural, one {# transaction} other {# transactions}}",
