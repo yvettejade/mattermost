@@ -75,14 +75,15 @@ const CookieBanner = () => {
                                 defaultMessage='Cookie preferences'
                             />
                         </p>
-                        <label className='CookieBanner__choice'>
+                        <div className='CookieBanner__choice'>
                             <input
+                                id='cookie-banner-necessary'
                                 type='checkbox'
                                 checked={true}
                                 disabled={true}
                                 aria-describedby='cookie-banner-necessary-desc'
                             />
-                            <span>
+                            <label htmlFor='cookie-banner-necessary'>
                                 <span className='CookieBanner__choiceName'>
                                     <FormattedMessage
                                         id='cookie_banner.necessary'
@@ -98,16 +99,17 @@ const CookieBanner = () => {
                                         defaultMessage='Required for the site to work. Always on.'
                                     />
                                 </span>
-                            </span>
-                        </label>
-                        <label className='CookieBanner__choice'>
+                            </label>
+                        </div>
+                        <div className='CookieBanner__choice'>
                             <input
+                                id='cookie-banner-analytics'
                                 type='checkbox'
                                 checked={analytics}
                                 onChange={(event) => setAnalytics(event.target.checked)}
                                 aria-describedby='cookie-banner-analytics-desc'
                             />
-                            <span>
+                            <label htmlFor='cookie-banner-analytics'>
                                 <span className='CookieBanner__choiceName'>
                                     <FormattedMessage
                                         id='cookie_banner.analytics'
@@ -123,8 +125,8 @@ const CookieBanner = () => {
                                         defaultMessage='Help us understand how the site is used. Off by default.'
                                     />
                                 </span>
-                            </span>
-                        </label>
+                            </label>
+                        </div>
                     </div>
                 )}
             </div>
