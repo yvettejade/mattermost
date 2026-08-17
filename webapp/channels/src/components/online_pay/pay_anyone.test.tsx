@@ -35,7 +35,7 @@ describe('components/online_pay/PayAnyone', () => {
         const payTo = screen.getByTestId('pay-anyone-pay-to');
         expect(within(payTo).getByText('Pay to')).toBeVisible();
         expect(screen.getByLabelText('Spark NZ')).toBeChecked();
-        expect(screen.getByText(SEED_PAYEES[0].accountNumber)).toBeVisible();
+        expect(within(payTo).getByText(SEED_PAYEES[0].accountNumber)).toBeVisible();
         expect(screen.getByRole('button', {name: 'Add a payee'})).toBeVisible();
         expect(screen.queryByRole('button', {name: 'Remove Spark NZ'})).not.toBeInTheDocument();
         expect(mockSelectLhsItem).toHaveBeenCalledWith(LhsItemType.Page, LhsPage.Drafts);
