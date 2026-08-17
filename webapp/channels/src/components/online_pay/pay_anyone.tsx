@@ -24,6 +24,7 @@ import {
     PAY_FROM_ACCOUNTS,
     paymentStatus,
     resetPayAnyoneState,
+    resolvePaymentDate,
     todayInAuckland,
     validatePaymentDate,
     type PayAnyonePayment,
@@ -88,7 +89,7 @@ export default function PayAnyone() {
     const scheduled = listScheduledPayments(state.payments);
     const minDate = todayInAuckland();
     const maxDate = maxPaymentDate();
-    const isPayNow = paymentStatus(form.when) === 'sent';
+    const isPayNow = resolvePaymentDate(form.when) === todayInAuckland();
 
     const handleFieldChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const {name, value} = event.target;
@@ -276,6 +277,7 @@ export default function PayAnyone() {
                     <form
                         className='PayAnyone__form'
                         onSubmit={handleSubmit}
+                        noValidate={true}
                     >
                         <div className='PayAnyone__field'>
                             <label

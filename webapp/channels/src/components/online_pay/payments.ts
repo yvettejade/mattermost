@@ -105,7 +105,7 @@ export function todayInAuckland(now: Date = new Date()): string {
 
 export function addCalendarMonths(isoDate: string, months: number): string {
     const [year, month, day] = isoDate.split('-').map(Number);
-    return new Date(Date.UTC(year, month - 1 + months, day)).toISOString().slice(0, 10);
+    return new Date(Date.UTC(year, (month - 1) + months, day)).toISOString().slice(0, 10);
 }
 
 export function maxPaymentDate(now: Date = new Date()): string {
@@ -163,9 +163,12 @@ export function getPayAnyoneState(storage: ReadableStorage = localStorage): PayA
         }
 
         const balances = isRecord(parsed.balances) && !Array.isArray(parsed.balances) ?
-            {...defaultBalances(), ...Object.fromEntries(
-                Object.entries(parsed.balances).filter((entry): entry is [string, number] => typeof entry[1] === 'number'),
-            )} :
+            {
+                ...defaultBalances(),
+                ...Object.fromEntries(
+                    Object.entries(parsed.balances).filter((entry): entry is [string, number] => typeof entry[1] === 'number'),
+                ),
+            } :
             defaultBalances();
 
         const payments = Array.isArray(parsed.payments) ? parsed.payments.filter(isPayAnyonePayment) : [];
