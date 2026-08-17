@@ -123,6 +123,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [brandImageError, setBrandImageError] = useState(false);
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [hasError, setHasError] = useState(false);
+    const [loginIdError, setLoginIdError] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
     const [magicLinkSuccessful, setMagicLinkSuccessful] = useState(false);
     const [requiresPassword, setRequiresPassword] = useState(false);
@@ -280,6 +282,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const dismissAlert = () => {
         setAlertBanner(null);
         setHasError(false);
+        setLoginIdError(null);
+        setPasswordError(null);
     };
 
     const onDismissSessionExpired = useCallback(() => {
@@ -536,10 +540,17 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, []);
 
     useEffect(() => {
-        if (hasError) {
-            loginIdInput.current?.focus();
+        if (!hasError) {
+            return;
         }
-    }, [hasError]);
+
+        if (passwordError && !loginIdError) {
+            passwordInput.current?.focus();
+            return;
+        }
+
+        loginIdInput.current?.focus();
+    }, [hasError, loginIdError, passwordError]);
 
     if (initializing) {
         return (<LoadingScreen/>);
@@ -639,7 +650,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 break;
             }
 
-            setAlertBanner({mode: 'danger', title});
+            setLoginIdError(title);
+            setPasswordError(null);
+            setAlertBanner(null);
             setHasError(true);
             setIsWaiting(false);
 
@@ -652,11 +665,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        if (!password) {
-            setAlertBanner({
-                mode: 'danger',
-                title: formatMessage({id: 'login.noPassword', defaultMessage: 'Please enter your password'}),
-            });
+        if (!currentPassword) {
+            const title = formatMessage({id: 'login.noPassword', defaultMessage: 'Please enter your password'});
+            setPasswordError(title);
+            setLoginIdError(null);
+            setAlertBanner(null);
             setHasError(true);
             setIsWaiting(false);
 
@@ -672,6 +685,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         const {error: loginError} = await dispatch(login(loginId, password, token));
 
         if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
+            setLoginIdError(null);
+            setPasswordError(null);
+
             if (loginError.server_error_id === 'api.user.login.not_verified.app_error') {
                 history.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
             } else if (loginError.server_error_id === 'store.sql_user.get_for_login.app_error' ||
@@ -732,6 +748,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         setIsWaiting(false);
 
         if (result.error) {
+            setLoginIdError(null);
+            setPasswordError(null);
             setAlertBanner({
                 mode: 'danger',
                 title: result.error.message || 'Failed to check login type',
@@ -743,6 +761,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (result.data?.auth_service === Constants.MAGIC_LINK_SERVICE) {
             setMagicLinkSuccessful(true);
         } else if (result.data?.is_deactivated) {
+            setLoginIdError(null);
+            setPasswordError(null);
             setAlertBanner({
                 mode: 'danger',
                 title: formatMessage({
@@ -994,32 +1014,57 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             }}
                                         >
                                             <div className='login-body-card-form'>
-                                                <Input
-                                                    data-testid='login-id-input'
-                                                    ref={loginIdInput}
-                                                    name='loginId'
-                                                    containerClassName='login-body-card-form-input'
-                                                    type='text'
-                                                    inputSize={SIZE.LARGE}
-                                                    value={loginId}
-                                                    onChange={handleInputOnChange}
-                                                    hasError={hasError}
-                                                    placeholder={getInputPlaceholder()}
-                                                    disabled={isWaiting}
-                                                    autoFocus={true}
-                                                    aria-describedby={alertBanner ? 'login-body-card-banner' : undefined}
-                                                />
+                                                <div className='login-body-card-form-field'>
+                                                    <label
+                                                        className='login-body-card-form-label'
+                                                        htmlFor='input_loginId'
+                                                    >
+                                                        {getInputPlaceholder()}
+                                                    </label>
+                                                    <Input
+                                                        data-testid='login-id-input'
+                                                        ref={loginIdInput}
+                                                        name='loginId'
+                                                        containerClassName='login-body-card-form-input'
+                                                        type='text'
+                                                        inputSize={SIZE.LARGE}
+                                                        value={loginId}
+                                                        onChange={handleInputOnChange}
+                                                        hasError={Boolean(loginIdError) || (hasError && alertBanner?.mode === 'danger')}
+                                                        placeholder={getInputPlaceholder()}
+                                                        label={getInputPlaceholder()}
+                                                        useLegend={false}
+                                                        disabled={isWaiting}
+                                                        autoFocus={true}
+                                                        autoComplete='username'
+                                                        customMessage={loginIdError ? {type: 'error', value: loginIdError} : undefined}
+                                                        aria-describedby={alertBanner?.mode === 'danger' ? 'login-body-card-banner' : undefined}
+                                                    />
+                                                </div>
                                                 {(!enableGuestMagicLink || requiresPassword) && (
                                                     <>
-                                                        <PasswordInput
-                                                            ref={passwordInput}
-                                                            className='login-body-card-form-password-input'
-                                                            value={password}
-                                                            inputSize={SIZE.LARGE}
-                                                            onChange={handlePasswordInputOnChange}
-                                                            hasError={hasError}
-                                                            disabled={isWaiting}
-                                                        />
+                                                        <div className='login-body-card-form-field'>
+                                                            <label
+                                                                className='login-body-card-form-label'
+                                                                htmlFor='input_password-input'
+                                                            >
+                                                                {formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'})}
+                                                            </label>
+                                                            <PasswordInput
+                                                                ref={passwordInput}
+                                                                className='login-body-card-form-password-input'
+                                                                value={password}
+                                                                inputSize={SIZE.LARGE}
+                                                                onChange={handlePasswordInputOnChange}
+                                                                hasError={Boolean(passwordError) || (hasError && alertBanner?.mode === 'danger')}
+                                                                disabled={isWaiting}
+                                                                autoComplete='current-password'
+                                                                label={formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'})}
+                                                                useLegend={false}
+                                                                error={passwordError || undefined}
+                                                                aria-describedby={alertBanner?.mode === 'danger' ? 'login-body-card-banner' : undefined}
+                                                            />
+                                                        </div>
                                                         {getResetPasswordLink()}
                                                     </>
                                                 )}

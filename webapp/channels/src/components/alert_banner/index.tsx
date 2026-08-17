@@ -66,6 +66,13 @@ const AlertBanner = ({
         return <InformationOutlineIcon size={24}/>;
     }, [mode, customIcon]);
 
+    let liveRegion: 'assertive' | 'polite' | undefined;
+    if (mode === 'danger') {
+        liveRegion = 'assertive';
+    } else if (mode === 'warning') {
+        liveRegion = 'polite';
+    }
+
     const dismissButton = useMemo(() => {
         return (
             <button
@@ -88,6 +95,8 @@ const AlertBanner = ({
                 className,
                 `AlertBanner--${variant}`,
             )}
+            role={mode === 'danger' || mode === 'warning' ? 'alert' : undefined}
+            aria-live={liveRegion}
         >
             {!hideIcon && (
                 <div className='AlertBanner__icon'>

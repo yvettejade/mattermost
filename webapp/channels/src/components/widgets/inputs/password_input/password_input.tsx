@@ -25,6 +25,10 @@ type PasswordInputProps = {
     createMode?: boolean;
     disabled?: boolean;
     inputSize?: SIZE;
+    autoComplete?: string;
+    label?: string;
+    useLegend?: boolean;
+    'aria-describedby'?: string;
 };
 
 const PasswordInput = React.forwardRef((

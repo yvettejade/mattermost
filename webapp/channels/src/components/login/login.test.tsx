@@ -348,6 +348,96 @@ describe('components/login/Login', () => {
         expect(usernameInput).toHaveFocus();
     });
 
+    describe('accessibility (ANZ-23)', () => {
+        const emailLoginState = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                    },
+                },
+            },
+        });
+
+        it('associates visible labels and autocomplete with the login fields', () => {
+            renderWithContext(
+                <Login/>,
+                emailLoginState,
+            );
+
+            const loginIdInput = screen.getByLabelText('Email');
+            const passwordInput = screen.getByLabelText('Password');
+
+            expect(document.querySelector('label[for="input_loginId"]')).toHaveTextContent('Email');
+            expect(document.querySelector('label[for="input_password-input"]')).toHaveTextContent('Password');
+            expect(loginIdInput).toHaveAttribute('id', 'input_loginId');
+            expect(passwordInput).toHaveAttribute('id', 'input_password-input');
+            expect(loginIdInput).toHaveAttribute('autocomplete', 'username');
+            expect(passwordInput).toHaveAttribute('autocomplete', 'current-password');
+        });
+
+        it('gives the show/hide password control an accessible name', async () => {
+            renderWithContext(
+                <Login/>,
+                emailLoginState,
+            );
+
+            const toggle = screen.getByRole('button', {name: 'Show password'});
+            expect(toggle).toBeVisible();
+
+            await userEvent.click(toggle);
+
+            expect(screen.getByRole('button', {name: 'Hide password'})).toBeVisible();
+        });
+
+        it('announces a login-id error, ties it to the field, and focuses that field', async () => {
+            renderWithContext(
+                <Login/>,
+                emailLoginState,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            const loginIdInput = screen.getByLabelText('Email');
+            const alert = screen.getByRole('alert');
+
+            expect(alert).toHaveTextContent('Please enter your email');
+            expect(loginIdInput).toHaveAttribute('aria-invalid', 'true');
+            expect(loginIdInput).toHaveAttribute('aria-describedby', expect.stringContaining('error_loginId'));
+            expect(loginIdInput).toHaveFocus();
+        });
+
+        it('focuses the password field when it is the first error on submit', async () => {
+            renderWithContext(
+                <Login/>,
+                emailLoginState,
+            );
+
+            await userEvent.type(screen.getByLabelText('Email'), 'user@example.com');
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            const passwordInput = screen.getByLabelText('Password');
+            const alert = screen.getByRole('alert');
+
+            expect(alert).toHaveTextContent('Please enter your password');
+            expect(passwordInput).toHaveAttribute('aria-invalid', 'true');
+            expect(passwordInput).toHaveAttribute('aria-describedby', expect.stringContaining('error_password-input'));
+            expect(passwordInput).toHaveFocus();
+        });
+
+        it('announces session-expired copy with role=alert', async () => {
+            LocalStorageStore.setWasLoggedIn(true);
+            (showNotification as jest.Mock).mockReturnValue(() => Promise.resolve({status: 'success', callback: () => {}}));
+
+            renderWithContext(
+                <Login/>,
+                emailLoginState,
+            );
+
+            expect(await screen.findByRole('alert')).toHaveTextContent('Your session has expired. Please log in again.');
+        });
+    });
+
     it('should handle openid text and color props', () => {
         const state = mergeObjects(baseState, {
             entities: {
