@@ -291,6 +291,7 @@ describe('doesRouteBelongToTeamControllerRoutes', () => {
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/emoji/nop')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/integrations')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/emoji')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/online/cards')).toBe(true);
     });
 
     test('should return false for other of team_controller routes', () => {
