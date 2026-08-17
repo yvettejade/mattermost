@@ -76,7 +76,7 @@ describe('components/online_cards/OnlineCards', () => {
         await user.type(limit, '150');
         await user.tab();
 
-        expect(screen.getByTestId('online-cards-toast')).toHaveTextContent('Daily limit set to NZ$150.00 on Flexi Debit');
+        expect(screen.getByTestId('online-cards-toast')).toHaveTextContent('Daily limit set to $150.00 on Flexi Debit');
         expect(window.localStorage.getItem(ONLINE_CARD_CONTROLS_STORAGE_KEY)).toContain('"dailyLimitCents":15000');
 
         await user.clear(limit);
