@@ -246,6 +246,23 @@ describe('components/Root', () => {
             });
         });
 
+        test('should not show for the public international money page', async () => {
+            const props = {
+                ...landingProps,
+                ...{
+                    location: {
+                        pathname: '/international',
+                    },
+                } as RouteComponentProps,
+            };
+
+            renderWithContext(<Root {...props}/>);
+
+            await waitFor(() => {
+                expect(props.history.push).not.toHaveBeenCalled();
+            });
+        });
+
         test('should not show for Desktop App login flow', async () => {
             const props = {
                 ...landingProps,
@@ -287,6 +304,10 @@ describe('doesRouteBelongToTeamControllerRoutes', () => {
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/threads/efg')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/threads')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/drafts')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/online')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/online/cards')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/online/pay')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/online/transfer')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/integrations/klm')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/emoji/nop')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/integrations')).toBe(true);
