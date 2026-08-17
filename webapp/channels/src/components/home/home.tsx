@@ -12,7 +12,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 
-import HomeLoanSmallPrint from 'components/home_loan_rates/home_loan_small_print';
 import {
     formatHomeLoanRateLabel,
     formatHomeLoanSpecialLine,
@@ -21,6 +20,7 @@ import {
     HOME_LOAN_SPECIALS,
     HOME_LOANS_RATES_HASH,
 } from 'components/home_loan_rates/home_loan_rates';
+import HomeLoanSmallPrint from 'components/home_loan_rates/home_loan_small_print';
 import Header from 'components/widgets/header';
 
 import {HOME_LOANS_URL_SUFFIX, RATES_URL_SUFFIX} from 'utils/constants';
