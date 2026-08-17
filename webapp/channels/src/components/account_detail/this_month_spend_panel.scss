@@ -4,8 +4,8 @@
 .ThisMonthSpendPanel {
     padding: 16px;
     border: var(--border-default);
-    margin-top: 16px;
     border-radius: 8px;
+    margin-top: 16px;
     background: var(--center-channel-bg);
 
     &__heading {
@@ -24,8 +24,8 @@
     }
 
     &__caption {
-        caption-side: top;
         padding: 0 0 8px;
+        caption-side: top;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         text-align: left;
@@ -90,8 +90,8 @@
 
     &__other {
         padding-top: 12px;
-        margin-top: 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 12px;
     }
 
     &__otherHeading {
