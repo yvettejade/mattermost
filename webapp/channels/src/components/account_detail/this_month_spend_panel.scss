@@ -1,0 +1,116 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ThisMonthSpendPanel {
+    padding: 16px;
+    border: var(--border-default);
+    border-radius: 8px;
+    margin-top: 16px;
+    background: var(--center-channel-bg);
+
+    &__heading {
+        margin: 0 0 12px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__empty {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__caption {
+        padding: 0 0 8px;
+        caption-side: top;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        text-align: left;
+    }
+
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th,
+        td {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        thead th {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        tbody th {
+            font-weight: 600;
+        }
+
+        tfoot th,
+        tfoot td {
+            border-bottom: none;
+            font-weight: 600;
+        }
+    }
+
+    &__share {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__bar {
+        overflow: hidden;
+        width: 96px;
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+    }
+
+    &__barFill {
+        display: block;
+        height: 100%;
+        background: var(--button-bg);
+    }
+
+    &__percent {
+        min-width: 36px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+    }
+
+    &__other {
+        padding-top: 12px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 12px;
+    }
+
+    &__otherHeading {
+        margin: 0 0 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    &__otherList {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+
+        li {
+            padding: 4px 0;
+            font-size: 14px;
+        }
+    }
+}
