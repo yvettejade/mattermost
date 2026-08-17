@@ -133,6 +133,8 @@ export default function Online() {
                                     </span>
                                     <FormattedNumber
                                         value={account.available}
+
+                                        // eslint-disable-next-line react/style-prop-object
                                         style='currency'
                                         currency='AUD'
                                     />
