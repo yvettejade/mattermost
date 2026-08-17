@@ -29,10 +29,10 @@
         display: flex;
         flex-direction: column;
         padding: 24px;
-        gap: 8px;
         border: var(--border-default);
         border-radius: 8px;
         background: var(--center-channel-bg);
+        gap: 8px;
     }
 
     &__eyebrow,

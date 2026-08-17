@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-
 import {getRapidSaveProduct} from 'components/product_rates/product_rates';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import Home from './home';
 
