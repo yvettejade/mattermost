@@ -1,0 +1,224 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Online {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'body';
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    &__body {
+        display: flex;
+        overflow: auto;
+        flex-direction: column;
+        padding: 24px;
+        gap: 16px;
+        grid-area: body;
+    }
+
+    &__sectionTitle {
+        padding-bottom: 12px;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__accounts {
+        display: grid;
+        padding: 0;
+        margin: 0;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        list-style: none;
+    }
+
+    &__account {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        gap: 12px;
+
+        &.navy {
+            box-shadow: inset 4px 0 0 var(--button-bg);
+        }
+
+        &.green {
+            box-shadow: inset 4px 0 0 var(--online-indicator);
+        }
+
+        &.amber {
+            box-shadow: inset 4px 0 0 var(--away-indicator);
+        }
+
+        &.red {
+            box-shadow: inset 4px 0 0 var(--dnd-indicator);
+        }
+
+        &.teal {
+            box-shadow: inset 4px 0 0 var(--link-color);
+        }
+    }
+
+    &__accountMain {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__accountName {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__accountNumber,
+    &__accountAvailableLabel,
+    &__openHelp {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__accountAvailable {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 18px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 24px;
+    }
+
+    &__addAccount {
+        display: flex;
+        width: 100%;
+        min-height: 132px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.32);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        gap: 8px;
+        line-height: 20px;
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    &__addAccountPlus {
+        font-size: 28px;
+        font-weight: 400;
+        line-height: 32px;
+    }
+
+    &__openForm {
+        display: flex;
+        max-width: 480px;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        margin: 0;
+        border: none;
+        gap: 8px;
+    }
+
+    &__label {
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    &__colours {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    &__colourOption {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 6px;
+        line-height: 16px;
+    }
+
+    &__swatch {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+
+        &.navy {
+            background: var(--button-bg);
+        }
+
+        &.green {
+            background: var(--online-indicator);
+        }
+
+        &.amber {
+            background: var(--away-indicator);
+        }
+
+        &.red {
+            background: var(--dnd-indicator);
+        }
+
+        &.teal {
+            background: var(--link-color);
+        }
+    }
+
+    &__error {
+        margin: 0;
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-rows: 0 1fr;
+
+        > .Header {
+            display: none;
+        }
+    }
+}
