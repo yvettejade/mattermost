@@ -1,0 +1,130 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.OwnAccountTransfer {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'main';
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    &__main {
+        overflow: auto;
+        padding: 24px;
+        grid-area: main;
+    }
+
+    &__sectionTitle {
+        padding: 0;
+        margin: 0 0 12px;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__accountList,
+    &__transferList {
+        padding: 0;
+        margin: 0 0 24px;
+        list-style: none;
+    }
+
+    &__account {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: var(--border-light);
+        gap: 16px;
+    }
+
+    &__accountName {
+        padding: 0;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__accountType {
+        padding: 0;
+        margin: 4px 0 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__accountBalance {
+        padding: 0;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__form {
+        display: flex;
+        max-width: 420px;
+        flex-direction: column;
+        padding: 0 0 24px;
+        gap: 16px;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    &__label {
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    select,
+    input {
+        padding: 8px 12px;
+        border: var(--border-default);
+        border-radius: var(--radius-s);
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__status {
+        min-height: 20px;
+        padding: 0;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__empty {
+        padding: 0;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__transfer {
+        padding: 12px 0;
+        border-bottom: var(--border-light);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
