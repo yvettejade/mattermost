@@ -16,6 +16,7 @@ import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
+import CookieBanner from 'components/cookie_banner';
 import GlobalClassificationBanner from 'components/global_classification_banner';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
@@ -309,6 +310,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         return (
             <RootProvider>
+                <CookieBanner/>
                 <MobileViewWatcher/>
                 <LuxonController/>
                 <PerformanceReporterController/>
