@@ -7,6 +7,13 @@
         grid-area: header;
     }
 
+    &__headerActions {
+        display: flex;
+        align-items: center;
+        padding-right: 16px;
+        gap: 8px;
+    }
+
     .channel-header__icon,
     .search__form {
         margin-top: 1px;
