@@ -1,0 +1,146 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.LocateUs {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'body';
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    &__body {
+        display: flex;
+        overflow: auto;
+        flex-direction: column;
+        padding: 0 24px 24px;
+        margin: 0;
+        gap: 16px;
+        grid-area: body;
+    }
+
+    &__filters {
+        position: sticky;
+        z-index: 1;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 16px 0 12px;
+        border-bottom: var(--border-default);
+        margin: 0;
+        background: var(--center-channel-bg);
+        gap: 12px;
+    }
+
+    &__mobileTitle {
+        display: none;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    &__openNow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        gap: 12px;
+        line-height: 20px;
+    }
+
+    &__count {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        margin: 0;
+        gap: 12px;
+        list-style: none;
+    }
+
+    &__card {
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+    }
+
+    &__type,
+    &__city,
+    &__address,
+    &__hours {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__name {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__empty {
+        padding: 24px 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+    }
+
+    &__emptyTitle {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__emptyHint {
+        padding-top: 8px;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-rows: 0 1fr;
+
+        > .Header {
+            display: none;
+        }
+
+        &__mobileTitle {
+            display: block;
+        }
+
+        &__filters {
+            position: sticky;
+            top: 0;
+        }
+    }
+}
