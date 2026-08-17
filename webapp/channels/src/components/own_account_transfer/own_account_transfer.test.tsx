@@ -17,9 +17,10 @@ describe('components/own_account_transfer/OwnAccountTransfer', () => {
         renderWithContext(<OwnAccountTransfer/>);
 
         expect(screen.getByRole('heading', {name: 'Transfer'})).toBeInTheDocument();
-        expect(screen.getByText('YouMoney')).toBeInTheDocument();
-        expect(screen.getByText('Rapid Save')).toBeInTheDocument();
-        expect(screen.getByText('Online Account')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Your accounts'})).toBeInTheDocument();
+        expect(screen.getAllByText('YouMoney').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Rapid Save').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Online Account').length).toBeGreaterThan(0);
         expect(screen.getByText('$4,280.50')).toBeInTheDocument();
         expect(screen.getByText('$12,500.00')).toBeInTheDocument();
         expect(screen.getByText('$890.25')).toBeInTheDocument();

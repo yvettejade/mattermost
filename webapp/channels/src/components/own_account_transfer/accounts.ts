@@ -42,7 +42,7 @@ export function isOwnAccountId(value: string): value is OwnAccountId {
 
 export function parseAmountCents(raw: string): number | null {
     const trimmed = raw.trim();
-    if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+    if (!(/^\d+(\.\d{1,2})?$/).test(trimmed)) {
         return null;
     }
 

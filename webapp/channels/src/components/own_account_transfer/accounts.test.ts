@@ -101,7 +101,7 @@ describe('own_account_transfer/accounts', () => {
 
         expect(result.ok).toBe(true);
         const stored = loadOwnAccountTransferState(storage);
-        expect(stored.accounts.find((account) => account.id === 'youmoney')?.balanceCents).toBe(423025);
+        expect(stored.accounts.find((account) => account.id === 'youmoney')?.balanceCents).toBe(424025);
         expect(stored.accounts.find((account) => account.id === 'online-account')?.balanceCents).toBe(93050);
         expect(stored.transfers).toHaveLength(1);
         expect(storage.getItem(OWN_ACCOUNT_TRANSFER_STORAGE_KEY)).toContain('xfer-1786939500000');
