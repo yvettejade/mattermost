@@ -4,6 +4,7 @@
 import {
     cardsAndLoansSubtotal,
     everydaySubtotal,
+    formatAudFromCents,
     netPosition,
     ONLINE_ACCOUNTS,
     savingsSubtotal,
@@ -53,7 +54,7 @@ describe('online/accounts netPosition', () => {
             account({type: 'credit', balanceCents: 400}),
         ];
 
-        expect(netPosition(accounts)).toBe(1000 + 2000 + 3000 - 400);
+        expect(netPosition(accounts)).toBe((1000 + 2000 + 3000) - 400);
         expect(youHave(accounts)).toBe(6000);
         expect(youOwe(accounts)).toBe(400);
     });
@@ -69,6 +70,8 @@ describe('online/accounts netPosition', () => {
         expect(savingsSubtotal(ONLINE_ACCOUNTS)).toBe(1864000);
         expect(cardsAndLoansSubtotal(ONLINE_ACCOUNTS)).toBe(61240 + 41200000);
         expect(netPosition(ONLINE_ACCOUNTS)).toBe((428055 + 1864000) - 61240 - 41200000);
+        expect(formatAudFromCents(428055)).toBe('$4,280.55');
+        expect(formatAudFromCents(netPosition(ONLINE_ACCOUNTS))).toBe('-$389,691.85');
     });
 
     test('a term-deposit does not change the Everyday subtotal', () => {

@@ -33,11 +33,11 @@ describe('components/online/Online', () => {
 
         expect(screen.getByRole('heading', {name: 'Everyday money'})).toBeVisible();
         expect(screen.getByRole('heading', {name: 'Net position'})).toBeVisible();
-        expect(screen.getByTestId('online-position')).toHaveTextContent('-$393,681.85');
+        expect(screen.getByTestId('online-position')).toHaveTextContent('-$389,691.85');
         expect(screen.getByTestId('online-position')).not.toHaveTextContent('$435,532.95');
         expect(screen.getByTestId('online-you-have')).toHaveTextContent('You have $22,920.55');
         expect(screen.getByTestId('online-you-owe')).toHaveTextContent('You owe $412,612.40');
-        expect(netPosition(ONLINE_ACCOUNTS)).toBe(-39368185);
+        expect(netPosition(ONLINE_ACCOUNTS)).toBe(-38969185);
         expect(mockSelectLhsItem).toHaveBeenCalledWith(LhsItemType.Page, LhsPage.Drafts);
     });
 
@@ -49,9 +49,9 @@ describe('components/online/Online', () => {
         expect(screen.getByTestId('online-cards-loans-subtotal')).toHaveTextContent('$412,612.40');
         expect(screen.getByRole('heading', {name: 'Cards & loans'})).toBeVisible();
         expect(screen.getAllByTestId('online-account')).toHaveLength(4);
-        expect(screen.getByText('Everyday')).toBeVisible();
-        expect(screen.getByText('Savings')).toBeVisible();
-        expect(screen.getByText('Credit card')).toBeVisible();
-        expect(screen.getByText('Home loan')).toBeVisible();
+        expect(screen.getByRole('heading', {level: 4, name: 'Everyday'})).toBeVisible();
+        expect(screen.getByRole('heading', {level: 4, name: 'Savings'})).toBeVisible();
+        expect(screen.getByRole('heading', {level: 4, name: 'Credit card'})).toBeVisible();
+        expect(screen.getByRole('heading', {level: 4, name: 'Home loan'})).toBeVisible();
     });
 });

@@ -112,3 +112,10 @@ export function netPosition(accounts: Account[]): number {
     // balance. Always subtract the absolute amount so debt is never treated as cash.
     return youHave(accounts) - youOwe(accounts);
 }
+
+export function formatAudFromCents(amountCents: number): string {
+    return new Intl.NumberFormat('en-AU', {
+        style: 'currency',
+        currency: 'AUD',
+    }).format(amountCents / 100);
+}

@@ -3,7 +3,7 @@
 
 import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {selectLhsItem} from 'actions/views/lhs';
@@ -18,6 +18,7 @@ import {
     cardsAndLoansSubtotal,
     everydaySubtotal,
     EVERYDAY_TYPES,
+    formatAudFromCents,
     LIABILITY_TYPES,
     netPosition,
     ONLINE_ACCOUNTS,
@@ -29,18 +30,6 @@ import {
 } from './accounts';
 
 import './online.scss';
-
-function Money({cents}: {cents: number}) {
-    return (
-        <FormattedNumber
-            value={cents / 100}
-
-            // eslint-disable-next-line react/style-prop-object
-            style='currency'
-            currency='AUD'
-        />
-    );
-}
 
 function AccountRow({account, amountLabel}: {account: Account; amountLabel: ReactNode}) {
     return (
@@ -58,7 +47,7 @@ function AccountRow({account, amountLabel}: {account: Account; amountLabel: Reac
                 <span className='Online__accountAvailableLabel'>
                     {amountLabel}
                 </span>
-                <Money cents={Math.abs(account.balanceCents)}/>
+                {formatAudFromCents(Math.abs(account.balanceCents))}
             </p>
         </li>
     );
@@ -119,7 +108,7 @@ export default function Online() {
                         className='Online__positionValue'
                         data-testid='online-position'
                     >
-                        <Money cents={position}/>
+                        {formatAudFromCents(position)}
                     </p>
                     <p
                         className='Online__positionSplit'
@@ -129,14 +118,14 @@ export default function Online() {
                             <FormattedMessage
                                 id='online.overview.youHave'
                                 defaultMessage='You have {amount}'
-                                values={{amount: <Money cents={have}/>}}
+                                values={{amount: formatAudFromCents(have)}}
                             />
                         </span>
                         <span data-testid='online-you-owe'>
                             <FormattedMessage
                                 id='online.overview.youOwe'
                                 defaultMessage='You owe {amount}'
-                                values={{amount: <Money cents={owe}/>}}
+                                values={{amount: formatAudFromCents(owe)}}
                             />
                         </span>
                     </p>
@@ -156,7 +145,7 @@ export default function Online() {
                             className='Online__groupSubtotal'
                             data-testid='online-everyday-subtotal'
                         >
-                            <Money cents={everydaySubtotal(accounts)}/>
+                            {formatAudFromCents(everydaySubtotal(accounts))}
                         </p>
                     </div>
                     <ul
@@ -192,7 +181,7 @@ export default function Online() {
                             className='Online__groupSubtotal'
                             data-testid='online-savings-subtotal'
                         >
-                            <Money cents={savingsSubtotal(accounts)}/>
+                            {formatAudFromCents(savingsSubtotal(accounts))}
                         </p>
                     </div>
                     <ul
@@ -228,7 +217,7 @@ export default function Online() {
                             className='Online__groupSubtotal'
                             data-testid='online-cards-loans-subtotal'
                         >
-                            <Money cents={cardsAndLoansSubtotal(accounts)}/>
+                            {formatAudFromCents(cardsAndLoansSubtotal(accounts))}
                         </p>
                     </div>
                     <ul
