@@ -92,6 +92,18 @@ describe('ChannelHeaderText', () => {
         expect(container.childNodes.length).toBe(0);
     });
 
+    test('should offer Show more when a channel header exceeds two lines', () => {
+        const channel = TestHelper.getChannelMock({header: 'Line one\nLine two\nLine three'});
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Show more'})).toBeInTheDocument();
+    });
+
     test('should return null for public channels without header regardless of permissions', () => {
         const channel = TestHelper.getChannelMock({
             type: 'O',
