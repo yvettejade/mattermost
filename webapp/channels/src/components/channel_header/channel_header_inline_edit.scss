@@ -1,0 +1,96 @@
+.ChannelHeaderInlineEdit {
+    display: flex;
+    overflow: hidden;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+
+    &--editing {
+        overflow: visible;
+    }
+
+    &__view {
+        display: flex;
+        overflow: hidden;
+        min-width: 0;
+        flex: 1;
+        align-items: center;
+        padding: 0 4px;
+        border-radius: var(--radius-s);
+        gap: 4px;
+
+        &.editable {
+            cursor: pointer;
+
+            &:hover,
+            &:focus-within {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+        }
+
+        .header-description__text {
+            min-width: 0;
+            flex: 1;
+        }
+    }
+
+    &__edit-icon {
+        display: flex;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-s);
+        margin: 0;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        opacity: 0;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.88);
+        }
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &:hover &__edit-icon,
+    &:focus-within &__edit-icon {
+        opacity: 1;
+    }
+
+    &__editor {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        padding: 4px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-s);
+        background: var(--center-channel-bg);
+        gap: 6px;
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    &__error {
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__placeholder {
+        display: flex;
+        align-items: center;
+    }
+}

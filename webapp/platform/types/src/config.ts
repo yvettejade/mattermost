@@ -133,6 +133,7 @@ export type ClientConfig = {
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
     FeatureFlagManagedChannelCategories: string;
+    FeatureFlagChannelHeaderInlineEdit: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
