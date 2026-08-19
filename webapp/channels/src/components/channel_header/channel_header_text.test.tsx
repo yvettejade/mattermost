@@ -142,4 +142,109 @@ describe('ChannelHeaderText', () => {
 
         expect(container.childNodes.length).toBe(0);
     });
+
+    test('should render inline edit when the ChannelHeaderInlineEdit feature flag is on', () => {
+        const channel = TestHelper.getChannelMock({header: 'Flagged Header'});
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagChannelHeaderInlineEdit: 'true',
+                    },
+                },
+                channels: {
+                    myMembers: {
+                        [channel.id]: {channel_id: channel.id, roles: 'channel_role'},
+                    },
+                    roles: {
+                        [channel.id]: new Set(['channel_role']),
+                    },
+                },
+                teams: {
+                    myMembers: {
+                        [defaultTeamId]: {team_id: defaultTeamId, roles: 'team_role'},
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: {
+                            id: 'user_id',
+                            roles: 'system_role',
+                        },
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_role: {permissions: []},
+                        team_role: {permissions: []},
+                        channel_role: {permissions: ['manage_public_channel_properties']},
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            state,
+        );
+
+        expect(screen.getByText('Flagged Header')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Edit channel header'})).toBeInTheDocument();
+    });
+
+    test('should keep the add-header placeholder behind the feature flag', () => {
+        const channel = TestHelper.getChannelMock({header: ''});
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagChannelHeaderInlineEdit: 'true',
+                    },
+                },
+                channels: {
+                    myMembers: {
+                        [channel.id]: {channel_id: channel.id, roles: 'channel_role'},
+                    },
+                    roles: {
+                        [channel.id]: new Set(['channel_role']),
+                    },
+                },
+                teams: {
+                    myMembers: {
+                        [defaultTeamId]: {team_id: defaultTeamId, roles: 'team_role'},
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: {
+                            id: 'user_id',
+                            roles: 'system_role',
+                        },
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_role: {permissions: []},
+                        team_role: {permissions: []},
+                        channel_role: {permissions: ['manage_public_channel_properties']},
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            state,
+        );
+
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
+    });
 });
