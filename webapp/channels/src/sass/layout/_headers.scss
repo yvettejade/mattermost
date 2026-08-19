@@ -13,6 +13,11 @@
     background: functions.v(center-channel-bg);
     font-size: 14px;
 
+    &:has(.ChannelHeaderInlineEdit--editing) {
+        max-height: none;
+        overflow: visible;
+    }
+
     #channelHeaderDropdownButton {
         display: flex;
     }
@@ -387,6 +392,12 @@
         gap: 8px;
         line-height: 24px;
         text-overflow: ellipsis;
+
+        &:has(.ChannelHeaderInlineEdit--editing) {
+            overflow: visible;
+            height: auto;
+            min-height: 24px;
+        }
 
         span[data-emoticon] {
             .emoticon {
