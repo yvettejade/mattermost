@@ -14,8 +14,8 @@
     font-size: 14px;
 
     &:has(.ChannelHeaderInlineEdit--editing) {
-        max-height: none;
         overflow: visible;
+        max-height: none;
     }
 
     #channelHeaderDropdownButton {

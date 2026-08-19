@@ -26,7 +26,7 @@ jest.mock('components/textbox', () => ({
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     ...jest.requireActual('mattermost-redux/actions/channels'),
-    patchChannel: jest.fn(() => () => Promise.resolve({data: {}})),
+    patchChannel: jest.fn(),
 }));
 
 const mockPatchChannel = patchChannel as jest.MockedFunction<typeof patchChannel>;
@@ -35,7 +35,7 @@ describe('ChannelHeaderInlineEdit', () => {
     const channel = TestHelper.getChannelMock({header: 'Test Header'});
 
     beforeEach(() => {
-        mockPatchChannel.mockImplementation(() => () => Promise.resolve({data: {}}));
+        mockPatchChannel.mockImplementation(() => async () => ({data: channel}));
     });
 
     test('renders header markdown and an edit control when editable', () => {
