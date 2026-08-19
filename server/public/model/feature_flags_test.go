@@ -59,6 +59,14 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 	require.Equal(t, "false", flags.ToMap()["AttributeValueMasking"])
 }
 
+func TestFeatureFlagsSetDefaults_ChannelHeaderInlineEdit(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.ChannelHeaderInlineEdit, "ChannelHeaderInlineEdit should default to false")
+	require.Equal(t, "false", flags.ToMap()["ChannelHeaderInlineEdit"])
+}
+
 func TestFeatureFlagsToMapBool(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Flags            FeatureFlags
