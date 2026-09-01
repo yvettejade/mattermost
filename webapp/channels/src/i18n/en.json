@@ -3941,6 +3941,7 @@
   "channel_bookmarks.download": "Download",
   "channel_bookmarks.edit": "Edit",
   "channel_bookmarks.editBookmarkLabel": "Bookmark menu",
+  "channel_bookmarks.empty": "No bookmarks",
   "channel_bookmarks.open": "Open",
   "channel_bookmarks.overflowMenu": "{count, plural, one {# more bookmark} other {# more bookmarks}}",
   "channel_bookmarks.reorder.canceled": "Reorder canceled.",

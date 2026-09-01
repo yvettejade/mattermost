@@ -32,10 +32,9 @@ const Body = styled.div`
 `;
 
 export function getScheduledPostsForChannel(state: GlobalState, channelId: string): ScheduledPost[] {
-    const ids = state.entities.scheduledPosts.byChannelOrThreadId[channelId] || [];
-    return ids.
-        map((id) => state.entities.scheduledPosts.byId[id]).
-        filter((post): post is ScheduledPost => Boolean(post)).
+    // Index keys are root_id || channel_id, so thread replies live under the root post id.
+    return Object.values(state.entities.scheduledPosts.byId).
+        filter((post): post is ScheduledPost => Boolean(post) && post.channel_id === channelId).
         sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
 }
 

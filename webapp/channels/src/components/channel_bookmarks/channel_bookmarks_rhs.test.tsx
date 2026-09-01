@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Channel} from '@mattermost/types/channels';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitForElementToBeRemoved} from 'tests/react_testing_utils';
 
 import {ChannelBookmarksRhsView} from './channel_bookmarks_rhs';
 
@@ -26,29 +26,59 @@ describe('channel_bookmarks_rhs', () => {
 
     const goBack = jest.fn();
     const onClose = jest.fn();
-    const onAddBookmark = jest.fn();
+    const onAddLink = jest.fn();
+    const onAddFile = jest.fn();
 
     beforeEach(() => {
         goBack.mockClear();
         onClose.mockClear();
-        onAddBookmark.mockClear();
+        onAddLink.mockClear();
+        onAddFile.mockClear();
     });
 
-    test('shows empty list copy when there are no bookmarks', () => {
+    const defaultViewProps = {
+        channel,
+        canGoBack: true,
+        onClose,
+        goBack,
+        onAddLink,
+        onAddFile,
+        canUploadFiles: true,
+    };
+
+    test('shows empty list copy when there are no bookmarks and add is blocked', () => {
         renderWithContext(
             <ChannelBookmarksRhsView
-                channel={channel}
+                {...defaultViewProps}
                 bookmarks={[]}
                 canAdd={false}
-                canGoBack={true}
-                onClose={onClose}
-                goBack={goBack}
-                onAddBookmark={onAddBookmark}
             />,
         );
 
-        expect(screen.getByText('Add a bookmark')).toBeInTheDocument();
+        expect(screen.getByText('No bookmarks')).toBeInTheDocument();
+        expect(screen.queryByText('Add a bookmark')).not.toBeInTheDocument();
         expect(screen.queryByTestId(/bookmark-item-/)).not.toBeInTheDocument();
+    });
+
+    test('empty add control offers both link and file bookmarks', async () => {
+        renderWithContext(
+            <ChannelBookmarksRhsView
+                {...defaultViewProps}
+                bookmarks={[]}
+                canAdd={true}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Add a bookmark'}));
+
+        await userEvent.click(screen.getByText('Add a link'));
+        await waitForElementToBeRemoved(() => screen.queryByText('Add a link'));
+        expect(onAddLink).toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Add a bookmark'}));
+        await userEvent.click(screen.getByText('Attach a file'));
+        await waitForElementToBeRemoved(() => screen.queryByText('Attach a file'));
+        expect(onAddFile).toHaveBeenCalled();
     });
 
     test('renders existing bookmark items when populated', () => {
@@ -69,13 +99,9 @@ describe('channel_bookmarks_rhs', () => {
 
         renderWithContext(
             <ChannelBookmarksRhsView
-                channel={channel}
+                {...defaultViewProps}
                 bookmarks={bookmarks}
                 canAdd={true}
-                canGoBack={true}
-                onClose={onClose}
-                goBack={goBack}
-                onAddBookmark={onAddBookmark}
             />,
         );
 
@@ -86,13 +112,9 @@ describe('channel_bookmarks_rhs', () => {
     test('Back calls goBack', async () => {
         renderWithContext(
             <ChannelBookmarksRhsView
-                channel={channel}
+                {...defaultViewProps}
                 bookmarks={[]}
                 canAdd={false}
-                canGoBack={true}
-                onClose={onClose}
-                goBack={goBack}
-                onAddBookmark={onAddBookmark}
             />,
         );
 
