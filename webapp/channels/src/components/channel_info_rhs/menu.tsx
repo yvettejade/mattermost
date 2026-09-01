@@ -10,7 +10,7 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
-import {isScheduledPostsEnabled, showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
@@ -22,6 +22,8 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+
+import {getScheduledPostsForChannel} from './scheduled_posts_rhs';
 
 const MenuContainer = styled.nav`
     display: flex;
@@ -156,7 +158,7 @@ export default function Menu(props: MenuProps) {
     const bookmarks = useSelector((state: GlobalState) => getChannelBookmarks(state, channel.id));
     const bookmarkCount = Object.keys(bookmarks || {}).length;
     const scheduledPostsEnabled = useSelector(isScheduledPostsEnabled);
-    const scheduledPostsCount = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id).count);
+    const scheduledPostsCount = useSelector((state: GlobalState) => getScheduledPostsForChannel(state, channel.id).length);
 
     const unreadBadge = unreadCount.mentions > 0 ? `${unreadCount.messages} · @${unreadCount.mentions}` : unreadCount.messages;
 
