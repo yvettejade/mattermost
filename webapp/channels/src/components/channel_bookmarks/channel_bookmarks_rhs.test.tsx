@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-import type {Channel} from '@mattermost/types/channels';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+import type {Channel} from '@mattermost/types/channels';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
