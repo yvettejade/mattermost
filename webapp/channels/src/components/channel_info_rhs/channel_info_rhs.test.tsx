@@ -18,6 +18,12 @@ jest.mock('./about_area', () => (props: any) => {
     return <div>{'test-about-area'}</div>;
 });
 
+const mockMenu = jest.fn();
+jest.mock('./menu', () => (props: any) => {
+    mockMenu(props);
+    return <div>{'test-menu'}</div>;
+});
+
 describe('channel_info_rhs', () => {
     const OriginalProps = {
         channel: {display_name: 'my channel title', type: 'O'} as Channel,
@@ -33,6 +39,11 @@ describe('channel_info_rhs', () => {
         canManageMembers: true,
         canManageProperties: true,
         channelMembers: [],
+        unreadCount: {messages: 0, mentions: 0, hasUrgent: false},
+        isChannelBookmarksEnabled: true,
+        bookmarkCount: 2,
+        isScheduledPostsEnabled: true,
+        scheduledPostCount: 1,
         actions: {
             closeRightHandSide: jest.fn(),
             unfavoriteChannel: jest.fn(),
@@ -43,6 +54,8 @@ describe('channel_info_rhs', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
+            showChannelScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {}})),
         },
     };
@@ -51,6 +64,7 @@ describe('channel_info_rhs', () => {
     beforeEach(() => {
         props = {...OriginalProps};
         mockAboutArea.mockClear();
+        mockMenu.mockClear();
     });
 
     describe('about area', () => {
@@ -110,6 +124,34 @@ describe('channel_info_rhs', () => {
                 dialogProps: expect.objectContaining({
                     channel: props.channel,
                     teamName: 'team-1',
+                }),
+            }),
+        );
+    });
+
+    test('passes unread, bookmark, and scheduled post data and actions to Menu', async () => {
+        renderWithContext(
+            <ChannelInfoRHS
+                {...props}
+            />,
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        expect(mockMenu).toHaveBeenCalledWith(
+            expect.objectContaining({
+                unreadCount: props.unreadCount,
+                isChannelBookmarksEnabled: true,
+                bookmarkCount: 2,
+                isScheduledPostsEnabled: true,
+                scheduledPostCount: 1,
+                actions: expect.objectContaining({
+                    showChannelBookmarks: props.actions.showChannelBookmarks,
+                    showChannelScheduledPosts: props.actions.showChannelScheduledPosts,
+                    showChannelMembers: props.actions.showChannelMembers,
+                    showPinnedPosts: props.actions.showPinnedPosts,
                 }),
             }),
         );

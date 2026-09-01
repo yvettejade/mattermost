@@ -1,0 +1,45 @@
+.ChannelBookmarksRhs {
+    display: flex;
+    overflow: hidden;
+    flex: 1;
+    flex-direction: column;
+}
+
+.ChannelBookmarksRhs__body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.ChannelBookmarksRhs__add {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    cursor: pointer;
+    font-size: 14px;
+    gap: 8px;
+    text-align: left;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}
+
+.ChannelBookmarksRhs__list {
+    padding: 8px 0;
+    margin: 0;
+    list-style: none;
+}
+
+.ChannelBookmarksRhs__item {
+    padding: 4px 8px;
+}
+
+.ChannelBookmarksRhs__empty {
+    padding: 24px 16px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    text-align: center;
+}
