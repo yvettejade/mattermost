@@ -123,6 +123,30 @@ describe('channel_info_rhs/scheduled_posts_rhs', () => {
         expect(getScheduledPostsForChannel(state, 'channel-id').map((post) => post.id)).toEqual(['sp-current']);
     });
 
+    test('getScheduledPostsForChannel includes thread replies and failed posts', () => {
+        const state = {
+            entities: {
+                scheduledPosts: {
+                    byId: {
+                        'sp-channel': makeScheduledPost({id: 'sp-channel', channel_id: 'channel-id', scheduled_at: 200}),
+                        'sp-thread': makeScheduledPost({id: 'sp-thread', channel_id: 'channel-id', root_id: 'root-post', scheduled_at: 100}),
+                        'sp-failed': makeScheduledPost({id: 'sp-failed', channel_id: 'channel-id', error_code: 'unable_to_send', scheduled_at: 150}),
+                        'sp-other': makeScheduledPost({id: 'sp-other', channel_id: 'other-channel', scheduled_at: 50}),
+                    },
+                    byChannelOrThreadId: {
+                        'channel-id': ['sp-channel', 'sp-failed'],
+                        'root-post': ['sp-thread'],
+                        'other-channel': ['sp-other'],
+                    },
+                    byTeamId: {},
+                    errorsByTeamId: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getScheduledPostsForChannel(state, 'channel-id').map((post) => post.id)).toEqual(['sp-thread', 'sp-failed', 'sp-channel']);
+    });
+
     test('Back calls goBack', async () => {
         renderWithContext(
             <ScheduledPostsRhsView
