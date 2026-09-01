@@ -4,15 +4,10 @@
 import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
-
-import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
-import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
-import {isScheduledPostsEnabled, showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
-
-import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 
 import {
     act,
@@ -23,44 +18,76 @@ import {
 } from 'tests/react_testing_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 jest.mock('selectors/views/channel_settings', () => ({
     canAccessChannelSettings: jest.fn(),
 }));
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'OPEN_MODAL'})),
 }));
-jest.mock('components/channel_bookmarks/utils', () => ({
-    ...jest.requireActual('components/channel_bookmarks/utils'),
-    getIsChannelBookmarksEnabled: jest.fn(() => false),
-}));
-jest.mock('mattermost-redux/selectors/entities/channel_bookmarks', () => ({
-    ...jest.requireActual('mattermost-redux/selectors/entities/channel_bookmarks'),
-    getChannelBookmarks: jest.fn(() => ({})),
-}));
-jest.mock('mattermost-redux/selectors/entities/scheduled_posts', () => ({
-    ...jest.requireActual('mattermost-redux/selectors/entities/scheduled_posts'),
-    isScheduledPostsEnabled: jest.fn(() => false),
-    showChannelOrThreadScheduledPostIndicator: jest.fn(() => ({count: 0})),
-}));
-jest.mock('mattermost-redux/selectors/entities/channels', () => ({
-    ...jest.requireActual('mattermost-redux/selectors/entities/channels'),
-    makeGetChannelUnreadCount: jest.fn(() => jest.fn(() => ({
-        showUnread: false,
-        messages: 0,
-        mentions: 0,
-        hasUrgent: false,
-    }))),
-}));
 
 import Menu from './menu';
 
 const mockedCanAccessChannelSettings = canAccessChannelSettings as unknown as jest.Mock;
 const mockedOpenModal = openModal as unknown as jest.Mock;
-const mockedGetIsChannelBookmarksEnabled = getIsChannelBookmarksEnabled as unknown as jest.Mock;
-const mockedGetChannelBookmarks = getChannelBookmarks as unknown as jest.Mock;
-const mockedIsScheduledPostsEnabled = isScheduledPostsEnabled as unknown as jest.Mock;
-const mockedShowScheduledPostIndicator = showChannelOrThreadScheduledPostIndicator as unknown as jest.Mock;
-const mockedMakeGetChannelUnreadCount = makeGetChannelUnreadCount as unknown as jest.Mock;
+
+const bookmarksEnabledState: DeepPartial<GlobalState> = {
+    entities: {
+        general: {
+            config: {FeatureFlagChannelBookmarks: 'true'},
+            license: {IsLicensed: 'true'},
+        },
+        channelBookmarks: {
+            byChannelId: {
+                'channel-id': {
+                    bm1: {id: 'bm1'},
+                    bm2: {id: 'bm2'},
+                },
+            },
+        },
+    },
+};
+
+const scheduledPostsEnabledState: DeepPartial<GlobalState> = {
+    entities: {
+        general: {
+            config: {ScheduledPosts: 'true'},
+            license: {IsLicensed: 'true'},
+        },
+        scheduledPosts: {
+            byChannelOrThreadId: {
+                'channel-id': ['sp1', 'sp2', 'sp3', 'sp4'],
+            },
+            byId: {
+                sp1: {id: 'sp1'},
+                sp2: {id: 'sp2'},
+                sp3: {id: 'sp3'},
+                sp4: {id: 'sp4'},
+            },
+        },
+    },
+};
+
+const unreadState: DeepPartial<GlobalState> = {
+    entities: {
+        channels: {
+            messageCounts: {
+                'channel-id': {total: 10, root: 10},
+            },
+            myMembers: {
+                'channel-id': {
+                    channel_id: 'channel-id',
+                    user_id: 'user-id',
+                    msg_count: 3,
+                    msg_count_root: 3,
+                    mention_count: 2,
+                    mention_count_root: 2,
+                },
+            },
+        },
+    },
+};
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {
@@ -81,16 +108,6 @@ describe('channel_info_rhs/menu', () => {
     beforeEach(() => {
         mockedOpenModal.mockClear();
         mockedCanAccessChannelSettings.mockReset();
-        mockedGetIsChannelBookmarksEnabled.mockReturnValue(false);
-        mockedGetChannelBookmarks.mockReturnValue({});
-        mockedIsScheduledPostsEnabled.mockReturnValue(false);
-        mockedShowScheduledPostIndicator.mockReturnValue({count: 0});
-        mockedMakeGetChannelUnreadCount.mockReturnValue(jest.fn(() => ({
-            showUnread: false,
-            messages: 0,
-            mentions: 0,
-            hasUrgent: false,
-        })));
         defaultProps.actions = {
             openNotificationSettings: jest.fn(),
             showChannelFiles: jest.fn(),
@@ -263,17 +280,11 @@ describe('channel_info_rhs/menu', () => {
     });
 
     test('should display Unreads with messages and mentions badge', async () => {
-        mockedMakeGetChannelUnreadCount.mockReturnValue(jest.fn(() => ({
-            showUnread: true,
-            messages: 7,
-            mentions: 2,
-            hasUrgent: false,
-        })));
-
         renderWithContext(
             <Menu
                 {...defaultProps}
             />,
+            unreadState,
         );
 
         await act(async () => {
@@ -287,8 +298,6 @@ describe('channel_info_rhs/menu', () => {
     });
 
     test('should hide Bookmarks when the feature is disabled', async () => {
-        mockedGetIsChannelBookmarksEnabled.mockReturnValue(false);
-
         renderWithContext(
             <Menu
                 {...defaultProps}
@@ -303,16 +312,11 @@ describe('channel_info_rhs/menu', () => {
     });
 
     test('should display Bookmarks with count and open the sub-pane on click', async () => {
-        mockedGetIsChannelBookmarksEnabled.mockReturnValue(true);
-        mockedGetChannelBookmarks.mockReturnValue({
-            bm1: {id: 'bm1'},
-            bm2: {id: 'bm2'},
-        });
-
         renderWithContext(
             <Menu
                 {...defaultProps}
             />,
+            bookmarksEnabledState,
         );
 
         await act(async () => {
@@ -328,8 +332,6 @@ describe('channel_info_rhs/menu', () => {
     });
 
     test('should hide Scheduled posts when the feature is disabled', async () => {
-        mockedIsScheduledPostsEnabled.mockReturnValue(false);
-
         renderWithContext(
             <Menu
                 {...defaultProps}
@@ -344,13 +346,11 @@ describe('channel_info_rhs/menu', () => {
     });
 
     test('should display Scheduled posts with count and open the sub-pane on click', async () => {
-        mockedIsScheduledPostsEnabled.mockReturnValue(true);
-        mockedShowScheduledPostIndicator.mockReturnValue({count: 4});
-
         renderWithContext(
             <Menu
                 {...defaultProps}
             />,
+            scheduledPostsEnabledState,
         );
 
         await act(async () => {
