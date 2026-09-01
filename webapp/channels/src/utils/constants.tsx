@@ -991,6 +991,8 @@ export const RHSStates = {
     CHANNEL_FILES: 'channel-files',
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
+    CHANNEL_BOOKMARKS: 'channel-bookmarks',
+    CHANNEL_SCHEDULED_POSTS: 'channel-scheduled-posts',
     EDIT_HISTORY: 'edit-history',
 };
 

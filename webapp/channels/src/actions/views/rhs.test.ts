@@ -38,6 +38,8 @@ import {
     unsuppressRHS,
     goBack,
     showChannelMembers,
+    showChannelBookmarks,
+    showChannelScheduledPosts,
     openShowEditHistory,
     updateSearchTeam,
 } from 'actions/views/rhs';
@@ -447,6 +449,36 @@ describe('rhs view actions', () => {
                     type: ActionTypes.UPDATE_RHS_STATE,
                     channelId: currentChannelId,
                     state: RHSStates.CHANNEL_MEMBERS,
+                    previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelBookmarks', () => {
+        test('it dispatches UPDATE_RHS_STATE with previousRhsState', async () => {
+            await store.dispatch(showChannelBookmarks(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelScheduledPosts', () => {
+        test('it dispatches UPDATE_RHS_STATE with previousRhsState', async () => {
+            await store.dispatch(showChannelScheduledPosts(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_SCHEDULED_POSTS,
                     previousRhsState: null,
                 },
             ]);

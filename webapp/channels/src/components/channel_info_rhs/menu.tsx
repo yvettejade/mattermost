@@ -12,11 +12,18 @@ import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
+import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+
+export type ChannelUnreadCount = {
+    messages: number;
+    mentions: number;
+    hasUrgent: boolean;
+};
 
 const MenuContainer = styled.nav`
     display: flex;
@@ -69,6 +76,12 @@ const Badge = styled.div`
     place-content: center;
 `;
 
+const UnreadBadge = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+`;
+
 interface MenuItemProps {
     icon: JSX.Element;
     text: string;
@@ -109,6 +122,11 @@ interface MenuProps {
     channel: Channel;
     channelStats: ChannelStats;
     isArchived: boolean;
+    unreadCount: ChannelUnreadCount;
+    isChannelBookmarksEnabled: boolean;
+    bookmarkCount: number;
+    isScheduledPostsEnabled: boolean;
+    scheduledPostCount: number;
 
     className?: string;
 
@@ -117,6 +135,8 @@ interface MenuProps {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
+        showChannelBookmarks: (channelId: string) => void;
+        showChannelScheduledPosts: (channelId: string) => void;
         getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<{data: ChannelStats}>;
     };
 }
@@ -128,6 +148,11 @@ export default function Menu(props: MenuProps) {
         channel,
         channelStats,
         isArchived,
+        unreadCount,
+        isChannelBookmarksEnabled,
+        bookmarkCount,
+        isScheduledPostsEnabled,
+        scheduledPostCount,
         className,
         actions,
     } = props;
@@ -194,6 +219,26 @@ export default function Menu(props: MenuProps) {
                     onClick={actions.openNotificationSettings}
                 />
             )}
+            <MenuItem
+                id='channelInfoRHSUnreads'
+                icon={<i className='icon icon-mark-as-unread'/>}
+                text={formatMessage({
+                    id: 'channel_info_rhs.menu.unreads',
+                    defaultMessage: 'Unreads',
+                })}
+                badge={(
+                    <UnreadBadge>
+                        <span>{unreadCount.messages}</span>
+                        {unreadCount.mentions > 0 && (
+                            <ChannelMentionBadge
+                                unreadMentions={unreadCount.mentions}
+                                hasUrgent={unreadCount.hasUrgent}
+                            />
+                        )}
+                    </UnreadBadge>
+                )}
+                onClick={() => undefined}
+            />
             {showMembers && (
                 <MenuItem
                     icon={<i className='icon icon-account-outline'/>}
@@ -216,6 +261,32 @@ export default function Menu(props: MenuProps) {
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
+            {isChannelBookmarksEnabled && (
+                <MenuItem
+                    id='channelInfoRHSBookmarks'
+                    icon={<i className='icon icon-bookmark-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.bookmarks',
+                        defaultMessage: 'Bookmarks',
+                    })}
+                    opensSubpanel={true}
+                    badge={bookmarkCount}
+                    onClick={() => actions.showChannelBookmarks(channel.id)}
+                />
+            )}
+            {isScheduledPostsEnabled && (
+                <MenuItem
+                    id='channelInfoRHSScheduledPosts'
+                    icon={<i className='icon icon-clock-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.scheduled_posts',
+                        defaultMessage: 'Scheduled posts',
+                    })}
+                    opensSubpanel={true}
+                    badge={scheduledPostCount}
+                    onClick={() => actions.showChannelScheduledPosts(channel.id)}
+                />
+            )}
             <MenuItem
                 icon={<i className='icon icon-file-text-outline'/>}
                 text={formatMessage({
