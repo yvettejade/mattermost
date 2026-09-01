@@ -8,7 +8,7 @@ import {CollapsedThreads} from '@mattermost/types/config';
 import {Preferences} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {WindowSizes} from 'utils/constants';
+import {RHSStates, WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import RhsHeaderPost from './index';
@@ -129,5 +129,36 @@ describe('rhs_header_post', () => {
                 rootPostId='42'
             />, initialState);
         expect(screen.getByRole('button', {name: 'Following'})).toBeInTheDocument();
+    });
+
+    test.each([
+        RHSStates.PIN,
+        RHSStates.CHANNEL_SCHEDULED_POSTS,
+        RHSStates.CHANNEL_BOOKMARKS,
+        RHSStates.CHANNEL_INFO,
+        RHSStates.CHANNEL_FILES,
+        RHSStates.CHANNEL_MEMBERS,
+    ])('shows Back when previousRhsState is %s', (previousRhsState) => {
+        renderWithContext(
+            <RhsHeaderPost
+                {...baseProps}
+                previousRhsState={previousRhsState}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
+    });
+
+    test('hides Back when previousRhsState is not a returnable pane', () => {
+        renderWithContext(
+            <RhsHeaderPost
+                {...baseProps}
+                previousRhsState={RHSStates.PLUGIN}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByLabelText('Back Icon')).not.toBeInTheDocument();
     });
 });

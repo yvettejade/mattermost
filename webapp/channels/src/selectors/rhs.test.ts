@@ -85,6 +85,24 @@ describe('Selectors.Rhs', () => {
         });
     });
 
+    describe('canGoBackFromSelectedPost', () => {
+        test.each([
+            [RHSStates.SEARCH, true],
+            [RHSStates.MENTION, true],
+            [RHSStates.FLAG, true],
+            [RHSStates.PIN, true],
+            [RHSStates.CHANNEL_INFO, true],
+            [RHSStates.CHANNEL_MEMBERS, true],
+            [RHSStates.CHANNEL_FILES, true],
+            [RHSStates.CHANNEL_BOOKMARKS, true],
+            [RHSStates.CHANNEL_SCHEDULED_POSTS, true],
+            [RHSStates.PLUGIN, false],
+            [null, false],
+        ])('%p allows thread Back: %p', (rhsState, expected) => {
+            expect(Selectors.canGoBackFromSelectedPost(rhsState as RhsState)).toEqual(expected);
+        });
+    });
+
     describe('canGoBackFromChannelInfoRhs', () => {
         test.each([
             [[], false],

@@ -591,11 +591,14 @@ export function selectPostById(postId: string): ActionFuncAsync {
         const state = getState();
         const post: Post | undefined = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
         if (post && post.state !== 'DELETED' && post.delete_at === 0) {
-            const channel = getChannelSelector(state, post.channel_id);
+            const latestState = getState();
+            const channel = getChannelSelector(latestState, post.channel_id);
             if (!channel) {
                 await dispatch(getChannel(post.channel_id));
             }
-            dispatch(selectPost(post));
+
+            // Same back-stack path as Pins/Files: push the current RHS pane so Back can return.
+            dispatch(selectPostFromRightHandSideSearch(post));
             return {data: true};
         }
         return {data: false};
