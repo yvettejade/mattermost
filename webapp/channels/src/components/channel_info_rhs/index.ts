@@ -7,19 +7,23 @@ import type {AnyAction, Dispatch} from 'redux';
 
 import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
+import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
-import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats, makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {isScheduledPostsEnabled, showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesInCurrentChannel, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {muteChannel, unmuteChannel} from 'actions/channel_actions';
 import {openModal} from 'actions/views/modals';
-import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
+import {closeRightHandSide, showChannelBookmarks, showChannelFiles, showChannelMembers, showChannelScheduledPosts, showPinnedPosts} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isModalOpen} from 'selectors/views/modals';
+
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
@@ -36,11 +40,24 @@ const EMPTY_CHANNEL_STATS = {
     files_count: 0,
 };
 
+const EMPTY_UNREAD_COUNT = {
+    messages: 0,
+    mentions: 0,
+    hasUrgent: false,
+};
+
+const getChannelUnreadCount = makeGetChannelUnreadCount();
+
 function mapStateToProps(state: GlobalState) {
     const channel = getCurrentChannel(state);
     const currentUser = getCurrentUser(state);
     const currentTeam = getCurrentTeam(state);
     const channelStats = getCurrentChannelStats(state) || EMPTY_CHANNEL_STATS;
+    const unreadCount = channel ? getChannelUnreadCount(state, channel.id) : EMPTY_UNREAD_COUNT;
+    const isChannelBookmarksEnabled = getIsChannelBookmarksEnabled(state);
+    const bookmarkCount = channel ? Object.keys(getChannelBookmarks(state, channel.id)).length : 0;
+    const scheduledPostsEnabled = isScheduledPostsEnabled(state);
+    const scheduledPostCount = channel ? showChannelOrThreadScheduledPostIndicator(state, channel.id).count : 0;
     const isArchived = isCurrentChannelArchived(state);
     const isFavorite = isCurrentChannelFavorite(state);
     const isMuted = isCurrentChannelMuted(state);
@@ -69,6 +86,11 @@ function mapStateToProps(state: GlobalState) {
         canManageProperties,
         channelStats,
         channelMembers,
+        unreadCount,
+        isChannelBookmarksEnabled,
+        bookmarkCount,
+        isScheduledPostsEnabled: scheduledPostsEnabled,
+        scheduledPostCount,
     } as Props;
 
     if (channel?.type === Constants.DM_CHANNEL) {
@@ -96,6 +118,8 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             showChannelFiles,
             showPinnedPosts,
             showChannelMembers,
+            showChannelBookmarks,
+            showChannelScheduledPosts,
             getChannelStats,
         }, dispatch),
     };

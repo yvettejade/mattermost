@@ -28,7 +28,7 @@ import type {ModalData} from 'types/actions';
 
 import AboutArea from './about_area';
 import Header from './header';
-import Menu from './menu';
+import Menu, {type ChannelUnreadCount} from './menu';
 import TopButtons from './top_buttons';
 
 const Container = styled.div`
@@ -91,6 +91,11 @@ export interface Props {
     canManageProperties: boolean;
     dmUser?: DMUser;
     channelMembers: UserProfile[];
+    unreadCount: ChannelUnreadCount;
+    isChannelBookmarksEnabled: boolean;
+    bookmarkCount: number;
+    isScheduledPostsEnabled: boolean;
+    scheduledPostCount: number;
     actions: {
         closeRightHandSide: () => void;
         unfavoriteChannel: (channelId: string) => void;
@@ -101,6 +106,8 @@ export interface Props {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
+        showChannelBookmarks: (channelId: string) => void;
+        showChannelScheduledPosts: (channelId: string) => void;
         getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
     };
 }
@@ -120,6 +127,11 @@ const ChannelInfoRhs = ({
     channelMembers,
     canManageMembers,
     canManageProperties,
+    unreadCount,
+    isChannelBookmarksEnabled,
+    bookmarkCount,
+    isScheduledPostsEnabled,
+    scheduledPostCount,
     actions,
 }: Props) => {
     const currentUserId = currentUser.id;
@@ -269,11 +281,18 @@ const ChannelInfoRhs = ({
                         channel={channel}
                         channelStats={channelStats}
                         isArchived={isArchived}
+                        unreadCount={unreadCount}
+                        isChannelBookmarksEnabled={isChannelBookmarksEnabled}
+                        bookmarkCount={bookmarkCount}
+                        isScheduledPostsEnabled={isScheduledPostsEnabled}
+                        scheduledPostCount={scheduledPostCount}
                         actions={{
                             openNotificationSettings,
                             showChannelFiles: actions.showChannelFiles,
                             showPinnedPosts: actions.showPinnedPosts,
                             showChannelMembers: actions.showChannelMembers,
+                            showChannelBookmarks: actions.showChannelBookmarks,
+                            showChannelScheduledPosts: actions.showChannelScheduledPosts,
                             getChannelStats: actions.getChannelStats,
                         }}
                     />
