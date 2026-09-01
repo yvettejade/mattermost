@@ -64,6 +64,7 @@ const previousSelectedPost = {
     id: 'post123',
     channel_id: 'channel123',
     root_id: 'root123',
+    delete_at: 0,
 } as Post;
 
 const UserSelectors = require('mattermost-redux/selectors/entities/users');
@@ -88,7 +89,7 @@ jest.mock('mattermost-redux/actions/search', () => ({
 
 describe('rhs view actions', () => {
     const initialState = {
-            entities: {
+        entities: {
             channels: {
                 currentChannelId,
                 channels: {
