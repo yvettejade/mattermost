@@ -17,7 +17,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {muteChannel, unmuteChannel} from 'actions/channel_actions';
 import {openModal} from 'actions/views/modals';
-import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
+import {closeRightHandSide, showChannelBookmarks, showChannelFiles, showChannelMembers, showChannelScheduledPosts, showPinnedPosts} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -96,6 +96,8 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             showChannelFiles,
             showPinnedPosts,
             showChannelMembers,
+            showChannelBookmarks,
+            showChannelScheduledPosts,
             getChannelStats,
         }, dispatch),
     };
