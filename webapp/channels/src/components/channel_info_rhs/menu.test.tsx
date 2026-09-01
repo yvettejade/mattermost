@@ -60,10 +60,10 @@ const scheduledPostsEnabledState: DeepPartial<GlobalState> = {
                 'channel-id': ['sp1', 'sp2', 'sp3', 'sp4'],
             },
             byId: {
-                sp1: {id: 'sp1'},
-                sp2: {id: 'sp2'},
-                sp3: {id: 'sp3'},
-                sp4: {id: 'sp4'},
+                sp1: {id: 'sp1', channel_id: 'channel-id'},
+                sp2: {id: 'sp2', channel_id: 'channel-id'},
+                sp3: {id: 'sp3', channel_id: 'channel-id'},
+                sp4: {id: 'sp4', channel_id: 'channel-id'},
             },
         },
     },
@@ -363,6 +363,42 @@ describe('channel_info_rhs/menu', () => {
 
         await userEvent.click(scheduledItem);
         expect(defaultProps.actions.showChannelScheduledPosts).toHaveBeenCalledWith('channel-id');
+    });
+
+    test('should include thread and failed scheduled posts in the badge count', async () => {
+        const scheduledPostsWithThreadsAndErrors: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {ScheduledPosts: 'true'},
+                    license: {IsLicensed: 'true'},
+                },
+                scheduledPosts: {
+                    byChannelOrThreadId: {
+                        'channel-id': ['sp-channel'],
+                        'root-id': ['sp-thread'],
+                    },
+                    byId: {
+                        'sp-channel': {id: 'sp-channel', channel_id: 'channel-id', error_code: 'unable_to_send'},
+                        'sp-thread': {id: 'sp-thread', channel_id: 'channel-id', root_id: 'root-id'},
+                        'sp-other': {id: 'sp-other', channel_id: 'other-channel'},
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            scheduledPostsWithThreadsAndErrors,
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem.parentElement).toHaveTextContent('2');
     });
 
     test('should display Channel Settings and open modal on click (non-DM/GM, not archived, permitted)', async () => {
