@@ -38,6 +38,8 @@ import {
     unsuppressRHS,
     goBack,
     showChannelMembers,
+    showChannelBookmarks,
+    showChannelScheduledPosts,
     openShowEditHistory,
     updateSearchTeam,
 } from 'actions/views/rhs';
@@ -448,6 +450,44 @@ describe('rhs view actions', () => {
                     channelId: currentChannelId,
                     state: RHSStates.CHANNEL_MEMBERS,
                     previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelBookmarks', () => {
+        test('it dispatches the right actions with previousRhsState', async () => {
+            const state = cloneDeep(initialState);
+            set(state, 'views.rhs.rhsState', RHSStates.CHANNEL_INFO);
+            store = mockStore(state);
+
+            await store.dispatch(showChannelBookmarks(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: RHSStates.CHANNEL_INFO,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelScheduledPosts', () => {
+        test('it dispatches the right actions with previousRhsState', async () => {
+            const state = cloneDeep(initialState);
+            set(state, 'views.rhs.rhsState', RHSStates.CHANNEL_INFO);
+            store = mockStore(state);
+
+            await store.dispatch(showChannelScheduledPosts(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                    previousRhsState: RHSStates.CHANNEL_INFO,
                 },
             ]);
         });
