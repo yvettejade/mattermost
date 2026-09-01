@@ -11,8 +11,8 @@ import type {Team} from '@mattermost/types/teams';
 
 import ChannelBookmarksRhs from 'components/channel_bookmarks/channel_bookmarks_rhs';
 import ChannelInfoRhs from 'components/channel_info_rhs';
-import ChannelMembersRhs from 'components/channel_members_rhs';
 import ScheduledPostsRhs from 'components/channel_info_rhs/scheduled_posts_rhs';
+import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';

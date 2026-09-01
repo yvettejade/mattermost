@@ -156,7 +156,7 @@ export default function Menu(props: MenuProps) {
     const bookmarks = useSelector((state: GlobalState) => getChannelBookmarks(state, channel.id));
     const bookmarkCount = Object.keys(bookmarks || {}).length;
     const scheduledPostsEnabled = useSelector(isScheduledPostsEnabled);
-    const scheduledPostsIndicator = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id));
+    const scheduledPostsCount = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id).count);
 
     const unreadBadge = unreadCount.mentions > 0 ? `${unreadCount.messages} · @${unreadCount.mentions}` : unreadCount.messages;
 
@@ -265,7 +265,7 @@ export default function Menu(props: MenuProps) {
                         defaultMessage: 'Scheduled posts',
                     })}
                     opensSubpanel={true}
-                    badge={scheduledPostsIndicator.count}
+                    badge={scheduledPostsCount}
                     onClick={() => actions.showChannelScheduledPosts(channel.id)}
                 />
             )}
