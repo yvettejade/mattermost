@@ -147,6 +147,25 @@ describe('channel_info_rhs/scheduled_posts_rhs', () => {
         expect(getScheduledPostsForChannel(state, 'channel-id').map((post) => post.id)).toEqual(['sp-thread', 'sp-failed', 'sp-channel']);
     });
 
+    test('getScheduledPostsForChannel returns a stable reference when inputs are unchanged', () => {
+        const state = {
+            entities: {
+                scheduledPosts: {
+                    byId: {
+                        'sp-current': makeScheduledPost({id: 'sp-current', channel_id: 'channel-id'}),
+                    },
+                    byChannelOrThreadId: {
+                        'channel-id': ['sp-current'],
+                    },
+                    byTeamId: {},
+                    errorsByTeamId: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getScheduledPostsForChannel(state, 'channel-id')).toBe(getScheduledPostsForChannel(state, 'channel-id'));
+    });
+
     test('Back calls goBack', async () => {
         renderWithContext(
             <ScheduledPostsRhsView
