@@ -8,6 +8,8 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
+import {canGoBackFromSelectedPost} from 'selectors/rhs';
+
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -44,15 +46,8 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     handleBack = (e: React.MouseEvent) => {
         e.preventDefault();
 
-        switch (this.props.previousRhsState) {
-        case RHSStates.SEARCH:
-        case RHSStates.MENTION:
-        case RHSStates.FLAG:
-        case RHSStates.PIN:
+        if (canGoBackFromSelectedPost(this.props.previousRhsState ?? null)) {
             this.props.goBack();
-            break;
-        default:
-            break;
         }
     };
 
@@ -125,6 +120,46 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 <FormattedMessage
                     id='rhs_header.backToPinnedTooltip'
                     defaultMessage='Back to pinned messages'
+                />
+            );
+            break;
+        case RHSStates.CHANNEL_INFO:
+            backToResultsTooltip = (
+                <FormattedMessage
+                    id='rhs_header.backToChannelInfoTooltip'
+                    defaultMessage='Back to channel info'
+                />
+            );
+            break;
+        case RHSStates.CHANNEL_MEMBERS:
+            backToResultsTooltip = (
+                <FormattedMessage
+                    id='rhs_header.backToMembersTooltip'
+                    defaultMessage='Back to members'
+                />
+            );
+            break;
+        case RHSStates.CHANNEL_FILES:
+            backToResultsTooltip = (
+                <FormattedMessage
+                    id='rhs_header.backToFilesTooltip'
+                    defaultMessage='Back to files'
+                />
+            );
+            break;
+        case RHSStates.CHANNEL_BOOKMARKS:
+            backToResultsTooltip = (
+                <FormattedMessage
+                    id='rhs_header.backToBookmarksTooltip'
+                    defaultMessage='Back to bookmarks'
+                />
+            );
+            break;
+        case RHSStates.CHANNEL_SCHEDULED_POSTS:
+            backToResultsTooltip = (
+                <FormattedMessage
+                    id='rhs_header.backToScheduledPostsTooltip'
+                    defaultMessage='Back to scheduled posts'
                 />
             );
             break;

@@ -445,6 +445,41 @@ describe('Reducers.RHS', () => {
         });
     });
 
+    test(`should clear previousRhsStates on ${ActionTypes.SELECT_POST} without previousRhsState`, () => {
+        const nextState = rhsReducer(
+            {
+                rhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                previousRhsStates: [RHSStates.CHANNEL_INFO, RHSStates.CHANNEL_SCHEDULED_POSTS],
+            },
+            {
+                type: ActionTypes.SELECT_POST,
+                postId: '123',
+                channelId: '321',
+            },
+        );
+
+        expect(nextState.previousRhsStates).toEqual([]);
+    });
+
+    test(`should keep CHANNEL_SCHEDULED_POSTS on the back stack when selecting a post`, () => {
+        const nextState = rhsReducer(
+            {
+                rhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                previousRhsStates: [RHSStates.CHANNEL_INFO],
+            },
+            {
+                type: ActionTypes.SELECT_POST,
+                postId: '123',
+                channelId: '321',
+                previousRhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
+            },
+        );
+
+        expect(nextState.previousRhsStates).toEqual([RHSStates.CHANNEL_INFO, RHSStates.CHANNEL_SCHEDULED_POSTS]);
+        expect(nextState.rhsState).toEqual(null);
+        expect(nextState.selectedPostId).toEqual('123');
+    });
+
     test(`should wipe rhsState on ${ActionTypes.SELECT_POST_CARD}`, () => {
         const nextState = rhsReducer(
             {

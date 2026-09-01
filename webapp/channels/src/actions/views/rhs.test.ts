@@ -18,6 +18,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {
     updateRhsState,
     selectPostFromRightHandSideSearch,
+    selectPostById,
     selectPostAndHighlight,
     updateSearchTerms,
     performSearch,
@@ -87,9 +88,12 @@ jest.mock('mattermost-redux/actions/search', () => ({
 
 describe('rhs view actions', () => {
     const initialState = {
-        entities: {
+            entities: {
             channels: {
                 currentChannelId,
+                channels: {
+                    channel123: TestHelper.getChannelMock({id: 'channel123'}),
+                },
             },
             teams: {
                 currentTeamId,
@@ -160,6 +164,66 @@ describe('rhs view actions', () => {
             };
 
             expect(store.getActions()).toEqual([action]);
+        });
+    });
+
+    describe('selectPostById', () => {
+        test('pushes CHANNEL_SCHEDULED_POSTS so Back can return to the pane', async () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        rhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                    },
+                },
+            });
+
+            await store.dispatch(selectPostById(previousSelectedPost.id));
+
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.SELECT_POST,
+                postId: previousSelectedPost.root_id,
+                channelId: previousSelectedPost.channel_id,
+                previousRhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                timestamp: POST_CREATED_TIME,
+            }]);
+        });
+
+        test('pushes CHANNEL_BOOKMARKS so Back can return to the pane', async () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        rhsState: RHSStates.CHANNEL_BOOKMARKS,
+                    },
+                },
+            });
+
+            await store.dispatch(selectPostById(previousSelectedPost.id));
+
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.SELECT_POST,
+                postId: previousSelectedPost.root_id,
+                channelId: previousSelectedPost.channel_id,
+                previousRhsState: RHSStates.CHANNEL_BOOKMARKS,
+                timestamp: POST_CREATED_TIME,
+            }]);
+        });
+
+        test('does not invent a previousRhsState when no pane is open', async () => {
+            await store.dispatch(selectPostById(previousSelectedPost.id));
+
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.SELECT_POST,
+                postId: previousSelectedPost.root_id,
+                channelId: previousSelectedPost.channel_id,
+                previousRhsState: null,
+                timestamp: POST_CREATED_TIME,
+            }]);
         });
     });
 

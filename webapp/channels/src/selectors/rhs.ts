@@ -140,12 +140,23 @@ const CHANNEL_INFO_RELATED_RHS_STATES: ReadonlySet<string> = new Set([
     RHSStates.CHANNEL_SCHEDULED_POSTS,
 ]);
 
+const SELECTED_POST_BACK_RHS_STATES: ReadonlySet<string> = new Set([
+    RHSStates.SEARCH,
+    RHSStates.MENTION,
+    RHSStates.FLAG,
+    ...CHANNEL_INFO_RELATED_RHS_STATES,
+]);
+
 export function isChannelInfoRelatedRhsState(rhsState: RhsState): boolean {
     return rhsState !== null && CHANNEL_INFO_RELATED_RHS_STATES.has(rhsState);
 }
 
 export function canGoBackFromChannelInfoRhs(state: GlobalState): boolean {
     return isChannelInfoRelatedRhsState(getPreviousRhsState(state));
+}
+
+export function canGoBackFromSelectedPost(previousRhsState: RhsState): boolean {
+    return previousRhsState !== null && SELECTED_POST_BACK_RHS_STATES.has(previousRhsState);
 }
 
 export function getSearchTerms(state: GlobalState): string {
