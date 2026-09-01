@@ -145,6 +145,8 @@ function mapStateToProps(state: GlobalState) {
     const prevRhsState = getPreviousRhsState(state);
     const hasInfoPrevState = prevRhsState === RHSStates.CHANNEL_INFO ||
         prevRhsState === RHSStates.CHANNEL_FILES ||
+        prevRhsState === RHSStates.CHANNEL_BOOKMARKS ||
+        prevRhsState === RHSStates.CHANNEL_SCHEDULED_POSTS ||
         prevRhsState === RHSStates.PIN;
 
     const canGoBack = Boolean(hasInfoPrevState);
