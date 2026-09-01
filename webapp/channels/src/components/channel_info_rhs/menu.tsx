@@ -176,8 +176,7 @@ export default function Menu(props: MenuProps) {
     const bookmarks = useSelector((state: GlobalState) => getChannelBookmarks(state, channel.id));
     const bookmarkCount = Object.keys(bookmarks).length;
     const scheduledPostsEnabled = useSelector(isScheduledPostsEnabled);
-    const scheduledPostsIndicator = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id));
-    const scheduledPostCount = scheduledPostsIndicator.count;
+    const scheduledPostCount = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id).count);
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {

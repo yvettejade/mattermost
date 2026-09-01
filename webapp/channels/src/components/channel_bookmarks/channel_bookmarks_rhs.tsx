@@ -12,8 +12,8 @@ import {
     PlusIcon,
 } from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {Channel} from '@mattermost/types/channels';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+import type {Channel} from '@mattermost/types/channels';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';

@@ -11,6 +11,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -32,6 +33,7 @@ import 'components/drafts/scheduled_post_list/scheduled_post_list.scss';
 import './scheduled_posts_rhs.scss';
 
 const emptyIds: string[] = [];
+const emptyScheduledPosts: ScheduledPost[] = [];
 
 export type Props = {
     channel: Channel;
@@ -151,20 +153,24 @@ export function ChannelScheduledPostsRhs({
     );
 }
 
-function getScheduledPostsForChannel(state: GlobalState, channelId: string): ScheduledPost[] {
-    const ids = state.entities.scheduledPosts.byChannelOrThreadId[channelId] || emptyIds;
-    const posts: ScheduledPost[] = [];
+const getScheduledPostsForChannel = createSelector(
+    'getScheduledPostsForChannel',
+    (state: GlobalState, channelId: string) => state.entities.scheduledPosts.byChannelOrThreadId[channelId] || emptyIds,
+    (state: GlobalState) => state.entities.scheduledPosts.byId,
+    (ids, byId) => {
+        const posts: ScheduledPost[] = [];
 
-    ids.forEach((id) => {
-        const scheduledPost = state.entities.scheduledPosts.byId[id];
-        if (scheduledPost) {
-            posts.push(scheduledPost);
-        }
-    });
+        ids.forEach((id) => {
+            const scheduledPost = byId[id];
+            if (scheduledPost) {
+                posts.push(scheduledPost);
+            }
+        });
 
-    posts.sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
-    return posts;
-}
+        posts.sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
+        return posts;
+    },
+);
 
 function ChannelScheduledPostsRhsContainer() {
     const dispatch = useDispatch();
@@ -175,7 +181,7 @@ function ChannelScheduledPostsRhsContainer() {
         previousRhsState === RHSStates.PIN ||
         previousRhsState === RHSStates.CHANNEL_MEMBERS;
     const scheduledPosts = useSelector((state: GlobalState) => (
-        channel ? getScheduledPostsForChannel(state, channel.id) : []
+        channel ? getScheduledPostsForChannel(state, channel.id) : emptyScheduledPosts
     ));
     const currentUser = useSelector(getCurrentUser);
     const userStatus = useSelector((state: GlobalState) => getStatusForUserId(state, currentUser.id));
