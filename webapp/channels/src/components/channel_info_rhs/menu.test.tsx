@@ -417,6 +417,49 @@ describe('channel_info_rhs/menu', () => {
         expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
     });
 
+    test('should include thread replies and error_code posts in the Scheduled posts badge', async () => {
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            ScheduledPosts: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                        },
+                    },
+                    scheduledPosts: {
+                        byId: {
+                            'sp-channel': {id: 'sp-channel', channel_id: 'channel_id', root_id: '', scheduled_at: 3, create_at: 1},
+                            'sp-thread': {id: 'sp-thread', channel_id: 'channel_id', root_id: 'root_post_id', scheduled_at: 2, create_at: 1},
+                            'sp-error': {id: 'sp-error', channel_id: 'channel_id', root_id: '', error_code: 'unable_to_send', scheduled_at: 1, create_at: 1},
+                            'sp-other': {id: 'sp-other', channel_id: 'other_channel', root_id: '', scheduled_at: 4, create_at: 1},
+                        },
+                        byChannelOrThreadId: {
+                            channel_id: ['sp-channel'],
+                            root_post_id: ['sp-thread'],
+                            other_channel: ['sp-other'],
+                        },
+                    },
+                },
+            },
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem).toBeInTheDocument();
+        expect(scheduledItem.parentElement).toHaveTextContent('3');
+    });
+
     test('should display Scheduled posts and open the sub-pane on click when enabled', async () => {
         const props = {...defaultProps};
         props.actions.showChannelScheduledPosts = jest.fn();
