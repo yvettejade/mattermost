@@ -50,6 +50,8 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
         isChannelFiles: rhsState === RHSStates.CHANNEL_FILES,
         isChannelInfo: rhsState === RHSStates.CHANNEL_INFO,
         isChannelMembers: rhsState === RHSStates.CHANNEL_MEMBERS,
+        isChannelBookmarks: rhsState === RHSStates.CHANNEL_BOOKMARKS,
+        isChannelScheduledPosts: rhsState === RHSStates.CHANNEL_SCHEDULED_POSTS,
         isPluginView: rhsState === RHSStates.PLUGIN,
         isPostEditHistory: rhsState === RHSStates.EDIT_HISTORY,
         isRecentMention: rhsState === RHSStates.MENTION,

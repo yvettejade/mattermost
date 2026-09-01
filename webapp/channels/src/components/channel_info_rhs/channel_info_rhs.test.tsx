@@ -18,6 +18,12 @@ jest.mock('./about_area', () => (props: any) => {
     return <div>{'test-about-area'}</div>;
 });
 
+const mockMenu = jest.fn();
+jest.mock('./menu', () => (props: any) => {
+    mockMenu(props);
+    return <div>{'test-menu'}</div>;
+});
+
 describe('channel_info_rhs', () => {
     const OriginalProps = {
         channel: {display_name: 'my channel title', type: 'O'} as Channel,
@@ -43,6 +49,8 @@ describe('channel_info_rhs', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
+            showChannelScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {}})),
         },
     };
@@ -51,6 +59,7 @@ describe('channel_info_rhs', () => {
     beforeEach(() => {
         props = {...OriginalProps};
         mockAboutArea.mockClear();
+        mockMenu.mockClear();
     });
 
     describe('about area', () => {
@@ -113,5 +122,22 @@ describe('channel_info_rhs', () => {
                 }),
             }),
         );
+    });
+
+    test('passes bookmark and scheduled-post actions through to Menu', async () => {
+        renderWithContext(
+            <ChannelInfoRHS
+                {...props}
+            />,
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        expect(mockMenu).toHaveBeenCalled();
+        const menuProps = mockMenu.mock.calls[mockMenu.mock.calls.length - 1][0];
+        expect(menuProps.actions.showChannelBookmarks).toBe(props.actions.showChannelBookmarks);
+        expect(menuProps.actions.showChannelScheduledPosts).toBe(props.actions.showChannelScheduledPosts);
     });
 });
