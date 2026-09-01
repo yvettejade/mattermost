@@ -10,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -31,12 +32,23 @@ const Body = styled.div`
     min-height: 0;
 `;
 
-export function getScheduledPostsForChannel(state: GlobalState, channelId: string): ScheduledPost[] {
-    // Index keys are root_id || channel_id, so thread replies live under the root post id.
-    return Object.values(state.entities.scheduledPosts.byId).
-        filter((post): post is ScheduledPost => Boolean(post) && post.channel_id === channelId).
-        sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
+const EMPTY_SCHEDULED_POSTS: ScheduledPost[] = [];
+
+export function makeGetScheduledPostsForChannel() {
+    return createSelector(
+        'makeGetScheduledPostsForChannel',
+        (state: GlobalState) => state.entities.scheduledPosts.byId,
+        (_state: GlobalState, channelId: string) => channelId,
+        (byId, channelId): ScheduledPost[] => {
+            // Index keys are root_id || channel_id, so thread replies live under the root post id.
+            return Object.values(byId).
+                filter((post): post is ScheduledPost => Boolean(post) && post.channel_id === channelId).
+                sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
+        },
+    );
 }
+
+export const getScheduledPostsForChannel = makeGetScheduledPostsForChannel();
 
 export type ScheduledPostsRhsViewProps = {
     channel: Channel;
@@ -92,8 +104,9 @@ export default function ScheduledPostsRhs() {
     const dispatch = useDispatch();
     const channel = useSelector(getCurrentChannel);
     const previousRhsState = useSelector(getPreviousRhsState);
+    const getScheduledPosts = useMemo(() => makeGetScheduledPostsForChannel(), []);
     const scheduledPosts = useSelector((state: GlobalState) => (
-        channel ? getScheduledPostsForChannel(state, channel.id) : []
+        channel ? getScheduledPosts(state, channel.id) : EMPTY_SCHEDULED_POSTS
     ));
     const currentUser = useSelector(getCurrentUser);
     const userStatus = useSelector((state: GlobalState) => getStatusForUserId(state, currentUser.id));
