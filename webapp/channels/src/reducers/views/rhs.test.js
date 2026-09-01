@@ -461,7 +461,7 @@ describe('Reducers.RHS', () => {
         expect(nextState.previousRhsStates).toEqual([]);
     });
 
-    test(`should keep CHANNEL_SCHEDULED_POSTS on the back stack when selecting a post`, () => {
+    test('should keep CHANNEL_SCHEDULED_POSTS on the back stack when selecting a post', () => {
         const nextState = rhsReducer(
             {
                 rhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
