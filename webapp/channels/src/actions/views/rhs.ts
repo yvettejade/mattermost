@@ -79,6 +79,8 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
             RHSStates.CHANNEL_FILES,
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
+            RHSStates.CHANNEL_BOOKMARKS,
+            RHSStates.CHANNEL_SCHEDULED_POSTS,
         ].includes(rhsState)) {
             action.channelId = channelId || getCurrentChannelId(getState());
         }
@@ -288,6 +290,44 @@ export function showChannelMembers(channelId: string, inEditingMode = false): Ac
             type: ActionTypes.UPDATE_RHS_STATE,
             channelId,
             state: RHSStates.CHANNEL_MEMBERS,
+            previousRhsState,
+        });
+
+        return {data: true};
+    };
+}
+
+export function showChannelBookmarks(channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.CHANNEL_BOOKMARKS) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            state: RHSStates.CHANNEL_BOOKMARKS,
+            previousRhsState,
+        });
+
+        return {data: true};
+    };
+}
+
+export function showChannelScheduledPosts(channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.CHANNEL_SCHEDULED_POSTS) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            state: RHSStates.CHANNEL_SCHEDULED_POSTS,
             previousRhsState,
         });
 
@@ -620,6 +660,14 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
             return dispatch(showChannelMembers(currentChannelId));
+        }
+        if (previous.isChannelBookmarks) {
+            const currentChannelId = getCurrentChannelId(getState());
+            return dispatch(showChannelBookmarks(currentChannelId));
+        }
+        if (previous.isChannelScheduledPosts) {
+            const currentChannelId = getCurrentChannelId(getState());
+            return dispatch(showChannelScheduledPosts(currentChannelId));
         }
         if (previous.isMentionSearch) {
             return dispatch(showMentions());
