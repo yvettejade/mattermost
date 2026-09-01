@@ -6,7 +6,7 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 ## What Is Baked Into The Image
 
-- Ubuntu 24.04.
+- Ubuntu 24.04 from `public.ecr.aws/ubuntu/ubuntu:24.04` (not Docker Hub; Cloud Agent builders have been failing to fetch `ubuntu:24.04` blobs from `docker-images-prod.s3.dualstack`).
 - Docker CE 28.5.2 with `fuse-overlayfs` and `iptables-legacy`, matching Cursor's Docker-in-Cloud guidance for complex compose setups.
 - Go 1.25.9 from `server/.go-version`.
 - Node 24.11.1/npm 11 via nvm, matching `.nvmrc` and `webapp/package.json`.

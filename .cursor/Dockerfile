@@ -1,4 +1,6 @@
-FROM ubuntu:24.04
+# Cursor Cloud builders fail to pull docker.io/library/ubuntu:24.04 when Docker Hub's
+# S3 dualstack blob fetch EOFs. Use Canonical's Ubuntu image on ECR Public instead.
+FROM public.ecr.aws/ubuntu/ubuntu:24.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
