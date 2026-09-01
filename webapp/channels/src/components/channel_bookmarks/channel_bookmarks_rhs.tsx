@@ -7,8 +7,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {Channel} from '@mattermost/types/channels';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+import type {Channel} from '@mattermost/types/channels';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
