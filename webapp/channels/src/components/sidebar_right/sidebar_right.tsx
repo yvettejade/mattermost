@@ -9,8 +9,10 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
+import ChannelBookmarksRhs from 'components/channel_bookmarks/channel_bookmarks_rhs';
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
+import ChannelScheduledPostsRhs from 'components/channel_info_rhs/scheduled_posts_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
@@ -42,6 +44,8 @@ export type Props = {
     isChannelFiles: boolean;
     isChannelInfo: boolean;
     isChannelMembers: boolean;
+    isChannelBookmarks: boolean;
+    isChannelScheduledPosts: boolean;
     isPluginView: boolean;
     isPostEditHistory: boolean;
     previousRhsState: RhsState;
@@ -98,6 +102,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelFiles: this.props.isChannelFiles,
             isChannelInfo: this.props.isChannelInfo,
             isChannelMembers: this.props.isChannelMembers,
+            isChannelBookmarks: this.props.isChannelBookmarks,
+            isChannelScheduledPosts: this.props.isChannelScheduledPosts,
             isPostEditHistory: this.props.isPostEditHistory,
             selectedPostId: this.props.selectedPostId,
             selectedPostCardId: this.props.selectedPostCardId,
@@ -150,6 +156,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             (this.props.isChannelFiles !== prevProps.isChannelFiles) ||
             (this.props.isChannelInfo !== prevProps.isChannelInfo) ||
             (this.props.isChannelMembers !== prevProps.isChannelMembers) ||
+            (this.props.isChannelBookmarks !== prevProps.isChannelBookmarks) ||
+            (this.props.isChannelScheduledPosts !== prevProps.isChannelScheduledPosts) ||
             (this.props.isPostEditHistory !== prevProps.isPostEditHistory) ||
             (this.props.rhsChannel?.id !== prevProps.rhsChannel?.id) ||
             (this.props.teamId !== prevProps.teamId)
@@ -272,6 +280,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isOpen,
             isChannelInfo,
             isChannelMembers,
+            isChannelBookmarks,
+            isChannelScheduledPosts,
             isExpanded,
             isPostEditHistory,
         } = this.props;
@@ -306,6 +316,12 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         } else if (isChannelMembers) {
             currentChannelNeeded = true;
             content = <ChannelMembersRhs/>;
+        } else if (isChannelBookmarks) {
+            currentChannelNeeded = true;
+            content = <ChannelBookmarksRhs/>;
+        } else if (isChannelScheduledPosts) {
+            currentChannelNeeded = true;
+            content = <ChannelScheduledPostsRhs/>;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
         }
