@@ -19,13 +19,11 @@ import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {closeRightHandSide, goBack} from 'actions/views/rhs';
-import {getPreviousRhsState} from 'selectors/rhs';
+import {canGoBackFromChannelInfoRhs} from 'selectors/rhs';
 
 import Scrollbars from 'components/common/scrollbars';
 import EmptyScheduledPostList from 'components/drafts/scheduled_post_list/empty_scheduled_post_list';
 import NonVirtualizedScheduledPostList from 'components/drafts/scheduled_post_list/non_virtualized_scheduled_post_list';
-
-import {RHSStates} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -155,11 +153,7 @@ export function ChannelScheduledPostsRhs({
 function ChannelScheduledPostsRhsContainer() {
     const dispatch = useDispatch();
     const channel = useSelector(getCurrentChannel);
-    const previousRhsState = useSelector(getPreviousRhsState);
-    const canGoBack = previousRhsState === RHSStates.CHANNEL_INFO ||
-        previousRhsState === RHSStates.CHANNEL_FILES ||
-        previousRhsState === RHSStates.PIN ||
-        previousRhsState === RHSStates.CHANNEL_MEMBERS;
+    const canGoBack = useSelector(canGoBackFromChannelInfoRhs);
     const getScheduledPostsForChannel = useMemo(makeGetScheduledPostsForChannel, []);
     const scheduledPosts = useSelector((state: GlobalState) => (
         channel ? getScheduledPostsForChannel(state, channel.id) : emptyScheduledPosts

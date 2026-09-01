@@ -131,6 +131,23 @@ export function getPreviousRhsState(state: GlobalState): RhsState {
     return state.views.rhs.previousRhsStates[state.views.rhs.previousRhsStates.length - 1];
 }
 
+const CHANNEL_INFO_RELATED_RHS_STATES: ReadonlySet<string> = new Set([
+    RHSStates.CHANNEL_INFO,
+    RHSStates.CHANNEL_MEMBERS,
+    RHSStates.CHANNEL_FILES,
+    RHSStates.PIN,
+    RHSStates.CHANNEL_BOOKMARKS,
+    RHSStates.CHANNEL_SCHEDULED_POSTS,
+]);
+
+export function isChannelInfoRelatedRhsState(rhsState: RhsState): boolean {
+    return rhsState !== null && CHANNEL_INFO_RELATED_RHS_STATES.has(rhsState);
+}
+
+export function canGoBackFromChannelInfoRhs(state: GlobalState): boolean {
+    return isChannelInfoRelatedRhsState(getPreviousRhsState(state));
+}
+
 export function getSearchTerms(state: GlobalState): string {
     return state.views.rhs.searchTerms;
 }

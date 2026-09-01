@@ -13,9 +13,7 @@ import {
     toggleRhsExpanded,
     goBack,
 } from 'actions/views/rhs';
-import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
-
-import {RHSStates} from 'utils/constants';
+import {canGoBackFromChannelInfoRhs, getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store/index.js';
 
@@ -23,10 +21,7 @@ import SearchResultsHeader from './search_results_header';
 
 function mapStateToProps(state: GlobalState) {
     const previousRhsState = getPreviousRhsState(state);
-    const canGoBack = previousRhsState === RHSStates.CHANNEL_INFO ||
-        previousRhsState === RHSStates.CHANNEL_MEMBERS ||
-        previousRhsState === RHSStates.CHANNEL_FILES ||
-        previousRhsState === RHSStates.PIN;
+    const canGoBack = canGoBackFromChannelInfoRhs(state);
 
     return {
         isExpanded: getIsRhsExpanded(state),

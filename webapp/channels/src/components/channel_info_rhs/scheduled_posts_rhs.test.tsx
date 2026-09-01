@@ -210,4 +210,52 @@ describe('channel_info_rhs/scheduled_posts_rhs', () => {
         await userEvent.click(screen.getByLabelText('Back Icon'));
         expect(defaultActions.goBack).toHaveBeenCalled();
     });
+
+    describe('container back navigation', () => {
+        const renderContainer = (previousRhsStates: string[]) => {
+            return renderWithContext(
+                <ChannelScheduledPostsRhsContainer/>,
+                {
+                    entities: {
+                        channels: {
+                            currentChannelId: channel.id,
+                            channels: {
+                                [channel.id]: channel,
+                            },
+                        },
+                        users: {
+                            currentUserId: currentUser.id,
+                            profiles: {
+                                [currentUser.id]: currentUser,
+                            },
+                        },
+                        scheduledPosts: {
+                            byId: {},
+                            byChannelOrThreadId: {},
+                        },
+                    },
+                    views: {
+                        rhs: {
+                            previousRhsStates,
+                        },
+                    },
+                },
+            );
+        };
+
+        test('shows Back when previousRhsState is Channel Info', () => {
+            renderContainer([RHSStates.CHANNEL_INFO]);
+            expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
+        });
+
+        test('shows Back when previousRhsState is Bookmarks', () => {
+            renderContainer([RHSStates.CHANNEL_BOOKMARKS]);
+            expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
+        });
+
+        test('hides Back when previousRhsState is not an Info pane', () => {
+            renderContainer([RHSStates.FLAG]);
+            expect(screen.queryByLabelText('Back Icon')).not.toBeInTheDocument();
+        });
+    });
 });

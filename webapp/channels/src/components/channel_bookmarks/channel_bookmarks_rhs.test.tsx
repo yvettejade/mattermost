@@ -7,8 +7,9 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Channel} from '@mattermost/types/channels';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {RHSStates} from 'utils/constants';
 
-import {ChannelBookmarksRhs} from './channel_bookmarks_rhs';
+import ChannelBookmarksRhsContainer, {ChannelBookmarksRhs} from './channel_bookmarks_rhs';
 
 jest.mock('./bookmark_item_content', () => ({
     __esModule: true,
@@ -22,6 +23,10 @@ jest.mock('./channel_bookmarks_menu', () => ({
         handleCreateLink: jest.fn(),
         handleCreateFile: jest.fn(),
     }),
+}));
+
+jest.mock('actions/channel_bookmarks', () => ({
+    fetchChannelBookmarks: () => ({type: 'MOCK_FETCH_CHANNEL_BOOKMARKS'}),
 }));
 
 describe('channel_bookmarks_rhs', () => {
@@ -119,5 +124,46 @@ describe('channel_bookmarks_rhs', () => {
 
         await userEvent.click(screen.getByLabelText('Back Icon'));
         expect(defaultActions.goBack).toHaveBeenCalled();
+    });
+
+    describe('container back navigation', () => {
+        const renderContainer = (previousRhsStates: string[]) => {
+            return renderWithContext(
+                <ChannelBookmarksRhsContainer/>,
+                {
+                    entities: {
+                        channels: {
+                            currentChannelId: channel.id,
+                            channels: {
+                                [channel.id]: channel,
+                            },
+                        },
+                        channelBookmarks: {
+                            byChannelId: {},
+                        },
+                    },
+                    views: {
+                        rhs: {
+                            previousRhsStates,
+                        },
+                    },
+                },
+            );
+        };
+
+        test('shows Back when previousRhsState is Channel Info', () => {
+            renderContainer([RHSStates.CHANNEL_INFO]);
+            expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
+        });
+
+        test('shows Back when previousRhsState is Scheduled posts', () => {
+            renderContainer([RHSStates.CHANNEL_SCHEDULED_POSTS]);
+            expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
+        });
+
+        test('hides Back when previousRhsState is not an Info pane', () => {
+            renderContainer([RHSStates.FLAG]);
+            expect(screen.queryByLabelText('Back Icon')).not.toBeInTheDocument();
+        });
     });
 });

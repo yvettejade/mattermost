@@ -19,13 +19,11 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {closeRightHandSide, goBack} from 'actions/views/rhs';
-import {getPreviousRhsState} from 'selectors/rhs';
+import {canGoBackFromChannelInfoRhs} from 'selectors/rhs';
 
 import Scrollbars from 'components/common/scrollbars';
 import * as Menu from 'components/menu';
 import NoResultsIndicator from 'components/no_results_indicator';
-
-import {RHSStates} from 'utils/constants';
 
 import BookmarkItemContent from './bookmark_item_content';
 import {useBookmarkAddActions} from './channel_bookmarks_menu';
@@ -225,11 +223,7 @@ export function ChannelBookmarksRhs({
 function ChannelBookmarksRhsContainer() {
     const dispatch = useDispatch();
     const channel = useSelector(getCurrentChannel);
-    const previousRhsState = useSelector(getPreviousRhsState);
-    const canGoBack = previousRhsState === RHSStates.CHANNEL_INFO ||
-        previousRhsState === RHSStates.CHANNEL_FILES ||
-        previousRhsState === RHSStates.PIN ||
-        previousRhsState === RHSStates.CHANNEL_MEMBERS;
+    const canGoBack = useSelector(canGoBackFromChannelInfoRhs);
     const {bookmarks, order} = useChannelBookmarks(channel?.id || '');
     const canAdd = Boolean(useChannelBookmarkPermission(channel?.id || '', 'add'));
     const canUploadFiles = useCanUploadFiles();
