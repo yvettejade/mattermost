@@ -38,6 +38,8 @@ import {
     unsuppressRHS,
     goBack,
     showChannelMembers,
+    showChannelBookmarks,
+    showChannelScheduledPosts,
     openShowEditHistory,
     updateSearchTeam,
 } from 'actions/views/rhs';
@@ -448,6 +450,58 @@ describe('rhs view actions', () => {
                     channelId: currentChannelId,
                     state: RHSStates.CHANNEL_MEMBERS,
                     previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelBookmarks', () => {
+        test('it dispatches UPDATE_RHS_STATE with previousRhsState', async () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        rhsState: RHSStates.CHANNEL_INFO as RhsState,
+                    },
+                },
+            });
+
+            await store.dispatch(showChannelBookmarks(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: RHSStates.CHANNEL_INFO,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelScheduledPosts', () => {
+        test('it dispatches UPDATE_RHS_STATE with previousRhsState', async () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        rhsState: RHSStates.CHANNEL_INFO as RhsState,
+                    },
+                },
+            });
+
+            await store.dispatch(showChannelScheduledPosts(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                    previousRhsState: RHSStates.CHANNEL_INFO,
                 },
             ]);
         });
