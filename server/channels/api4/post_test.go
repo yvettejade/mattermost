@@ -3005,6 +3005,48 @@ func TestPinPost(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPinPostByDifferentUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	post := th.BasicPost
+	require.Equal(t, th.BasicUser.Id, post.UserId)
+
+	th.LoginBasic2(t)
+	role, appErr := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
+	require.Nil(t, appErr)
+	require.NotContains(t, role.Permissions, model.PermissionEditOthersPosts.Id)
+
+	_, err := th.Client.PinPost(context.Background(), post.Id)
+	require.NoError(t, err)
+
+	rpost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+	require.Nil(t, appErr)
+	require.True(t, rpost.IsPinned)
+	require.Equal(t, post.Message, rpost.Message)
+
+	_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, &model.Post{
+		Id:        post.Id,
+		ChannelId: post.ChannelId,
+		Message:   "hijacked after pin",
+	})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	message := "hijacked after pin via patch"
+	_, resp, err = th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{Message: &message})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+	th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+	patched, _, err := th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{Message: &message})
+	require.NoError(t, err)
+	require.Equal(t, message, patched.Message)
+}
+
 func TestUnpinPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -3057,6 +3099,23 @@ func TestUnpinPost(t *testing.T) {
 
 	_, err = th.SystemAdminClient.UnpinPost(context.Background(), pinnedPost.Id)
 	require.NoError(t, err)
+}
+
+func TestUnpinPostByDifferentUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	pinnedPost := th.CreatePinnedPost(t)
+	require.Equal(t, th.BasicUser.Id, pinnedPost.UserId)
+
+	th.LoginBasic2(t)
+	_, err := th.Client.UnpinPost(context.Background(), pinnedPost.Id)
+	require.NoError(t, err)
+
+	rpost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
+	require.Nil(t, appErr)
+	require.False(t, rpost.IsPinned)
+	require.Equal(t, pinnedPost.Message, rpost.Message)
 }
 
 func TestGetPostsForChannel(t *testing.T) {

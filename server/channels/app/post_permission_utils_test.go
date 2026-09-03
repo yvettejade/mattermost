@@ -48,6 +48,41 @@ func TestSessionCanUpdatePost(t *testing.T) {
 	})
 }
 
+func TestIsPinnedOnlyUpdate(t *testing.T) {
+	oldPost := &model.Post{
+		Message:      "hello",
+		IsPinned:     false,
+		HasReactions: false,
+		FileIds:      model.StringArray{"file1"},
+		Props:        model.StringInterface{"k": "v"},
+	}
+
+	t.Run("pin flip only", func(t *testing.T) {
+		received := oldPost.Clone()
+		received.IsPinned = true
+		require.True(t, isPinnedOnlyUpdate(oldPost, received))
+	})
+
+	t.Run("same pin state is not a pin-only update", func(t *testing.T) {
+		received := oldPost.Clone()
+		require.False(t, isPinnedOnlyUpdate(oldPost, received))
+	})
+
+	t.Run("pin plus message is a content edit", func(t *testing.T) {
+		received := oldPost.Clone()
+		received.IsPinned = true
+		received.Message = "changed"
+		require.False(t, isPinnedOnlyUpdate(oldPost, received))
+	})
+
+	t.Run("pin plus props is a content edit", func(t *testing.T) {
+		received := oldPost.Clone()
+		received.IsPinned = true
+		received.SetProps(model.StringInterface{"k": "other"})
+		require.False(t, isPinnedOnlyUpdate(oldPost, received))
+	})
+}
+
 func TestSessionCanUpdatePostCardWithIntegratedBoards(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {

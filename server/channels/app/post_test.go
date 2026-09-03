@@ -478,6 +478,33 @@ func TestUpdatePostOwnership(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "trusted path", updated.Message)
 	})
+
+	t.Run("channel_user can pin and unpin another user's post", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+		require.False(t, post.IsPinned)
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles()})
+
+		pinned, _, err := th.App.PatchPost(ctx, post.Id, &model.PostPatch{IsPinned: new(true)}, nil)
+		require.Nil(t, err)
+		require.True(t, pinned.IsPinned)
+		require.Equal(t, post.Message, pinned.Message)
+
+		unpinned, _, err := th.App.PatchPost(ctx, post.Id, &model.PostPatch{IsPinned: new(false)}, nil)
+		require.Nil(t, err)
+		require.False(t, unpinned.IsPinned)
+		require.Equal(t, post.Message, unpinned.Message)
+	})
+
+	t.Run("pin plus message change still requires ownership", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+		edit := post.Clone()
+		edit.IsPinned = true
+		edit.Message = "hijacked with pin"
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles()})
+		_, _, err := th.App.UpdatePost(ctx, edit, nil)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
 }
 
 func TestUpdatePostInArchivedChannel(t *testing.T) {
