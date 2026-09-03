@@ -3009,7 +3009,7 @@ func TestPinPostByDifferentUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	post := th.BasicPost
+	post := th.CreatePost(t)
 	require.Equal(t, th.BasicUser.Id, post.UserId)
 
 	th.LoginBasic2(t)
@@ -3106,6 +3106,7 @@ func TestUnpinPostByDifferentUser(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 	pinnedPost := th.CreatePinnedPost(t)
+	require.NotEqual(t, th.BasicUser2.Id, pinnedPost.UserId)
 	require.Equal(t, th.BasicUser.Id, pinnedPost.UserId)
 
 	th.LoginBasic2(t)
