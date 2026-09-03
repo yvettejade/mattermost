@@ -1991,6 +1991,21 @@ func TestUpdatePost(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("edit others posts permission can function independently of edit own post", func(t *testing.T) {
+		th.LoginBasic2(t)
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, rpost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		_, _, err = client.UpdatePost(context.Background(), rpost.Id, rpost)
+		require.NoError(t, err)
+	})
+
 	t.Run("should be able to add new files", func(t *testing.T) {
 		th.LoginBasic(t)
 		// create new file
@@ -2424,6 +2439,20 @@ func TestPatchPost(t *testing.T) {
 	t.Run("different user", func(t *testing.T) {
 		th.LoginBasic2(t)
 		patch := &model.PostPatch{}
+		_, resp, err := client.PatchPost(context.Background(), post.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel_user without edit_others_posts cannot patch another user's post", func(t *testing.T) {
+		th.LoginBasic2(t)
+		role, appErr := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
+		require.Nil(t, appErr)
+		require.NotContains(t, role.Permissions, model.PermissionEditOthersPosts.Id)
+		require.Contains(t, role.Permissions, model.PermissionEditPost.Id)
+
+		message := "hijacked by channel_user"
+		patch := &model.PostPatch{Message: &message}
 		_, resp, err := client.PatchPost(context.Background(), post.Id, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
