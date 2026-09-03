@@ -1,16 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
+import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
+import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
+import {isScheduledPostsEnabled, makeGetScheduledPostsForChannel} from 'mattermost-redux/selectors/entities/scheduled_posts';
+
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -42,8 +47,14 @@ const MenuItemButton = styled.button`
     text-align: left;
     cursor: pointer;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &:disabled {
+        cursor: default;
+        opacity: 1;
+        color: inherit;
     }
 `;
 
@@ -64,9 +75,26 @@ const RightSide = styled.div`
 const Badge = styled.div`
     font-size: 12px;
     line-height: 18px;
-    width: 20px;
+    min-width: 20px;
     display: flex;
-    place-content: center;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+`;
+
+const MentionBadge = styled.span`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 5px;
+    border-radius: 8px;
+    background: var(--mention-bg);
+    color: var(--mention-color);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 16px;
 `;
 
 interface MenuItemProps {
@@ -74,7 +102,7 @@ interface MenuItemProps {
     text: string;
     opensSubpanel?: boolean;
     badge?: string | number | JSX.Element;
-    onClick: () => void;
+    onClick?: () => void;
     id?: string;
 }
 
@@ -88,6 +116,7 @@ function MenuItem(props: MenuItemProps) {
             aria-label={text}
             type='button'
             id={id || ''}
+            disabled={!onClick}
         >
             <Icon>{icon}</Icon>
             <MenuItemText>{text}</MenuItemText>
@@ -117,6 +146,8 @@ interface MenuProps {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
+        showChannelBookmarks: (channelId: string) => void;
+        showChannelScheduledPosts: (channelId: string) => void;
         getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<{data: ChannelStats}>;
     };
 }
@@ -139,6 +170,14 @@ export default function Menu(props: MenuProps) {
     const showChannelSettings = channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived;
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
     const canAccessSettings = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const getUnreadCount = useMemo(makeGetChannelUnreadCount, []);
+    const unreadCount = useSelector((state: GlobalState) => getUnreadCount(state, channel.id));
+    const bookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
+    const bookmarks = useSelector((state: GlobalState) => getChannelBookmarks(state, channel.id));
+    const bookmarkCount = Object.keys(bookmarks).length;
+    const scheduledPostsEnabled = useSelector(isScheduledPostsEnabled);
+    const getScheduledPostsForChannel = useMemo(makeGetScheduledPostsForChannel, []);
+    const scheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsForChannel(state, channel.id).length);
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
@@ -194,6 +233,22 @@ export default function Menu(props: MenuProps) {
                     onClick={actions.openNotificationSettings}
                 />
             )}
+            <MenuItem
+                id='channelInfoRHSUnreads'
+                icon={<i className='icon icon-mark-as-unread'/>}
+                text={formatMessage({
+                    id: 'channel_info_rhs.menu.unreads',
+                    defaultMessage: 'Unreads',
+                })}
+                badge={(
+                    <>
+                        <span>{unreadCount.messages}</span>
+                        {unreadCount.mentions > 0 && (
+                            <MentionBadge>{unreadCount.mentions}</MentionBadge>
+                        )}
+                    </>
+                )}
+            />
             {showMembers && (
                 <MenuItem
                     icon={<i className='icon icon-account-outline'/>}
@@ -216,6 +271,32 @@ export default function Menu(props: MenuProps) {
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
+            {bookmarksEnabled && (
+                <MenuItem
+                    id='channelInfoRHSBookmarks'
+                    icon={<i className='icon icon-bookmark-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.bookmarks',
+                        defaultMessage: 'Bookmarks',
+                    })}
+                    opensSubpanel={true}
+                    badge={bookmarkCount}
+                    onClick={() => actions.showChannelBookmarks(channel.id)}
+                />
+            )}
+            {scheduledPostsEnabled && (
+                <MenuItem
+                    id='channelInfoRHSScheduledPosts'
+                    icon={<i className='icon icon-clock-send-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.scheduled_posts',
+                        defaultMessage: 'Scheduled posts',
+                    })}
+                    opensSubpanel={true}
+                    badge={scheduledPostCount}
+                    onClick={() => actions.showChannelScheduledPosts(channel.id)}
+                />
+            )}
             <MenuItem
                 icon={<i className='icon icon-file-text-outline'/>}
                 text={formatMessage({

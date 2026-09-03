@@ -3,7 +3,10 @@
 
 import * as Selectors from 'selectors/rhs';
 
+import {RHSStates} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
+import type {RhsState} from 'types/store/rhs';
 
 describe('Selectors.Rhs', () => {
     describe('should return the last time a post was selected', () => {
@@ -63,6 +66,62 @@ describe('Selectors.Rhs', () => {
                     previousRhsStates: previousArray,
                 }}} as GlobalState;
             expect(Selectors.getPreviousRhsState(state)).toEqual(previous);
+        });
+    });
+
+    describe('isChannelInfoRelatedRhsState', () => {
+        test.each([
+            [RHSStates.CHANNEL_INFO, true],
+            [RHSStates.CHANNEL_MEMBERS, true],
+            [RHSStates.CHANNEL_FILES, true],
+            [RHSStates.PIN, true],
+            [RHSStates.CHANNEL_BOOKMARKS, true],
+            [RHSStates.CHANNEL_SCHEDULED_POSTS, true],
+            [RHSStates.FLAG, false],
+            [RHSStates.SEARCH, false],
+            [null, false],
+        ])('%p is related: %p', (rhsState, expected) => {
+            expect(Selectors.isChannelInfoRelatedRhsState(rhsState as RhsState)).toEqual(expected);
+        });
+    });
+
+    describe('canGoBackFromSelectedPost', () => {
+        test.each([
+            [RHSStates.SEARCH, true],
+            [RHSStates.MENTION, true],
+            [RHSStates.FLAG, true],
+            [RHSStates.PIN, true],
+            [RHSStates.CHANNEL_INFO, true],
+            [RHSStates.CHANNEL_MEMBERS, true],
+            [RHSStates.CHANNEL_FILES, true],
+            [RHSStates.CHANNEL_BOOKMARKS, true],
+            [RHSStates.CHANNEL_SCHEDULED_POSTS, true],
+            [RHSStates.PLUGIN, false],
+            [null, false],
+        ])('%p allows thread Back: %p', (rhsState, expected) => {
+            expect(Selectors.canGoBackFromSelectedPost(rhsState as RhsState)).toEqual(expected);
+        });
+    });
+
+    describe('canGoBackFromChannelInfoRhs', () => {
+        test.each([
+            [[], false],
+            [[RHSStates.CHANNEL_INFO], true],
+            [[RHSStates.CHANNEL_MEMBERS], true],
+            [[RHSStates.CHANNEL_FILES], true],
+            [[RHSStates.PIN], true],
+            [[RHSStates.CHANNEL_BOOKMARKS], true],
+            [[RHSStates.CHANNEL_SCHEDULED_POSTS], true],
+            [[RHSStates.CHANNEL_INFO, RHSStates.CHANNEL_BOOKMARKS], true],
+            [[RHSStates.CHANNEL_SCHEDULED_POSTS, RHSStates.PIN], true],
+            [[RHSStates.FLAG], false],
+            [[RHSStates.SEARCH], false],
+        ])('previous %p allows back: %p', (previousArray, expected) => {
+            const state = {
+                views: {rhs: {
+                    previousRhsStates: previousArray,
+                }}} as GlobalState;
+            expect(Selectors.canGoBackFromChannelInfoRhs(state)).toEqual(expected);
         });
     });
 
