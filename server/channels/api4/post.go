@@ -1062,9 +1062,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+	ok, isMember, permission := c.App.SessionCanUpdatePost(c.AppContext, *c.AppContext.Session(), originalPost)
 	if !ok {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.SetPermissionError(permission)
 		return
 	}
 
@@ -1108,17 +1108,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	checkEditFileAttachmentPermission(c, post.FileIds, originalPost)
 	if c.Err != nil {
 		return
-	}
-
-	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
-		// Cards: collaborative model — skip ownership check
-		// PermissionEditPost already checked above
-	} else if c.AppContext.Session().UserId != originalPost.UserId {
-		// We don't need to check the member here, since we already checked it above
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost); !ok {
-			c.SetPermissionError(model.PermissionEditOthersPosts)
-			return
-		}
 	}
 
 	post.Id = c.Params.PostId
@@ -1221,18 +1210,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	var permission *model.Permission
-	switch {
-	case c.AppContext.Session().UserId == originalPost.UserId:
-		permission = model.PermissionEditPost
-	case originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
-		// Cards: collaborative model — any member can edit any card
-		permission = model.PermissionEditPost
-	default:
-		permission = model.PermissionEditOthersPosts
-	}
-
-	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
+	ok, isMember, permission := c.App.SessionCanUpdatePost(c.AppContext, *c.AppContext.Session(), originalPost)
 	if !ok {
 		c.SetPermissionError(permission)
 		return false

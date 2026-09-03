@@ -62,10 +62,12 @@ export function canEditPost(state: GlobalState, config: any, license: any, teamI
     }
 
     const isOwner = isPostOwner(userId, post);
-    let canEdit = true;
-
+    // Match server SessionCanUpdatePost: owners need edit_post, everyone
+    // else needs edit_others_posts. manage_system is covered because
+    // system_admin includes all permission IDs. Boards card collaborative
+    // edit is a server-only exception (IntegratedBoards + type card).
     const permission = isOwner ? Permissions.EDIT_POST : Permissions.EDIT_OTHERS_POSTS;
-    canEdit = haveIChannelPermission(state, teamId, channelId, permission);
+    let canEdit = haveIChannelPermission(state, teamId, channelId, permission);
     if (license.IsLicensed === 'true' && config.PostEditTimeLimit !== '-1' && config.PostEditTimeLimit !== -1) {
         const timeLeft = (post.create_at + (config.PostEditTimeLimit * 1000)) - Date.now();
         if (timeLeft <= 0) {

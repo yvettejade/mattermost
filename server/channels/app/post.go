@@ -862,6 +862,16 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, false, appErr
 	}
 
+	// Ownership is enforced here, not only at the API layer. Empty /
+	// unrestricted / TrustedUpdate sessions are internal or plugin paths.
+	if !updatePostOptions.TrustedUpdate {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !session.IsUnrestricted() {
+			if ok, _, permission := a.SessionCanUpdatePost(rctx, *session, oldPost); !ok {
+				return nil, false, model.MakePermissionError(session, []*model.Permission{permission})
+			}
+		}
+	}
+
 	channel, appErr := a.GetChannel(rctx, oldPost.ChannelId)
 	if appErr != nil {
 		return nil, false, appErr

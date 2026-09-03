@@ -97,6 +97,25 @@ func postHardenedModeCheck(hardenedModeEnabled, isIntegration bool, props model.
 	return nil
 }
 
+// SessionCanUpdatePost reports whether session may change oldPost.
+//
+// Owner (and Integrated Boards card posts) need edit_post. Other users need
+// edit_others_posts. manage_system is granted inside SessionHasPermissionToChannel.
+func (a *App) SessionCanUpdatePost(rctx request.CTX, session model.Session, oldPost *model.Post) (ok bool, isMember bool, permission *model.Permission) {
+	switch {
+	case session.UserId == oldPost.UserId:
+		permission = model.PermissionEditPost
+	case oldPost.Type == model.PostTypeCard && a.Config().FeatureFlags.IntegratedBoards:
+		// Cards: collaborative model — any member with edit_post can edit
+		permission = model.PermissionEditPost
+	default:
+		permission = model.PermissionEditOthersPosts
+	}
+
+	ok, isMember = a.SessionHasPermissionToChannel(rctx, session, oldPost.ChannelId, permission)
+	return ok, isMember, permission
+}
+
 func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, channelId string) *model.AppError {
 	hasPermission := false
 	if ok, _ := a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionCreatePost); ok {
