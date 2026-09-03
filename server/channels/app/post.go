@@ -881,6 +881,21 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, false, err
 	}
 
+	// Ownership is enforced here, not only at the API layer. Empty /
+	// unrestricted / TrustedUpdate sessions are internal or plugin paths.
+	// Pin/unpin is a channel-member action (read access), not a content edit.
+	if !updatePostOptions.TrustedUpdate {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !session.IsUnrestricted() {
+			if isPinnedOnlyUpdate(oldPost, receivedUpdatedPost) {
+				if ok, _ := a.SessionHasPermissionToReadChannel(rctx, *session, channel); !ok {
+					return nil, false, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent})
+				}
+			} else if ok, _, permission := a.SessionCanUpdatePost(rctx, *session, oldPost); !ok {
+				return nil, false, model.MakePermissionError(session, []*model.Permission{permission})
+			}
+		}
+	}
+
 	newPost := oldPost.Clone()
 
 	if newPost.Message != receivedUpdatedPost.Message {

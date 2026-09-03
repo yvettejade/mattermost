@@ -97,6 +97,47 @@ func postHardenedModeCheck(hardenedModeEnabled, isIntegration bool, props model.
 	return nil
 }
 
+// SessionCanUpdatePost reports whether session may change oldPost.
+//
+// Owner (and Integrated Boards card posts) need edit_post. Other users need
+// edit_others_posts. manage_system is granted inside SessionHasPermissionToChannel.
+func (a *App) SessionCanUpdatePost(rctx request.CTX, session model.Session, oldPost *model.Post) (ok bool, isMember bool, permission *model.Permission) {
+	switch {
+	case session.UserId == oldPost.UserId:
+		permission = model.PermissionEditPost
+	case oldPost.Type == model.PostTypeCard && a.Config().FeatureFlags.IntegratedBoards:
+		// Cards: collaborative model — any member with edit_post can edit
+		permission = model.PermissionEditPost
+	default:
+		permission = model.PermissionEditOthersPosts
+	}
+
+	ok, isMember = a.SessionHasPermissionToChannel(rctx, session, oldPost.ChannelId, permission)
+	return ok, isMember, permission
+}
+
+// isPinnedOnlyUpdate reports whether received differs from oldPost only by IsPinned.
+// Channel members may pin/unpin another user's post; content edits still need
+// SessionCanUpdatePost.
+func isPinnedOnlyUpdate(oldPost, received *model.Post) bool {
+	if oldPost == nil || received == nil || oldPost.IsPinned == received.IsPinned {
+		return false
+	}
+	if received.Message != oldPost.Message {
+		return false
+	}
+	if received.HasReactions != oldPost.HasReactions {
+		return false
+	}
+	if received.FileIds != nil && !oldPost.FileIds.Equals(received.FileIds) {
+		return false
+	}
+	if model.StringInterfaceToJSON(received.GetProps()) != model.StringInterfaceToJSON(oldPost.GetProps()) {
+		return false
+	}
+	return true
+}
+
 func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, channelId string) *model.AppError {
 	hasPermission := false
 	if ok, _ := a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionCreatePost); ok {
