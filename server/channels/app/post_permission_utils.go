@@ -116,6 +116,28 @@ func (a *App) SessionCanUpdatePost(rctx request.CTX, session model.Session, oldP
 	return ok, isMember, permission
 }
 
+// isPinnedOnlyUpdate reports whether received differs from oldPost only by IsPinned.
+// Channel members may pin/unpin another user's post; content edits still need
+// SessionCanUpdatePost.
+func isPinnedOnlyUpdate(oldPost, received *model.Post) bool {
+	if oldPost == nil || received == nil || oldPost.IsPinned == received.IsPinned {
+		return false
+	}
+	if received.Message != oldPost.Message {
+		return false
+	}
+	if received.HasReactions != oldPost.HasReactions {
+		return false
+	}
+	if received.FileIds != nil && !oldPost.FileIds.Equals(received.FileIds) {
+		return false
+	}
+	if model.StringInterfaceToJSON(received.GetProps()) != model.StringInterfaceToJSON(oldPost.GetProps()) {
+		return false
+	}
+	return true
+}
+
 func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, channelId string) *model.AppError {
 	hasPermission := false
 	if ok, _ := a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionCreatePost); ok {
