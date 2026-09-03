@@ -46,23 +46,22 @@ func TestSessionCanUpdatePost(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, model.PermissionEditOthersPosts, perm)
 	})
+}
 
-	t.Run("card with IntegratedBoards allows non-owner with edit_post", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = true
-		})
-		t.Cleanup(func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.FeatureFlags.IntegratedBoards = false
-			})
-		})
+func TestSessionCanUpdatePostCardWithIntegratedBoards(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
-		card := post.Clone()
-		card.Type = model.PostTypeCard
-		ok, _, perm := th.App.SessionCanUpdatePost(th.Context, otherSession, card)
-		require.True(t, ok)
-		require.Equal(t, model.PermissionEditPost, perm)
-	})
+	otherSession := model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles()}
+	card := th.BasicPost.Clone()
+	card.Type = model.PostTypeCard
+
+	ok, _, perm := th.App.SessionCanUpdatePost(th.Context, otherSession, card)
+	require.True(t, ok)
+	require.Equal(t, model.PermissionEditPost, perm)
 }
 
 func TestPostCardTypeCheckWithApp(t *testing.T) {
