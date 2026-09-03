@@ -104,8 +104,9 @@ verify_enterprise_checkout() {
 
   local target
   if ! target="$(find_enterprise_checkout)"; then
-    log "Enterprise checkout not found. Ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
-    return 1
+    log "Enterprise checkout not found; continuing with the team edition build."
+    log "For the enterprise build, ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise, or set CLOUD_AGENT_SKIP_ENTERPRISE=true to silence this notice."
+    return 0
   fi
 
   log "Enterprise checkout ready at $target."
