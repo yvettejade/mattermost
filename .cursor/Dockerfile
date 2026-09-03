@@ -4,7 +4,7 @@ FROM public.ecr.aws/ubuntu/ubuntu:24.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG GO_VERSION=1.25.9
+ARG GO_VERSION=1.26.3
 ARG GH_VERSION=2.92.0
 ARG NODE_VERSION=24.11.1
 ARG NVM_VERSION=0.40.3
@@ -13,6 +13,7 @@ ARG AGENT_BROWSER_VERSION=0.27.0
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NVM_DIR=/home/ubuntu/.nvm
 ENV GOPATH=/home/ubuntu/go
+ENV GOTOOLCHAIN=local
 ENV PATH=/home/ubuntu/.nvm/versions/node/v${NODE_VERSION}/bin:/usr/local/go/bin:/home/ubuntu/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apt-get update && \

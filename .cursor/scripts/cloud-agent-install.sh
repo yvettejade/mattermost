@@ -20,6 +20,8 @@ AGENT_BROWSER_VERSION="${CLOUD_AGENT_BROWSER_VERSION:-0.27.0}"
 
 export GOPATH="${GOPATH:-$HOME/go}"
 export PATH="/usr/local/go/bin:$GOPATH/bin:/usr/local/bin:$PATH"
+# go.dev is not on the default Cloud Agent egress allowlist; stay on the image toolchain.
+export GOTOOLCHAIN="${GOTOOLCHAIN:-local}"
 
 ensure_go() {
   if ! command -v go >/dev/null 2>&1; then
