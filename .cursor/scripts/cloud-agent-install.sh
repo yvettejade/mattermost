@@ -155,6 +155,20 @@ ensure_enterprise_checkout() {
   return 0
 }
 
+retry() {
+  local attempts="$1"
+  shift
+  local n=1
+  until "$@"; do
+    if [ "$n" -ge "$attempts" ]; then
+      return 1
+    fi
+    log "Command failed (attempt ${n}/${attempts}); retrying in $((n * 8))s: $*"
+    sleep $((n * 8))
+    n=$((n + 1))
+  done
+}
+
 hydrate_go_dependencies() {
   if is_true "${CLOUD_AGENT_SKIP_GO_DEPS:-false}"; then
     log "Skipping Go dependency hydration."
@@ -169,9 +183,9 @@ hydrate_go_dependencies() {
       (
         cd server
         BUILD_ENTERPRISE_DIR="$enterprise_dir" make setup-go-work
-        go mod download
+        retry 5 go mod download
         if [ -f public/go.mod ]; then
-          (cd public && go mod download)
+          (cd public && retry 5 go mod download)
         fi
       )
     else
@@ -179,9 +193,9 @@ hydrate_go_dependencies() {
       (
         cd server
         make setup-go-work
-        go mod download
+        retry 5 go mod download
         if [ -f public/go.mod ]; then
-          (cd public && go mod download)
+          (cd public && retry 5 go mod download)
         fi
       )
     fi
