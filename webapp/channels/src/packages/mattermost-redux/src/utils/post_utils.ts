@@ -62,6 +62,7 @@ export function canEditPost(state: GlobalState, config: any, license: any, teamI
     }
 
     const isOwner = isPostOwner(userId, post);
+
     // Match server SessionCanUpdatePost: owners need edit_post, everyone
     // else needs edit_others_posts. manage_system is covered because
     // system_admin includes all permission IDs. Boards card collaborative
