@@ -78,6 +78,9 @@ find_enterprise_checkout() {
   if [ -n "${ENTERPRISE_DIR:-}" ]; then
     candidates+=("$ENTERPRISE_DIR")
   fi
+  if [ -n "${CLOUD_AGENT_ENTERPRISE_DIR:-}" ]; then
+    candidates+=("$CLOUD_AGENT_ENTERPRISE_DIR")
+  fi
 
   candidates+=(
     "$ROOT/../enterprise"
@@ -96,19 +99,58 @@ find_enterprise_checkout() {
   return 1
 }
 
-verify_enterprise_checkout() {
+clone_enterprise_checkout() {
+  local dest="${CLOUD_AGENT_ENTERPRISE_DIR:-$HOME/enterprise}"
+
+  if git -C "$dest" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    realpath -m "$dest"
+    return 0
+  fi
+
+  if [ -e "$dest" ]; then
+    log "Cannot clone enterprise: $dest already exists and is not a git checkout."
+    return 1
+  fi
+
+  if ! command -v gh >/dev/null 2>&1; then
+    log "GitHub CLI is not available; cannot clone mattermost/enterprise."
+    return 1
+  fi
+
+  log "Enterprise checkout missing; cloning mattermost/enterprise to $dest."
+  if gh repo clone mattermost/enterprise "$dest" -- --depth 1; then
+    realpath -m "$dest"
+    return 0
+  fi
+
+  rm -rf "$dest"
+  log "Could not clone mattermost/enterprise. repositoryDependencies grants token scope but does not check the repo out during environment builds, and this token may lack access."
+  return 1
+}
+
+ensure_enterprise_checkout() {
   if is_true "${CLOUD_AGENT_SKIP_ENTERPRISE:-false}"; then
     log "Skipping enterprise verification because CLOUD_AGENT_SKIP_ENTERPRISE is set."
     return 0
   fi
 
   local target
-  if ! target="$(find_enterprise_checkout)"; then
-    log "Enterprise checkout not found. Ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
-    return 1
+  if target="$(find_enterprise_checkout)"; then
+    log "Enterprise checkout ready at $target."
+    export BUILD_ENTERPRISE_DIR="$target"
+    return 0
   fi
 
-  log "Enterprise checkout ready at $target."
+  if target="$(clone_enterprise_checkout)"; then
+    log "Enterprise checkout ready at $target."
+    export BUILD_ENTERPRISE_DIR="$target"
+    return 0
+  fi
+
+  # Environment builds only clone the primary repo. Failing here previously
+  # skipped Go/webapp/Playwright hydration and marked every snapshot failed.
+  log "Continuing without enterprise; open-source Go modules will still hydrate."
+  return 0
 }
 
 hydrate_go_dependencies() {
@@ -170,7 +212,7 @@ hydrate_playwright_dependencies() {
 
 ensure_go
 ensure_node
-verify_enterprise_checkout
+ensure_enterprise_checkout
 hydrate_go_dependencies
 hydrate_webapp_dependencies
 hydrate_playwright_dependencies
