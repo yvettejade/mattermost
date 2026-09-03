@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {logError} from 'mattermost-redux/actions/errors';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+
+import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -18,28 +21,34 @@ import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {getSiteURL} from 'utils/url';
 import {getTimestamp} from 'utils/utils';
 
+import type {ActionFuncAsync} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
+
 import {runMessageWillBePostedHooks} from '../hooks';
 
-export function editPost(post) {
+export function editPost(post: Partial<Post> | PostDraft): ActionFuncAsync {
     return async (dispatch) => {
-        const result = await dispatch(PostActions.editPost(post));
+        const result = await dispatch(PostActions.editPost(post as Post));
 
         // Send to error bar if it's an edit post error about time limit.
         if (result.error && result.error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
-            dispatch(logError({type: AnnouncementBarTypes.ANNOUNCEMENT, message: result.error.message}, true));
+            dispatch(logError({type: AnnouncementBarTypes.ANNOUNCEMENT, message: result.error.message}, {errorBarMode: LogErrorBarMode.Always}));
         }
 
         return result;
     };
 }
 
-export function forwardPost(post, channel, message = '') {
+export function forwardPost(post: Post, channel: Channel, message = ''): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channelId = channel.id;
 
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
+        if (!currentTeam) {
+            return {data: false};
+        }
 
         const relativePermaLink = getPermalinkURL(state, currentTeam.id, post.id);
         const permaLink = `${getSiteURL()}${relativePermaLink}`;
@@ -51,7 +60,7 @@ export function forwardPost(post, channel, message = '') {
         const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveICurrentChannelPermission(state, Permissions.USE_GROUP_MENTIONS);
         const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, currentTeam.id, channelId) : null;
 
-        let newPost = {};
+        let newPost = {} as Post;
 
         newPost.channel_id = channelId;
 
@@ -62,7 +71,7 @@ export function forwardPost(post, channel, message = '') {
         newPost.pending_post_id = `${userId}:${time}`;
         newPost.user_id = userId;
         newPost.create_at = time;
-        newPost.metadata = {};
+        newPost.metadata = {} as Post['metadata'];
         newPost.props = {};
 
         if (!useChannelMentions && containsAtChannel(newPost.message, {checkAllMentions: true})) {
@@ -79,13 +88,13 @@ export function forwardPost(post, channel, message = '') {
             return hookResult;
         }
 
-        newPost = hookResult.data;
+        newPost = hookResult.data!;
 
         return dispatch(PostActions.createPost(newPost, []));
     };
 }
 
-export function selectAttachmentMenuAction(postId, actionId, cookie, dataSource, text, value) {
+export function selectAttachmentMenuAction(postId: string, actionId: string, cookie: string, dataSource: string | undefined, text: string, value: string): ActionFuncAsync<boolean> {
     return async (dispatch) => {
         dispatch({
             type: ActionTypes.SELECT_ATTACHMENT_MENU_ACTION,
