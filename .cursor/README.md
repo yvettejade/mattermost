@@ -8,7 +8,7 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 - Ubuntu 24.04 from `public.ecr.aws/ubuntu/ubuntu:24.04` (not Docker Hub; Cloud Agent builders have been failing to fetch `ubuntu:24.04` blobs from `docker-images-prod.s3.dualstack`).
 - Docker CE 28.5.2 with `fuse-overlayfs` and `iptables-legacy`, matching Cursor's Docker-in-Cloud guidance for complex compose setups.
-- Go 1.25.9 from `server/.go-version`.
+- Go 1.26.3 from `server/.go-version`, with `GOTOOLCHAIN=local` so install does not fetch toolchains from `go.dev` (not on the Cloud Agent allowlist).
 - Node 24.11.1/npm 11 via nvm, matching `.nvmrc` and `webapp/package.json`.
 - `agent-browser@0.27.0` and browser dependencies for screenshot workflows.
 - AWS CLI v2 for S3 uploads.
@@ -16,10 +16,10 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 ## Runtime Hooks
 
-- `cloud-agent-install.sh` runs after Cursor checks out the repo. It refreshes nvm, installs agent-browser browsers, verifies Cursor's multi-repo `mattermost/enterprise` checkout, runs `server` Go dependency hydration, installs webapp dependencies, and runs Playwright `npm ci`.
+- `cloud-agent-install.sh` runs after Cursor checks out the repo. It refreshes nvm, installs agent-browser browsers, locates or clones `mattermost/enterprise` when the GitHub token can see it, runs `server` Go dependency hydration, installs webapp dependencies, and runs Playwright `npm ci`. Missing enterprise is a warning, not an install failure: environment builds only check out the primary repo.
 - `cloud-agent-start.sh` materializes `.cursor/cursor.md` as `.cursor/AGENTS.md`, fixes current-session Docker socket access, starts Docker, waits until `docker info` and `docker compose version` succeed, then logs in to Docker Hub when credentials are configured.
 
-The environment declares `github.com/mattermost/enterprise` in `repositoryDependencies` so Cursor can provide it as part of the multi-repo workspace. Cursor currently clones the repositories as siblings, such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, which matches `server/Makefile`'s default `../../enterprise` path. The install hook does not clone, pull, or symlink enterprise.
+The environment declares `github.com/mattermost/enterprise` in `repositoryDependencies` so the generated GitHub token can include that private repo. That field does not clone a sibling checkout during environment builds. When a live multi-repo agent does check enterprise out next to mattermost, `server/Makefile`'s default `../../enterprise` path still applies. Otherwise the install hook clones into `$HOME/enterprise` when `gh` can resolve the repo, and points `BUILD_ENTERPRISE_DIR` at that absolute path.
 
 ## Useful Skips
 
