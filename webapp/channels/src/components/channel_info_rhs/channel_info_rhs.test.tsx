@@ -18,6 +18,12 @@ jest.mock('./about_area', () => (props: any) => {
     return <div>{'test-about-area'}</div>;
 });
 
+const mockMenu = jest.fn();
+jest.mock('./menu', () => (props: any) => {
+    mockMenu(props);
+    return <div>{'test-menu'}</div>;
+});
+
 describe('channel_info_rhs', () => {
     const OriginalProps = {
         channel: {display_name: 'my channel title', type: 'O'} as Channel,
@@ -43,6 +49,8 @@ describe('channel_info_rhs', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
+            showChannelScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {}})),
         },
     };
@@ -51,6 +59,7 @@ describe('channel_info_rhs', () => {
     beforeEach(() => {
         props = {...OriginalProps};
         mockAboutArea.mockClear();
+        mockMenu.mockClear();
     });
 
     describe('about area', () => {
@@ -110,6 +119,30 @@ describe('channel_info_rhs', () => {
                 dialogProps: expect.objectContaining({
                     channel: props.channel,
                     teamName: 'team-1',
+                }),
+            }),
+        );
+    });
+
+    test('passes bookmark and scheduled post actions to the menu', async () => {
+        renderWithContext(
+            <ChannelInfoRHS
+                {...props}
+            />,
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        expect(mockMenu).toHaveBeenCalledWith(
+            expect.objectContaining({
+                actions: expect.objectContaining({
+                    showChannelBookmarks: props.actions.showChannelBookmarks,
+                    showChannelScheduledPosts: props.actions.showChannelScheduledPosts,
+                    showChannelMembers: props.actions.showChannelMembers,
+                    showPinnedPosts: props.actions.showPinnedPosts,
+                    showChannelFiles: props.actions.showChannelFiles,
                 }),
             }),
         );
