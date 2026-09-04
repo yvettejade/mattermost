@@ -63,10 +63,27 @@ export function makeGetScheduledPostsForChannel(): (state: GlobalState, channelI
     return createSelector(
         'makeGetScheduledPostsForChannel',
         (state: GlobalState) => state.entities.scheduledPosts.byId,
+        (state: GlobalState) => state.entities.scheduledPosts.byTeamId,
+        (state: GlobalState) => state.entities.scheduledPosts.byChannelOrThreadId,
         (state: GlobalState, channelId: string) => channelId,
-        (byId: ScheduledPostsState['byId'], channelId: string) => {
-            const scheduledPosts = Object.values(byId).filter((scheduledPost): scheduledPost is ScheduledPost => {
-                return Boolean(scheduledPost && scheduledPost.channel_id === channelId);
+        (byId: ScheduledPostsState['byId'], byTeamId: ScheduledPostsState['byTeamId'], byChannelOrThreadId: ScheduledPostsState['byChannelOrThreadId'], channelId: string) => {
+            // byId is append-only on SCHEDULED_POSTS_RECEIVED. After websocket reconnect,
+            // fetchTeamScheduledPosts rebuilds byTeamId and (when prune=true) byChannelOrThreadId,
+            // so those indexes are the live ID set. A raw byId scan would resurrect already-sent posts.
+            const liveIndexIds = new Set<string>();
+            Object.values(byTeamId).forEach((ids) => {
+                ids.forEach((id) => liveIndexIds.add(id));
+            });
+            Object.values(byChannelOrThreadId).forEach((ids) => {
+                ids.forEach((id) => liveIndexIds.add(id));
+            });
+
+            const scheduledPosts: ScheduledPost[] = [];
+            liveIndexIds.forEach((id) => {
+                const scheduledPost = byId[id];
+                if (scheduledPost && scheduledPost.channel_id === channelId) {
+                    scheduledPosts.push(scheduledPost);
+                }
             });
 
             scheduledPosts.sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);

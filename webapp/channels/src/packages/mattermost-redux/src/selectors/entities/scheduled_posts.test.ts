@@ -76,6 +76,51 @@ describe('makeGetScheduledPostsForChannel', () => {
     test('returns an empty list when the channel has no scheduled posts', () => {
         expect(getScheduledPostsForChannel(state, 'missing_channel')).toEqual([]);
     });
+
+    test('ignores already-sent posts that remain only in byId after index rebuild', () => {
+        const staleSentPost = scheduledPost({
+            id: 'stale_sent',
+            channel_id: 'channel_id',
+            root_id: '',
+            message: 'already sent',
+            scheduled_at: 5,
+        });
+        const staleThreadPost = scheduledPost({
+            id: 'stale_thread',
+            channel_id: 'channel_id',
+            root_id: 'old_root',
+            message: 'already sent thread',
+            scheduled_at: 1,
+        });
+
+        const reconnectState = {
+            entities: {
+                scheduledPosts: {
+                    byId: {
+                        ...state.entities.scheduledPosts.byId,
+                        [staleSentPost.id]: staleSentPost,
+                        [staleThreadPost.id]: staleThreadPost,
+                    },
+                    byTeamId: {
+                        team_id: [channelPost.id, threadPost.id],
+                    },
+                    errorsByTeamId: {},
+                    byChannelOrThreadId: {
+                        channel_id: [channelPost.id],
+                        root_id: [threadPost.id],
+                        other_channel: [otherChannelPost.id],
+                        other_root: [otherThreadPost.id],
+                    },
+                },
+            },
+        } as DeepPartial<GlobalState> as GlobalState;
+
+        const posts = getScheduledPostsForChannel(reconnectState, 'channel_id');
+
+        expect(posts.map((post) => post.id)).toEqual(['thread_post', 'channel_post']);
+        expect(posts.map((post) => post.message)).not.toContain('already sent');
+        expect(posts.map((post) => post.message)).not.toContain('already sent thread');
+    });
 });
 
 function scheduledPost(overrides: Partial<ScheduledPost> & Pick<ScheduledPost, 'id' | 'channel_id' | 'message' | 'scheduled_at'>): ScheduledPost {
