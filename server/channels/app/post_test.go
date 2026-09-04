@@ -480,24 +480,24 @@ func TestUpdatePostOwnership(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, "admin rewrite", updated.Message)
 	})
+}
 
-	t.Run("card post collaborative edit allowed when IntegratedBoards is on", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = true
-		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = false
-		})
+func TestUpdatePostOwnershipCardCollaborative(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
-		post := th.CreatePost(t, th.BasicChannel, func(p *model.Post) {
-			p.Type = model.PostTypeCard
-		})
-		update := post.Clone()
-		update.Message = "card rewrite by other"
-		updated, _, appErr := th.App.UpdatePost(otherCtx, update, model.DefaultUpdatePostOptions())
-		require.Nil(t, appErr)
-		require.Equal(t, "card rewrite by other", updated.Message)
+	otherCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser2.Id})
+	post := th.CreatePost(t, th.BasicChannel, func(p *model.Post) {
+		p.Type = model.PostTypeCard
 	})
+	update := post.Clone()
+	update.Message = "card rewrite by other"
+	updated, _, appErr := th.App.UpdatePost(otherCtx, update, model.DefaultUpdatePostOptions())
+	require.Nil(t, appErr)
+	require.Equal(t, "card rewrite by other", updated.Message)
 }
 
 func TestUpdatePostInArchivedChannel(t *testing.T) {
