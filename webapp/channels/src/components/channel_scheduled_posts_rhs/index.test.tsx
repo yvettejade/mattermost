@@ -22,7 +22,7 @@ describe('channel_scheduled_posts_rhs/index', () => {
     const channel = TestHelper.getChannelMock({id: 'channel_id', display_name: 'Town Square'});
     const currentUser = TestHelper.getUserMock({id: 'user_id'});
 
-    test('passes only the current channel scheduled posts', () => {
+    test('passes only the current channel scheduled posts, including thread replies', () => {
         renderWithContext(
             <ChannelScheduledPostsRhsContainer/>,
             {
@@ -42,13 +42,17 @@ describe('channel_scheduled_posts_rhs/index', () => {
                     scheduledPosts: {
                         byId: {
                             current: scheduledPost('current', 'channel_id', 'this channel'),
+                            thread: scheduledPost('thread', 'channel_id', 'thread reply', 'root_id'),
                             other: scheduledPost('other', 'other_channel', 'other channel'),
+                            otherThread: scheduledPost('other_thread', 'other_channel', 'other thread', 'other_root'),
                         },
                         byTeamId: {},
                         errorsByTeamId: {},
                         byChannelOrThreadId: {
                             channel_id: ['current'],
+                            root_id: ['thread'],
                             other_channel: ['other'],
+                            other_root: ['other_thread'],
                         },
                     },
                 },
@@ -56,16 +60,18 @@ describe('channel_scheduled_posts_rhs/index', () => {
         );
 
         expect(screen.getByText('this channel')).toBeInTheDocument();
+        expect(screen.getByText('thread reply')).toBeInTheDocument();
         expect(screen.queryByText('other channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('other thread')).not.toBeInTheDocument();
     });
 });
 
-function scheduledPost(id: string, channelId: string, message: string): ScheduledPost {
+function scheduledPost(id: string, channelId: string, message: string, rootId = ''): ScheduledPost {
     return {
         id,
         channel_id: channelId,
         user_id: 'user_id',
-        root_id: '',
+        root_id: rootId,
         message,
         scheduled_at: 1,
         create_at: 1,

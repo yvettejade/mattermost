@@ -59,6 +59,23 @@ export function hasScheduledPostError(state: GlobalState, teamId: string) {
     return state.entities.scheduledPosts.errorsByTeamId[teamId]?.length > 0 || state.entities.scheduledPosts.errorsByTeamId.directChannels?.length > 0;
 }
 
+export function makeGetScheduledPostsForChannel(): (state: GlobalState, channelId: string) => ScheduledPost[] {
+    return createSelector(
+        'makeGetScheduledPostsForChannel',
+        (state: GlobalState) => state.entities.scheduledPosts.byId,
+        (state: GlobalState, channelId: string) => channelId,
+        (byId: ScheduledPostsState['byId'], channelId: string) => {
+            const scheduledPosts = Object.values(byId).filter((scheduledPost): scheduledPost is ScheduledPost => {
+                return Boolean(scheduledPost && scheduledPost.channel_id === channelId);
+            });
+
+            scheduledPosts.sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
+
+            return scheduledPosts;
+        },
+    );
+}
+
 export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, channelOrThreadId: string): ChannelScheduledPostIndicatorData {
     const allChannelScheduledPosts = state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || emptyList;
     const eligibleScheduledPosts = allChannelScheduledPosts.filter((scheduledPostId: string) => {

@@ -60,76 +60,86 @@ const ChannelBookmarksRhs = ({
                 onClose={actions.closeRightHandSide}
                 goBack={actions.goBack}
             />
-            {canAdd && (
-                <AddBar>
-                    <Menu.Container
-                        menuButton={{
-                            id: 'channelBookmarksRhsAddButton',
-                            class: 'btn btn-primary btn-sm',
-                            children: (
-                                <>
-                                    <PlusIcon size={16}/>
-                                    <span>{addBookmarkLabel}</span>
-                                </>
-                            ),
-                            'aria-label': addBookmarkLabel,
-                            disabled: limitReached,
-                        }}
-                        menu={{
-                            id: 'channelBookmarksRhsAddMenu',
-                        }}
-                    >
-                        <Menu.Item
-                            id='channelBookmarksRhsAddLink'
-                            onClick={handleCreateLink}
-                            leadingElement={<LinkVariantIcon size={18}/>}
-                            labels={<span>{addLinkLabel}</span>}
-                        />
-                        {canUploadFiles && (
+            <Body>
+                {canAdd && (
+                    <AddBar>
+                        <Menu.Container
+                            menuButton={{
+                                id: 'channelBookmarksRhsAddButton',
+                                class: 'btn btn-primary btn-sm',
+                                children: (
+                                    <>
+                                        <PlusIcon size={16}/>
+                                        <span>{addBookmarkLabel}</span>
+                                    </>
+                                ),
+                                'aria-label': addBookmarkLabel,
+                                disabled: limitReached,
+                            }}
+                            menu={{
+                                id: 'channelBookmarksRhsAddMenu',
+                            }}
+                        >
                             <Menu.Item
-                                id='channelBookmarksRhsAttachFile'
-                                onClick={handleCreateFile}
-                                leadingElement={<PaperclipIcon size={18}/>}
-                                labels={<span>{attachFileLabel}</span>}
+                                id='channelBookmarksRhsAddLink'
+                                onClick={handleCreateLink}
+                                leadingElement={<LinkVariantIcon size={18}/>}
+                                labels={<span>{addLinkLabel}</span>}
                             />
-                        )}
-                    </Menu.Container>
-                </AddBar>
-            )}
-            {bookmarks.length === 0 ? (
-                <EmptyState>
-                    <NoResultsIndicator
-                        expanded={true}
-                        title={formatMessage({
-                            id: 'channel_bookmarks_rhs.empty.title',
-                            defaultMessage: 'No bookmarks yet',
-                        })}
-                        subtitle={formatMessage({
-                            id: 'channel_bookmarks_rhs.empty.subtitle',
-                            defaultMessage: 'Add links or files so this channel\'s important resources stay in one place.',
-                        })}
-                    />
-                </EmptyState>
-            ) : (
-                <List aria-label={formatMessage({id: 'channel_info_rhs.menu.bookmarks', defaultMessage: 'Bookmarks'})}>
-                    {bookmarks.map((bookmark) => (
-                        <ListItem key={bookmark.id}>
-                            <BookmarkItemContent
-                                bookmark={bookmark}
-                                disableInteractions={false}
-                            />
-                        </ListItem>
-                    ))}
-                </List>
-            )}
+                            {canUploadFiles && (
+                                <Menu.Item
+                                    id='channelBookmarksRhsAttachFile'
+                                    onClick={handleCreateFile}
+                                    leadingElement={<PaperclipIcon size={18}/>}
+                                    labels={<span>{attachFileLabel}</span>}
+                                />
+                            )}
+                        </Menu.Container>
+                    </AddBar>
+                )}
+                {bookmarks.length === 0 ? (
+                    <EmptyState>
+                        <NoResultsIndicator
+                            expanded={true}
+                            title={formatMessage({
+                                id: 'channel_bookmarks_rhs.empty.title',
+                                defaultMessage: 'No bookmarks yet',
+                            })}
+                            subtitle={formatMessage({
+                                id: 'channel_bookmarks_rhs.empty.subtitle',
+                                defaultMessage: 'Add links or files so this channel\'s important resources stay in one place.',
+                            })}
+                        />
+                    </EmptyState>
+                ) : (
+                    <List aria-label={formatMessage({id: 'channel_info_rhs.menu.bookmarks', defaultMessage: 'Bookmarks'})}>
+                        {bookmarks.map((bookmark) => (
+                            <ListItem key={bookmark.id}>
+                                <BookmarkItemContent
+                                    bookmark={bookmark}
+                                    disableInteractions={false}
+                                />
+                            </ListItem>
+                        ))}
+                    </List>
+                )}
+            </Body>
         </div>
     );
 };
 
 export default ChannelBookmarksRhs;
 
+const Body = styled.div`
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+`;
+
 const AddBar = styled.div`
     display: flex;
+    flex-shrink: 0;
     justify-content: flex-end;
     padding: 12px 16px 0;
 `;
@@ -138,6 +148,8 @@ const List = styled.ul`
     list-style: none;
     margin: 0;
     padding: 8px 0 16px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
 `;
 

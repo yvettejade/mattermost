@@ -398,6 +398,22 @@ describe('channel_info_rhs/menu', () => {
         await userEvent.click(scheduledItem);
         expect(props.actions.showChannelScheduledPosts).toHaveBeenCalledWith('channel_id');
     });
+
+    test('should include thread scheduled posts in the Scheduled posts badge', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            scheduledPostsEnabledState(1, {includeThreadReply: true}),
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem.parentElement).toHaveTextContent('2');
+    });
 });
 
 const CHANNEL_ID = 'channel_id';
@@ -469,7 +485,7 @@ function bookmarksEnabledState(count: number) {
     };
 }
 
-function scheduledPostsEnabledState(count: number) {
+function scheduledPostsEnabledState(count: number, options?: {includeThreadReply?: boolean}) {
     const ids = Array.from({length: count}, (_, index) => `scheduled_${index}`);
     const byId = Object.fromEntries(ids.map((id) => [id, {
         id,
@@ -482,6 +498,24 @@ function scheduledPostsEnabledState(count: number) {
         update_at: 1,
         props: {},
     }]));
+    const byChannelOrThreadId: Record<string, string[]> = {
+        [CHANNEL_ID]: ids,
+    };
+
+    if (options?.includeThreadReply) {
+        byId.thread_reply = {
+            id: 'thread_reply',
+            channel_id: CHANNEL_ID,
+            user_id: USER_ID,
+            root_id: 'root_id',
+            message: 'thread reply',
+            scheduled_at: 1,
+            create_at: 1,
+            update_at: 1,
+            props: {},
+        };
+        byChannelOrThreadId.root_id = ['thread_reply'];
+    }
 
     return {
         entities: {
@@ -497,9 +531,7 @@ function scheduledPostsEnabledState(count: number) {
                 byId,
                 byTeamId: {},
                 errorsByTeamId: {},
-                byChannelOrThreadId: {
-                    [CHANNEL_ID]: ids,
-                },
+                byChannelOrThreadId,
             },
         },
     };

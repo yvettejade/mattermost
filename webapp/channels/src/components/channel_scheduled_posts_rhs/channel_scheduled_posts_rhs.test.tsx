@@ -12,8 +12,9 @@ import {TestHelper} from 'utils/test_helper';
 
 import ChannelScheduledPostsRhs from './channel_scheduled_posts_rhs';
 
-jest.mock('components/drafts/scheduled_post_list', () => (props: {scheduledPosts: ScheduledPost[]}) => (
+jest.mock('components/drafts/scheduled_post_list', () => (props: {scheduledPosts: ScheduledPost[]; hideErrorBanner?: boolean}) => (
     <div data-testid='scheduled-post-list'>
+        {`hideErrorBanner:${Boolean(props.hideErrorBanner)}`}
         {props.scheduledPosts.length === 0 ? 'empty-scheduled-list' : props.scheduledPosts.map((post) => (
             <div key={post.id}>{post.message}</div>
         ))}
@@ -74,6 +75,19 @@ describe('channel_scheduled_posts_rhs', () => {
         expect(screen.getByText('tomorrow morning')).toBeInTheDocument();
         expect(screen.queryByText(otherChannelPost.message)).not.toBeInTheDocument();
         expect(screen.queryByText('empty-scheduled-list')).not.toBeInTheDocument();
+        expect(screen.getByTestId('scheduled-post-list')).toHaveTextContent('hideErrorBanner:true');
+    });
+
+    test('hides the team-wide failed scheduled posts banner', () => {
+        renderWithContext(
+            <ChannelScheduledPostsRhs
+                {...baseProps}
+                scheduledPosts={currentChannelPosts}
+            />,
+        );
+
+        expect(screen.getByTestId('scheduled-post-list')).toHaveTextContent('hideErrorBanner:true');
+        expect(screen.queryByText('One of your scheduled drafts cannot be sent.')).not.toBeInTheDocument();
     });
 
     test('calls goBack when the back button is clicked', async () => {

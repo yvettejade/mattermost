@@ -24,6 +24,7 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
+    hideErrorBanner?: boolean;
 };
 
 export default function ScheduledPostList(props: Props) {
@@ -47,7 +48,7 @@ export default function ScheduledPostList(props: Props) {
 
     return (
         <div className='ScheduledPostList nonVirtualizedScheduledPostList'>
-            {scheduledPostsHasError && (<ScheduledPostError/>)}
+            {!props.hideErrorBanner && scheduledPostsHasError && (<ScheduledPostError/>)}
 
             <NonVirtualizedScheduledPostList
                 scheduledPosts={props.scheduledPosts}

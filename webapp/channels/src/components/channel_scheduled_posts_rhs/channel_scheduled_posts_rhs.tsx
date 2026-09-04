@@ -51,6 +51,7 @@ const ChannelScheduledPostsRhs = ({
                     currentUser={currentUser}
                     userDisplayName={userDisplayName}
                     userStatus={userStatus}
+                    hideErrorBanner={true}
                 />
             </ListWrap>
         </div>

@@ -83,6 +83,9 @@ describe('channel_bookmarks_rhs', () => {
         expect(screen.getByText('Docs')).toBeInTheDocument();
         expect(screen.getByText('Roadmap')).toBeInTheDocument();
         expect(screen.queryByText('No bookmarks yet')).not.toBeInTheDocument();
+
+        const list = screen.getByRole('list', {name: 'Bookmarks'});
+        expect(list).toHaveStyle({overflowY: 'auto', minHeight: '0', flex: '1'});
     });
 
     test('calls goBack when the back button is clicked', async () => {
