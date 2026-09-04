@@ -10,8 +10,8 @@ import {
     PaperclipIcon,
     PlusIcon,
 } from '@mattermost/compass-icons/components';
-import type {Channel} from '@mattermost/types/channels';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+import type {Channel} from '@mattermost/types/channels';
 
 import BookmarkItemContent from 'components/channel_bookmarks/bookmark_item_content';
 import {useBookmarkAddActions} from 'components/channel_bookmarks/channel_bookmarks_menu';
