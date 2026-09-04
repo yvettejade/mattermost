@@ -35,9 +35,9 @@ import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} fr
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, goBack, setEditChannelMembers} from 'actions/views/rhs';
 import {setChannelMembersRhsSearchTerm} from 'actions/views/search';
-import {getIsEditingMembers, getPreviousRhsState} from 'selectors/rhs';
+import {canGoBackFromChannelInfoRhs, getIsEditingMembers} from 'selectors/rhs';
 
-import {Constants, RHSStates} from 'utils/constants';
+import {Constants} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -142,12 +142,7 @@ function mapStateToProps(state: GlobalState) {
     }
 
     const teamUrl = getCurrentRelativeTeamUrl(state);
-    const prevRhsState = getPreviousRhsState(state);
-    const hasInfoPrevState = prevRhsState === RHSStates.CHANNEL_INFO ||
-        prevRhsState === RHSStates.CHANNEL_FILES ||
-        prevRhsState === RHSStates.PIN;
-
-    const canGoBack = Boolean(hasInfoPrevState);
+    const canGoBack = canGoBackFromChannelInfoRhs(state);
     const editing = getIsEditingMembers(state);
 
     const currentUserIsChannelAdmin = currentUser && currentUser.scheme_admin;

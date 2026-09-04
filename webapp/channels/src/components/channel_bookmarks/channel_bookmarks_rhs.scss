@@ -1,0 +1,36 @@
+.ChannelBookmarksRhs {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+
+    &__content {
+        display: flex;
+        min-height: 100%;
+        flex-direction: column;
+        padding: 16px 0;
+    }
+
+    &__add {
+        padding: 0 16px 12px;
+    }
+
+    &__add-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        padding: 0 8px;
+        margin: 0;
+        gap: 4px;
+        list-style: none;
+    }
+
+    &__item {
+        min-width: 0;
+        border-radius: 4px;
+    }
+}

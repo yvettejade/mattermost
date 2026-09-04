@@ -46,6 +46,30 @@ export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: stri
     );
 }
 
+export function makeGetScheduledPostsForChannel(): (state: GlobalState, channelId: string) => ScheduledPost[] {
+    return createSelector(
+        'makeGetScheduledPostsForChannel',
+        (state: GlobalState) => state.entities.scheduledPosts.byId,
+        (state: GlobalState, channelId: string) => channelId,
+        (scheduledPostsById: ScheduledPostsState['byId'], channelId: string) => {
+            const scheduledPosts: ScheduledPost[] = [];
+
+            Object.values(scheduledPostsById).forEach((scheduledPost) => {
+                // Thread replies are indexed under root_id in byChannelOrThreadId, but
+                // they still belong to the channel via channel_id — same source the
+                // /scheduled_posts list uses (byId), just scoped to one channel.
+                if (scheduledPost && scheduledPost.channel_id === channelId) {
+                    scheduledPosts.push(scheduledPost);
+                }
+            });
+
+            scheduledPosts.sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
+
+            return scheduledPosts;
+        },
+    );
+}
+
 export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string, includeDirectChannels: boolean) {
     let count = state.entities.scheduledPosts.byTeamId[teamId]?.length || 0;
     if (includeDirectChannels) {

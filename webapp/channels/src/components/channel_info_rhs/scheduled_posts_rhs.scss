@@ -1,0 +1,12 @@
+.ChannelScheduledPostsRhs {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+
+    &__content {
+        display: flex;
+        min-height: 100%;
+        flex-direction: column;
+        padding: 8px 0 16px;
+    }
+}

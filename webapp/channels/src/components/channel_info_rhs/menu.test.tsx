@@ -31,7 +31,7 @@ const mockedOpenModal = openModal as unknown as jest.Mock;
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {
-        channel: {type: Constants.OPEN_CHANNEL} as Channel,
+        channel: {id: 'channel_id', type: Constants.OPEN_CHANNEL} as Channel,
         channelStats: {files_count: 3, pinnedpost_count: 12, member_count: 32} as ChannelStats,
         isArchived: false,
         actions: {
@@ -39,6 +39,8 @@ describe('channel_info_rhs/menu', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
+            showChannelScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         },
     };
@@ -51,6 +53,8 @@ describe('channel_info_rhs/menu', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
+            showChannelScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         };
     });
@@ -270,6 +274,233 @@ describe('channel_info_rhs/menu', () => {
         );
         await act(async () => props.actions.getChannelStats());
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    test('should display unreads with a zero count', async () => {
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const unreadsItem = screen.getByText('Unreads');
+        expect(unreadsItem).toBeInTheDocument();
+        expect(unreadsItem.parentElement).toHaveTextContent('0');
+    });
+
+    test('should display unreads with message and mention counts', async () => {
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            {
+                entities: {
+                    channels: {
+                        messageCounts: {
+                            channel_id: {total: 10, root: 10},
+                        },
+                        myMembers: {
+                            channel_id: {
+                                channel_id: 'channel_id',
+                                user_id: 'user_id',
+                                mention_count: 2,
+                                mention_count_root: 2,
+                                msg_count: 3,
+                                msg_count_root: 3,
+                                urgent_mention_count: 0,
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const unreadsItem = screen.getByText('Unreads');
+        expect(unreadsItem).toBeInTheDocument();
+        expect(unreadsItem.parentElement).toHaveTextContent('7');
+        expect(unreadsItem.parentElement).toHaveTextContent('2');
+    });
+
+    test('should hide Bookmarks when the feature is disabled', async () => {
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        expect(screen.queryByText('Bookmarks')).not.toBeInTheDocument();
+    });
+
+    test('should display Bookmarks and open the sub-pane on click when enabled', async () => {
+        const props = {...defaultProps};
+        props.actions.showChannelBookmarks = jest.fn();
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagChannelBookmarks: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                        },
+                    },
+                    channelBookmarks: {
+                        byChannelId: {
+                            channel_id: {
+                                bm1: {
+                                    id: 'bm1',
+                                    channel_id: 'channel_id',
+                                    display_name: 'Docs',
+                                    sort_order: 0,
+                                },
+                                bm2: {
+                                    id: 'bm2',
+                                    channel_id: 'channel_id',
+                                    display_name: 'Specs',
+                                    sort_order: 1,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const bookmarksItem = screen.getByText('Bookmarks');
+        expect(bookmarksItem).toBeInTheDocument();
+        expect(bookmarksItem.parentElement).toHaveTextContent('2');
+
+        await userEvent.click(bookmarksItem);
+        expect(props.actions.showChannelBookmarks).toHaveBeenCalledWith('channel_id');
+    });
+
+    test('should hide Scheduled posts when the feature is disabled', async () => {
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
+    });
+
+    test('should include thread replies and error_code posts in the Scheduled posts badge', async () => {
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            ScheduledPosts: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                        },
+                    },
+                    scheduledPosts: {
+                        byId: {
+                            'sp-channel': {id: 'sp-channel', channel_id: 'channel_id', root_id: '', scheduled_at: 3, create_at: 1},
+                            'sp-thread': {id: 'sp-thread', channel_id: 'channel_id', root_id: 'root_post_id', scheduled_at: 2, create_at: 1},
+                            'sp-error': {id: 'sp-error', channel_id: 'channel_id', root_id: '', error_code: 'unable_to_send', scheduled_at: 1, create_at: 1},
+                            'sp-other': {id: 'sp-other', channel_id: 'other_channel', root_id: '', scheduled_at: 4, create_at: 1},
+                        },
+                        byChannelOrThreadId: {
+                            channel_id: ['sp-channel'],
+                            root_post_id: ['sp-thread'],
+                            other_channel: ['sp-other'],
+                        },
+                    },
+                },
+            },
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem).toBeInTheDocument();
+        expect(scheduledItem.parentElement).toHaveTextContent('3');
+    });
+
+    test('should display Scheduled posts and open the sub-pane on click when enabled', async () => {
+        const props = {...defaultProps};
+        props.actions.showChannelScheduledPosts = jest.fn();
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            ScheduledPosts: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                        },
+                    },
+                    scheduledPosts: {
+                        byId: {
+                            sp1: {id: 'sp1', channel_id: 'channel_id'},
+                            sp2: {id: 'sp2', channel_id: 'channel_id'},
+                        },
+                        byChannelOrThreadId: {
+                            channel_id: ['sp1', 'sp2'],
+                        },
+                    },
+                },
+            },
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem).toBeInTheDocument();
+        expect(scheduledItem.parentElement).toHaveTextContent('2');
+
+        await userEvent.click(scheduledItem);
+        expect(props.actions.showChannelScheduledPosts).toHaveBeenCalledWith('channel_id');
     });
 
     test('should NOT display Channel Settings without permission', async () => {

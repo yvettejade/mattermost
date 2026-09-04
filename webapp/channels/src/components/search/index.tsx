@@ -46,9 +46,15 @@ function mapStateToProps(state: GlobalState) {
             RHSStates.PLUGIN,
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
+            RHSStates.CHANNEL_BOOKMARKS,
+            RHSStates.CHANNEL_SCHEDULED_POSTS,
             RHSStates.EDIT_HISTORY,
         ].includes(rhsState)),
-        hideMobileSearchBarInRHS: isMobileView && isRhsOpen && rhsState === RHSStates.CHANNEL_INFO,
+        hideMobileSearchBarInRHS: isMobileView && isRhsOpen && (
+            rhsState === RHSStates.CHANNEL_INFO ||
+            rhsState === RHSStates.CHANNEL_BOOKMARKS ||
+            rhsState === RHSStates.CHANNEL_SCHEDULED_POSTS
+        ),
         isMentionSearch: rhsState === RHSStates.MENTION,
         isFlaggedPosts: rhsState === RHSStates.FLAG,
         isPinnedPosts: rhsState === RHSStates.PIN,

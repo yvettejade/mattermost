@@ -18,6 +18,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {
     updateRhsState,
     selectPostFromRightHandSideSearch,
+    selectPostById,
     selectPostAndHighlight,
     updateSearchTerms,
     performSearch,
@@ -38,6 +39,8 @@ import {
     unsuppressRHS,
     goBack,
     showChannelMembers,
+    showChannelBookmarks,
+    showChannelScheduledPosts,
     openShowEditHistory,
     updateSearchTeam,
 } from 'actions/views/rhs';
@@ -61,6 +64,7 @@ const previousSelectedPost = {
     id: 'post123',
     channel_id: 'channel123',
     root_id: 'root123',
+    delete_at: 0,
 } as Post;
 
 const UserSelectors = require('mattermost-redux/selectors/entities/users');
@@ -88,6 +92,9 @@ describe('rhs view actions', () => {
         entities: {
             channels: {
                 currentChannelId,
+                channels: {
+                    channel123: TestHelper.getChannelMock({id: 'channel123'}),
+                },
             },
             teams: {
                 currentTeamId,
@@ -158,6 +165,66 @@ describe('rhs view actions', () => {
             };
 
             expect(store.getActions()).toEqual([action]);
+        });
+    });
+
+    describe('selectPostById', () => {
+        test('pushes CHANNEL_SCHEDULED_POSTS so Back can return to the pane', async () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        rhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                    },
+                },
+            });
+
+            await store.dispatch(selectPostById(previousSelectedPost.id));
+
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.SELECT_POST,
+                postId: previousSelectedPost.root_id,
+                channelId: previousSelectedPost.channel_id,
+                previousRhsState: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                timestamp: POST_CREATED_TIME,
+            }]);
+        });
+
+        test('pushes CHANNEL_BOOKMARKS so Back can return to the pane', async () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        rhsState: RHSStates.CHANNEL_BOOKMARKS,
+                    },
+                },
+            });
+
+            await store.dispatch(selectPostById(previousSelectedPost.id));
+
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.SELECT_POST,
+                postId: previousSelectedPost.root_id,
+                channelId: previousSelectedPost.channel_id,
+                previousRhsState: RHSStates.CHANNEL_BOOKMARKS,
+                timestamp: POST_CREATED_TIME,
+            }]);
+        });
+
+        test('does not invent a previousRhsState when no pane is open', async () => {
+            await store.dispatch(selectPostById(previousSelectedPost.id));
+
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.SELECT_POST,
+                postId: previousSelectedPost.root_id,
+                channelId: previousSelectedPost.channel_id,
+                previousRhsState: null,
+                timestamp: POST_CREATED_TIME,
+            }]);
         });
     });
 
@@ -448,6 +515,44 @@ describe('rhs view actions', () => {
                     channelId: currentChannelId,
                     state: RHSStates.CHANNEL_MEMBERS,
                     previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelBookmarks', () => {
+        test('it dispatches the right actions with previousRhsState', async () => {
+            const state = cloneDeep(initialState);
+            set(state, 'views.rhs.rhsState', RHSStates.CHANNEL_INFO);
+            store = mockStore(state);
+
+            await store.dispatch(showChannelBookmarks(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: RHSStates.CHANNEL_INFO,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelScheduledPosts', () => {
+        test('it dispatches the right actions with previousRhsState', async () => {
+            const state = cloneDeep(initialState);
+            set(state, 'views.rhs.rhsState', RHSStates.CHANNEL_INFO);
+            store = mockStore(state);
+
+            await store.dispatch(showChannelScheduledPosts(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_SCHEDULED_POSTS,
+                    previousRhsState: RHSStates.CHANNEL_INFO,
                 },
             ]);
         });
