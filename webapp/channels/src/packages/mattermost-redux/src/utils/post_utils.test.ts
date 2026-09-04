@@ -299,6 +299,49 @@ describe('PostUtils', () => {
             expect(canEditPost(newVersionState, {PostEditTimeLimit: 300}, licensed, teamId, channelId, userId, TestHelper.getPostMock({user_id: 'other', create_at: Date.now() - 100}))).toBeTruthy();
             expect(!canEditPost(newVersionState, {PostEditTimeLimit: 300}, licensed, teamId, channelId, userId, TestHelper.getPostMock({user_id: 'other', create_at: Date.now() - 6000000}))).toBeTruthy();
         });
+
+        it('should require edit_others_posts for another user\'s post, except collaborative cards', () => {
+            const state = {
+                entities: {
+                    general: {
+                        serverVersion: '4.9.0',
+                    },
+                    users: {
+                        currentUserId: userId,
+                        profiles: {
+                            'user-id': {roles: 'system_role'},
+                        },
+                    },
+                    teams: {
+                        currentTeamId: teamId,
+                        myMembers: {
+                            'team-id': {roles: 'team_role'},
+                        },
+                    },
+                    channels: {
+                        currentChannelId: channelId,
+                        myMembers: {
+                            'channel-id': {roles: 'channel_role'},
+                        },
+                        roles: {
+                            'channel-id': ['channel_role'],
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: TestHelper.getRoleMock({permissions: []}),
+                            team_role: TestHelper.getRoleMock({permissions: []}),
+                            channel_role: TestHelper.getRoleMock({permissions: [Permissions.EDIT_POST]}),
+                        },
+                        pending: new Set(),
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(canEditPost(state, {PostEditTimeLimit: -1}, licensed, teamId, channelId, userId, TestHelper.getPostMock({user_id: 'other'}))).toBe(false);
+            expect(canEditPost(state, {PostEditTimeLimit: -1, FeatureFlagIntegratedBoards: 'true'}, licensed, teamId, channelId, userId, TestHelper.getPostMock({user_id: 'other', type: PostTypes.CARD}))).toBe(true);
+            expect(canEditPost(state, {PostEditTimeLimit: -1}, licensed, teamId, channelId, userId, TestHelper.getPostMock({user_id: 'other', type: PostTypes.CARD}))).toBe(false);
+        });
     });
 
     describe('isSystemMessage', () => {
