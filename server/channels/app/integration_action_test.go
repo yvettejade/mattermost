@@ -2477,7 +2477,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		edit := created.Clone()
 		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
-		updated, _, uErr := th.App.UpdatePost(intCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		updated, _, uErr := th.App.UpdatePost(intCtx, edit, &model.UpdatePostOptions{SafeUpdate: false, TrustedUpdate: true})
 		require.Nil(t, uErr)
 
 		// The attacker's "replaced" entry must not land; the original stays.
