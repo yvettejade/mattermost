@@ -31,7 +31,7 @@ const mockedOpenModal = openModal as unknown as jest.Mock;
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {
-        channel: {type: Constants.OPEN_CHANNEL} as Channel,
+        channel: {id: 'channel_id', type: Constants.OPEN_CHANNEL} as Channel,
         channelStats: {files_count: 3, pinnedpost_count: 12, member_count: 32} as ChannelStats,
         isArchived: false,
         actions: {
@@ -39,6 +39,8 @@ describe('channel_info_rhs/menu', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
+            showChannelScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         },
     };
@@ -51,6 +53,8 @@ describe('channel_info_rhs/menu', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
+            showChannelScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         };
     });
@@ -284,4 +288,251 @@ describe('channel_info_rhs/menu', () => {
         await act(async () => props.actions.getChannelStats());
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
     });
+
+    test('should display unreads as 0 when there are none', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            unreadState(0, 0),
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        const unreadsItem = screen.getByText('Unreads');
+        expect(unreadsItem).toBeInTheDocument();
+        expect(unreadsItem.parentElement).toHaveTextContent('0');
+        expect(unreadsItem.parentElement?.querySelector('.icon-chevron-right')).not.toBeInTheDocument();
+    });
+
+    test('should display unread messages and mention count', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            unreadState(5, 2),
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        const unreadsItem = screen.getByText('Unreads');
+        expect(unreadsItem).toBeInTheDocument();
+        expect(unreadsItem.parentElement).toHaveTextContent('5');
+        expect(unreadsItem.parentElement).toHaveTextContent('2');
+    });
+
+    test('should hide Bookmarks when the feature is disabled', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        expect(screen.queryByText('Bookmarks')).not.toBeInTheDocument();
+    });
+
+    test('should display Bookmarks and open the sub-pane on click', async () => {
+        const props = {...defaultProps};
+        props.actions.showChannelBookmarks = jest.fn();
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            bookmarksEnabledState(2),
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const bookmarksItem = screen.getByText('Bookmarks');
+        expect(bookmarksItem).toBeInTheDocument();
+        expect(bookmarksItem.parentElement).toHaveTextContent('2');
+
+        await userEvent.click(bookmarksItem);
+        expect(props.actions.showChannelBookmarks).toHaveBeenCalledWith('channel_id');
+    });
+
+    test('should hide Scheduled posts when the feature is disabled', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
+    });
+
+    test('should display Scheduled posts and open the sub-pane on click', async () => {
+        const props = {...defaultProps};
+        props.actions.showChannelScheduledPosts = jest.fn();
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            scheduledPostsEnabledState(3),
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem).toBeInTheDocument();
+        expect(scheduledItem.parentElement).toHaveTextContent('3');
+
+        await userEvent.click(scheduledItem);
+        expect(props.actions.showChannelScheduledPosts).toHaveBeenCalledWith('channel_id');
+    });
+
+    test('should include thread scheduled posts in the Scheduled posts badge', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            scheduledPostsEnabledState(1, {includeThreadReply: true}),
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem.parentElement).toHaveTextContent('2');
+    });
 });
+
+const CHANNEL_ID = 'channel_id';
+const USER_ID = 'current_user_id';
+
+function unreadState(messages: number, mentions: number) {
+    return {
+        entities: {
+            users: {
+                currentUserId: USER_ID,
+            },
+            channels: {
+                currentChannelId: CHANNEL_ID,
+                myMembers: {
+                    [CHANNEL_ID]: {
+                        channel_id: CHANNEL_ID,
+                        user_id: USER_ID,
+                        mention_count: mentions,
+                        mention_count_root: mentions,
+                        msg_count: 10,
+                        msg_count_root: 10,
+                        notify_props: {},
+                    },
+                },
+                messageCounts: {
+                    [CHANNEL_ID]: {
+                        total: 10 + messages,
+                        root: 10 + messages,
+                    },
+                },
+            },
+        },
+    };
+}
+
+function bookmarksEnabledState(count: number) {
+    const bookmarks = Array.from({length: count}, (_, index) => {
+        const id = `bookmark_${index}`;
+        return [id, {
+            id,
+            channel_id: CHANNEL_ID,
+            owner_id: USER_ID,
+            type: 'link',
+            link_url: `https://example.com/${index}`,
+            display_name: `Bookmark ${index}`,
+            sort_order: index,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        }];
+    });
+
+    return {
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagChannelBookmarks: 'true',
+                },
+                license: {
+                    IsLicensed: 'true',
+                },
+            },
+            channelBookmarks: {
+                byChannelId: {
+                    [CHANNEL_ID]: Object.fromEntries(bookmarks),
+                },
+            },
+        },
+    };
+}
+
+function scheduledPostsEnabledState(count: number, options?: {includeThreadReply?: boolean}) {
+    const ids = Array.from({length: count}, (_, index) => `scheduled_${index}`);
+    const byId = Object.fromEntries(ids.map((id) => [id, {
+        id,
+        channel_id: CHANNEL_ID,
+        user_id: USER_ID,
+        root_id: '',
+        message: id,
+        scheduled_at: 1,
+        create_at: 1,
+        update_at: 1,
+        props: {},
+    }]));
+    const byChannelOrThreadId: Record<string, string[]> = {
+        [CHANNEL_ID]: ids,
+    };
+
+    if (options?.includeThreadReply) {
+        byId.thread_reply = {
+            id: 'thread_reply',
+            channel_id: CHANNEL_ID,
+            user_id: USER_ID,
+            root_id: 'root_id',
+            message: 'thread reply',
+            scheduled_at: 1,
+            create_at: 1,
+            update_at: 1,
+            props: {},
+        };
+        byChannelOrThreadId.root_id = ['thread_reply'];
+    }
+
+    return {
+        entities: {
+            general: {
+                config: {
+                    ScheduledPosts: 'true',
+                },
+                license: {
+                    IsLicensed: 'true',
+                },
+            },
+            scheduledPosts: {
+                byId,
+                byTeamId: {},
+                errorsByTeamId: {},
+                byChannelOrThreadId,
+            },
+        },
+    };
+}

@@ -46,6 +46,8 @@ function mapStateToProps(state: GlobalState) {
             RHSStates.PLUGIN,
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
+            RHSStates.CHANNEL_BOOKMARKS,
+            RHSStates.CHANNEL_SCHEDULED_POSTS,
             RHSStates.EDIT_HISTORY,
         ].includes(rhsState)),
         hideMobileSearchBarInRHS: isMobileView && isRhsOpen && rhsState === RHSStates.CHANNEL_INFO,
