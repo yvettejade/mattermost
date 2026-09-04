@@ -1114,8 +1114,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Cards: collaborative model — skip ownership check
 		// PermissionEditPost already checked above
 	} else if c.AppContext.Session().UserId != originalPost.UserId {
-		// We don't need to check the member here, since we already checked it above
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost); !ok {
+		// Non-owners need edit_others_posts to change another user's post content.
+		// Matches postPatchChecks. Pin/unpin of others' posts uses saveIsPinnedPost.
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
 			return
 		}

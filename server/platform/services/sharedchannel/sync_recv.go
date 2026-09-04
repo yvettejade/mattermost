@@ -550,7 +550,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 
 		// First update the basic post
-		rpost, _, appErr = scs.app.UpdatePost(rctx, post, nil)
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{TrustedUpdate: true})
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr
