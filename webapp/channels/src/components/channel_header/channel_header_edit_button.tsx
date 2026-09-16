@@ -69,7 +69,7 @@ const ChannelHeaderEditButton = ({channel, dmUser}: Props) => {
         return null;
     }
 
-    const hasHeader = channel.header.trim().length > 0;
+    const hasHeader = (channel.header ?? '').trim().length > 0;
     const tooltip = hasHeader ? formatMessage({
         id: 'channel_header.editHeader',
         defaultMessage: 'Edit header',
