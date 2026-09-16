@@ -222,6 +222,108 @@ describe('components/EditChannelHeaderModal', () => {
 
             expect(patchChannel).toHaveBeenCalled();
         });
+
+        test('empty initial header patches the typed value', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={{...channel, header: ''}}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            const textbox = screen.getByRole('textbox');
+            expect(textbox).toHaveValue('');
+
+            fireEvent.change(textbox, {target: {value: 'Standup at 9'}});
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'Standup at 9'});
+        });
+
+        test('trims header on save', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={{...channel, header: ''}}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: '  hello  '}});
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'hello'});
+        });
+
+        test('save of only whitespace patches an empty header', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: '   \n'}});
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: ''});
+        });
+    });
+
+    test('cancel does not patch the channel', async () => {
+        const patchChannel = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <EditChannelHeaderModal
+                {...baseProps}
+                actions={{...baseProps.actions, patchChannel}}
+            />,
+        );
+
+        fireEvent.change(screen.getByRole('textbox'), {target: {value: 'changed'}});
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        expect(patchChannel).not.toHaveBeenCalled();
+    });
+
+    test('escape does not patch the channel', () => {
+        const patchChannel = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <EditChannelHeaderModal
+                {...baseProps}
+                actions={{...baseProps.actions, patchChannel}}
+            />,
+        );
+
+        fireEvent.change(screen.getByRole('textbox'), {target: {value: 'changed'}});
+        fireEvent.keyDown(screen.getByRole('dialog'), {
+            key: KeyCodes.ESCAPE[0],
+            keyCode: KeyCodes.ESCAPE[1],
+            which: KeyCodes.ESCAPE[1],
+        });
+
+        expect(patchChannel).not.toHaveBeenCalled();
+    });
+
+    test('exactly 1024 characters is allowed', async () => {
+        const patchChannel = jest.fn().mockResolvedValue({});
+        const header = 'a'.repeat(1024);
+        renderWithContext(
+            <EditChannelHeaderModal
+                {...baseProps}
+                channel={{...channel, header: ''}}
+                actions={{...baseProps.actions, patchChannel}}
+            />,
+        );
+
+        fireEvent.change(screen.getByRole('textbox'), {target: {value: header}});
+        expect(document.querySelector('.has-error')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        expect(patchChannel).toHaveBeenCalledWith('fake-id', {header});
     });
 
     test('change header', async () => {
