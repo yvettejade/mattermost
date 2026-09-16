@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -238,6 +238,79 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
+    test('should display add channel header empty state when header is empty', () => {
+        const editChannelHeader = jest.fn();
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    header: '',
+                }}
+                actions={{
+                    editChannelHeader,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+        fireEvent.click(screen.getByText('Add a channel header'));
+        expect(editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('should still show empty-state for guest human DMs', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    header: '',
+                }}
+                dmUser={{
+                    ...defaultProps.dmUser,
+                    is_guest: true,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+        expect(screen.getByText('GUEST')).toBeInTheDocument();
+    });
+
+    test('should hide header empty-state on archived DMs', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    header: '',
+                    delete_at: 1,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should show archived DM header as read-only', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    delete_at: 1,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+    });
+
     test('should not display channel header for bots', () => {
         const props = {
             ...defaultProps,
@@ -257,5 +330,33 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.getByText('my bot description')).toBeInTheDocument();
+    });
+
+    test('should not display header empty-state for bots with empty header', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            dmUser: {
+                ...defaultProps.dmUser,
+                user: {
+                    ...defaultProps.dmUser.user,
+                    is_bot: true,
+                },
+            },
+        };
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.getByText('my bot description')).toBeInTheDocument();
     });
 });
