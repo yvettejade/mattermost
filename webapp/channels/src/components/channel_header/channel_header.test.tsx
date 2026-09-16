@@ -5,10 +5,13 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelHeader from './channel_header';
 
@@ -350,5 +353,82 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    const managePublicState: DeepPartial<GlobalState> = {
+        entities: {
+            users: {
+                currentUserId: 'user_id',
+                profiles: {
+                    user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_user'}),
+                },
+            },
+            channels: {
+                myMembers: {
+                    channel_id: {channel_id: 'channel_id', roles: 'channel_user'},
+                },
+                roles: {
+                    channel_id: new Set(['channel_user']),
+                },
+            },
+            roles: {
+                roles: {
+                    system_user: {permissions: []},
+                    channel_user: {permissions: ['manage_public_channel_properties']},
+                },
+            },
+        },
+    };
+
+    test('should place the header pencil after the files button when the user can edit', () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+            managePublicState,
+        );
+
+        const icons = document.querySelector('.channel-header__icons');
+        expect(icons).not.toBeNull();
+        const buttonIds = Array.from(icons!.querySelectorAll('button')).map((button) => button.id);
+        expect(buttonIds).toEqual(['channelHeaderFilesButton', 'channelHeaderEditHeaderButton']);
+        expect(screen.getByRole('button', {name: 'Edit header'})).toBeVisible();
+    });
+
+    test('should keep the header pencil when file attachments are disabled', () => {
+        renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                isFileAttachmentsEnabled={false}
+            />,
+            managePublicState,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Channel files'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Edit header'})).toBeVisible();
+    });
+
+    test('should hide the header pencil on a public channel without manage-properties', () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Add header'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit header'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Channel files'})).toBeVisible();
+    });
+
+    test('should not flash a header pencil while the channel is still loading', () => {
+        renderWithContext(
+            <ChannelHeader
+                {...baseProps}
+                channel={{} as typeof baseProps['channel']}
+                channelMember={{} as typeof baseProps['channelMember']}
+                currentUser={{} as typeof baseProps['currentUser']}
+            />,
+        );
+
+        expect(document.querySelector('.channel-header')).not.toBeNull();
+        expect(document.getElementById('channel-header')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Add header'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit header'})).not.toBeInTheDocument();
     });
 });
