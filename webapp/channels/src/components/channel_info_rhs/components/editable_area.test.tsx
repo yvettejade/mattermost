@@ -70,4 +70,18 @@ describe('channel_info_rhs/components/editable_area', () => {
         await userEvent.click(screen.getByLabelText('Edit'));
         expect(mockOnEdit).toHaveBeenCalledTimes(2);
     });
+
+    test('should not show empty label or edit control when empty and not editable', () => {
+        renderWithContext(
+            <EditableArea
+                content=''
+                editable={false}
+                emptyLabel='No content'
+                onEdit={() => {}}
+            />,
+        );
+
+        expect(screen.queryByText('No content')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+    });
 });

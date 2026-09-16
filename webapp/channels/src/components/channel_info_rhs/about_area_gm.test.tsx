@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -171,5 +171,67 @@ describe('channel_info_rhs/about_area_gm', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
+    });
+
+    test('should show empty-state add header and still render members', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+        expect(screen.getByAltText('my username profile image')).toBeInTheDocument();
+        expect(screen.getByAltText('my username2 profile image')).toBeInTheDocument();
+        expect(screen.getByText('my username')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('Add a channel header'));
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('should show archived GM header as read-only and hide empty-state', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: 'archived gm header',
+                delete_at: 1,
+            },
+        };
+
+        const {rerender} = renderWithContext(
+            <AboutAreaGM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('archived gm header')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+
+        rerender(
+            <AboutAreaGM
+                {...props}
+                channel={{
+                    ...props.channel,
+                    header: '',
+                }}
+            />,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.getByAltText('my username profile image')).toBeInTheDocument();
     });
 });
