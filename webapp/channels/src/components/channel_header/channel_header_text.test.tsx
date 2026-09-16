@@ -6,6 +6,7 @@ import React from 'react';
 import {Permissions} from 'mattermost-redux/constants';
 
 import * as modalActions from 'actions/views/modals';
+
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -420,7 +421,9 @@ describe('ChannelHeaderText', () => {
             />,
         );
 
-        expect(screen.getByText('スタンドアップ 🎉 مرحبا')).toBeInTheDocument();
+        expect(document.querySelector('.header-description__text')).toHaveTextContent('スタンドアップ');
+        expect(document.querySelector('.header-description__text')).toHaveTextContent('مرحبا');
+        expect(screen.getByLabelText(':tada:')).toBeInTheDocument();
         expect(screen.queryByRole('button', {name: ADD_HEADER})).not.toBeInTheDocument();
     });
 

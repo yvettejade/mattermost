@@ -236,7 +236,8 @@ describe('components/EditChannelHeaderModal', () => {
             const textbox = screen.getByRole('textbox');
             expect(textbox).toHaveValue('');
 
-            fireEvent.change(textbox, {target: {value: 'Standup at 9'}});
+            await userEvent.click(textbox);
+            await userEvent.paste('Standup at 9');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'Standup at 9'});
@@ -252,7 +253,9 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            fireEvent.change(screen.getByRole('textbox'), {target: {value: '  hello  '}});
+            const textbox = screen.getByRole('textbox');
+            await userEvent.click(textbox);
+            await userEvent.paste('  hello  ');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'hello'});
@@ -267,7 +270,10 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            fireEvent.change(screen.getByRole('textbox'), {target: {value: '   \n'}});
+            const textbox = screen.getByRole('textbox');
+            await userEvent.clear(textbox);
+            await userEvent.click(textbox);
+            await userEvent.paste('   ');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: ''});
@@ -283,13 +289,15 @@ describe('components/EditChannelHeaderModal', () => {
             />,
         );
 
-        fireEvent.change(screen.getByRole('textbox'), {target: {value: 'changed'}});
+        const textbox = screen.getByRole('textbox');
+        await userEvent.clear(textbox);
+        await userEvent.type(textbox, 'changed');
         await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
 
         expect(patchChannel).not.toHaveBeenCalled();
     });
 
-    test('escape does not patch the channel', () => {
+    test('escape does not patch the channel', async () => {
         const patchChannel = jest.fn().mockResolvedValue({});
         renderWithContext(
             <EditChannelHeaderModal
@@ -298,7 +306,9 @@ describe('components/EditChannelHeaderModal', () => {
             />,
         );
 
-        fireEvent.change(screen.getByRole('textbox'), {target: {value: 'changed'}});
+        const textbox = screen.getByRole('textbox');
+        await userEvent.clear(textbox);
+        await userEvent.type(textbox, 'changed');
         fireEvent.keyDown(screen.getByRole('dialog'), {
             key: KeyCodes.ESCAPE[0],
             keyCode: KeyCodes.ESCAPE[1],
@@ -310,20 +320,23 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('exactly 1024 characters is allowed', async () => {
         const patchChannel = jest.fn().mockResolvedValue({});
-        const header = 'a'.repeat(1024);
+        const initialHeader = 'a'.repeat(1023);
         renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
-                channel={{...channel, header: ''}}
+                channel={{...channel, header: initialHeader}}
                 actions={{...baseProps.actions, patchChannel}}
             />,
         );
 
-        fireEvent.change(screen.getByRole('textbox'), {target: {value: header}});
+        const textarea = screen.getByTestId('edit_textbox');
+        expect(document.querySelector('.has-error')).not.toBeInTheDocument();
+
+        await userEvent.type(textarea, 'a');
         expect(document.querySelector('.has-error')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        expect(patchChannel).toHaveBeenCalledWith('fake-id', {header});
+        expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'a'.repeat(1024)});
     });
 
     test('change header', async () => {
