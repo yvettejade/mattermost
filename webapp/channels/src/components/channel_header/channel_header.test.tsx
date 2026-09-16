@@ -353,11 +353,19 @@ describe('components/ChannelHeader', () => {
     });
 
     test('does not flash a pencil on an empty loading header', () => {
+        const props = {
+            ...baseProps,
+            channel: {},
+            channelMember: {},
+            currentUser: {},
+        };
+
         const {container} = renderWithContext(
-            <ChannelHeader {...baseProps}/>,
+            <ChannelHeader {...props}/>,
         );
 
         expect(container.querySelector('#channel-header')).toBeNull();
+        expect(container.querySelector('.channel-header')).not.toBeNull();
         expect(screen.queryByRole('button', {name: 'Add header'})).not.toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Edit header'})).not.toBeInTheDocument();
     });
