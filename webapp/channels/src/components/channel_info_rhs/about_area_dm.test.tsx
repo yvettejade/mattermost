@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -257,5 +257,113 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
+    });
+
+    test('R5: non-bot empty header shows empty label and opens modal', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        fireEvent.click(screen.getByText('Add a channel header'));
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('R7: bot DM never shows header block even when header is set or empty', () => {
+        const botUser = {
+            ...defaultProps.dmUser,
+            user: {
+                ...defaultProps.dmUser.user,
+                is_bot: true,
+            },
+        };
+
+        const {unmount} = renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                dmUser={botUser}
+            />,
+            initialState,
+        );
+        expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.getByText('my bot description')).toBeInTheDocument();
+        unmount();
+
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{...defaultProps.channel, header: ''}}
+                dmUser={botUser}
+            />,
+            initialState,
+        );
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.getByText('my bot description')).toBeInTheDocument();
+    });
+
+    test('guest human DM still shows empty-state header', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            dmUser: {
+                ...defaultProps.dmUser,
+                is_guest: true,
+            },
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('GUEST')).toBeInTheDocument();
+        fireEvent.click(screen.getByText('Add a channel header'));
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('R12: archived DM with header is read-only and empty archived hides add', () => {
+        const {unmount} = renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{...defaultProps.channel, delete_at: 1}}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+        unmount();
+
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{...defaultProps.channel, header: '', delete_at: 1}}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 });

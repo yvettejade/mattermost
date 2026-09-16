@@ -222,6 +222,91 @@ describe('components/EditChannelHeaderModal', () => {
 
             expect(patchChannel).toHaveBeenCalled();
         });
+
+        test('empty initial header saves a new header', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={{...channel, header: ''}}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            const textbox = screen.getByRole('textbox');
+            expect(textbox).toHaveValue('');
+
+            fireEvent.change(textbox, {target: {value: 'Standup at 9'}});
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'Standup at 9'});
+        });
+
+        test('trims header text on save', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={{...channel, header: ''}}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: '  hello  '}});
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'hello'});
+        });
+
+        test('save of only whitespace patches an empty header', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: '   '}});
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: ''});
+        });
+
+        test('allows saving a 1024 character header', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            const header = 'a'.repeat(1024);
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={{...channel, header: ''}}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: header}});
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header});
+        });
+
+        test('cancel hides the modal without patching', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: 'changed'}});
+            await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+            await waitFor(() => {
+                expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            });
+            expect(patchChannel).not.toHaveBeenCalled();
+        });
     });
 
     test('change header', async () => {
