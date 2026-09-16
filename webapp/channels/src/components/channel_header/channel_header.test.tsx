@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -350,5 +350,103 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('does not flash a pencil on an empty loading header', () => {
+        const props = {
+            ...baseProps,
+            channel: {},
+            channelMember: {},
+            currentUser: {},
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('#channel-header')).toBeNull();
+        expect(container.querySelector('.channel-header')).not.toBeNull();
+        expect(screen.queryByRole('button', {name: 'Add header'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit header'})).not.toBeInTheDocument();
+    });
+
+    test('keeps files and members icons when the pencil is hidden', () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Add header'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit header'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Channel files'})).toBeVisible();
+        expect(screen.getByRole('button', {name: 'Members'})).toBeVisible();
+    });
+
+    test('places the pencil after files on a DM and keeps it when files are disabled', () => {
+        const dmProps = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: '',
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'dm_user_id',
+                is_bot: false,
+            }),
+        };
+
+        const {rerender} = renderWithContext(
+            <ChannelHeader {...dmProps}/>,
+        );
+
+        const icons = document.querySelector('.channel-header__icons');
+        expect(icons).not.toBeNull();
+        const ids = Array.from(icons!.querySelectorAll('button')).map((button) => button.id);
+        expect(ids).toEqual(['channelHeaderFilesButton', 'channelHeaderEditHeaderButton']);
+        expect(screen.queryByRole('button', {name: 'Members'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Add header'})).toBeVisible();
+
+        rerender(
+            <ChannelHeader
+                {...dmProps}
+                isFileAttachmentsEnabled={false}
+            />,
+        );
+
+        const iconsWithoutFiles = document.querySelector('.channel-header__icons');
+        const idsWithoutFiles = Array.from(iconsWithoutFiles!.querySelectorAll('button')).map((button) => button.id);
+        expect(idsWithoutFiles).toEqual(['channelHeaderEditHeaderButton']);
+        expect(screen.getByRole('button', {name: 'Add header'})).toBeVisible();
+    });
+
+    test('shows mute, pins, files, and pencil together without dropping the pencil', () => {
+        const props = {
+            ...populatedProps,
+            isChannelMuted: true,
+            pinnedPostsCount: 2,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: 'Notes',
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'dm_user_id',
+                is_bot: false,
+            }),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const icons = document.querySelector('.channel-header__icons');
+        const ids = Array.from(icons!.querySelectorAll('button')).map((button) => button.id);
+        expect(ids).toEqual([
+            'toggleMute',
+            'channelHeaderPinButton',
+            'channelHeaderFilesButton',
+            'channelHeaderEditHeaderButton',
+        ]);
+        expect(screen.getByRole('button', {name: 'Edit header'})).toBeVisible();
     });
 });
