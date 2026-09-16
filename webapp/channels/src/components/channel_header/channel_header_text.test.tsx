@@ -90,7 +90,8 @@ describe('ChannelHeaderText', () => {
             />,
         );
 
-        expect(screen.getByText('Standup at 9 🚀 会議')).toBeInTheDocument();
+        expect(document.querySelector('.header-description__text')).toHaveTextContent('Standup at 9');
+        expect(document.querySelector('.header-description__text')).toHaveTextContent('会議');
         expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
     });
 

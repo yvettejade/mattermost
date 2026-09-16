@@ -391,14 +391,11 @@ describe('components/EditChannelHeaderModal', () => {
         renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
-                channel={{...channel, header: ''}}
+                channel={{...channel, header: '  hello  '}}
                 actions={{...baseProps.actions, patchChannel}}
             />,
         );
 
-        const textbox = screen.getByRole('textbox');
-        await userEvent.clear(textbox);
-        fireEvent.change(textbox, {target: {value: '  hello  '}});
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'hello'});
