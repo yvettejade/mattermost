@@ -235,8 +235,7 @@ describe('components/EditChannelHeaderModal', () => {
 
             const textbox = screen.getByRole('textbox');
             expect(textbox).toHaveValue('');
-
-            fireEvent.change(textbox, {target: {value: 'Standup at 9'}});
+            await userEvent.type(textbox, 'Standup at 9');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'Standup at 9'});
@@ -252,7 +251,7 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            fireEvent.change(screen.getByRole('textbox'), {target: {value: '  hello  '}});
+            await userEvent.type(screen.getByRole('textbox'), '  hello  ');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: 'hello'});
@@ -267,7 +266,9 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            fireEvent.change(screen.getByRole('textbox'), {target: {value: '   '}});
+            const textbox = screen.getByRole('textbox');
+            await userEvent.clear(textbox);
+            await userEvent.type(textbox, '   ');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: ''});
@@ -284,7 +285,9 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            fireEvent.change(screen.getByRole('textbox'), {target: {value: header}});
+            const textbox = screen.getByRole('textbox');
+            await userEvent.click(textbox);
+            await userEvent.paste(header);
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('fake-id', {header});
@@ -299,7 +302,9 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            fireEvent.change(screen.getByRole('textbox'), {target: {value: 'changed'}});
+            const textbox = screen.getByRole('textbox');
+            await userEvent.clear(textbox);
+            await userEvent.type(textbox, 'changed');
             await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
 
             await waitFor(() => {

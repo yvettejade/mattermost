@@ -374,7 +374,8 @@ describe('ChannelHeaderText', () => {
             />,
         );
 
-        expect(screen.getByText('standup こんにちは 👋')).toBeInTheDocument();
+        expect(screen.getByText(/standup こんにちは/)).toBeInTheDocument();
+        expect(screen.getByLabelText(':wave:')).toBeInTheDocument();
     });
 
     test('undefined dmUser on a DM is treated as a non-bot', () => {
