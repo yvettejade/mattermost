@@ -389,7 +389,7 @@ describe('components/ChannelHeader', () => {
         const icons = document.querySelector('.channel-header__icons');
         expect(icons).not.toBeNull();
         const buttonIds = Array.from(icons!.querySelectorAll('button')).map((button) => button.id);
-        expect(buttonIds).toEqual(['channelHeaderFilesButton', 'channelHeaderEditHeaderButton']);
+        expect(buttonIds).toEqual(['member_rhs', 'channelHeaderFilesButton', 'channelHeaderEditHeaderButton']);
         expect(screen.getByRole('button', {name: 'Edit header'})).toBeVisible();
     });
 
