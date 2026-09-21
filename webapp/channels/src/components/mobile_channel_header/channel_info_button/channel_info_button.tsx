@@ -20,7 +20,7 @@ const NavbarInfoButton = ({channel, actions}: Props) => {
         <button
             className='navbar-toggle navbar-right__icon navbar-info-button pull-right'
             type='button'
-            aria-label={formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'})}
+            aria-label={formatMessage({id: 'channel_header.mobileInfo', defaultMessage: 'Info'})}
             onClick={() => actions.showChannelInfo(channel.id)}
         >
             <i

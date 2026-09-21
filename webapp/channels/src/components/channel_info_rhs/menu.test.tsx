@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {scrollPostListToUnread} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
@@ -17,6 +18,8 @@ import {
     fireEvent,
 } from 'tests/react_testing_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('selectors/views/channel_settings', () => ({
     canAccessChannelSettings: jest.fn(),
@@ -76,7 +79,7 @@ const enabledFeaturesState = {
         scheduledPosts: {
             byId: {
                 sp1: {id: 'sp1'},
-                sp2: {id: 'sp2', error_code: 'failed'},
+                sp2: {id: 'sp2', error_code: 'unable_to_send'},
             },
             byChannelOrThreadId: {
                 channel_id: ['sp1', 'sp2'],
@@ -84,7 +87,7 @@ const enabledFeaturesState = {
             },
         },
     },
-};
+} as DeepPartial<GlobalState>;
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {
@@ -400,7 +403,7 @@ describe('channel_info_rhs/menu', () => {
                         byChannelId: {},
                     },
                 },
-            },
+            } as DeepPartial<GlobalState>,
         );
         await act(async () => props.actions.getChannelStats());
 

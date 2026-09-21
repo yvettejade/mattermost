@@ -3,7 +3,7 @@
 exports[`components/ChannelHeaderMobile/ChannelInfoButton should match snapshot 1`] = `
 <div>
   <button
-    aria-label="View Info"
+    aria-label="Info"
     class="navbar-toggle navbar-right__icon navbar-info-button pull-right"
     type="button"
   >

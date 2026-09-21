@@ -31,7 +31,7 @@ describe('components/ChannelHeaderMobile/ChannelInfoButton', () => {
             <ChannelInfoButton {...baseProps}/>,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'View Info'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Info'}));
         expect(baseProps.actions.showChannelInfo).toHaveBeenCalledWith('channel_id');
     });
 });
