@@ -25,7 +25,6 @@ import CloseMessage from '../menu_items/close_message';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel';
-import MenuItemToggleInfo from '../menu_items/toggle_info';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
 
@@ -45,14 +44,11 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
 
     return (
         <>
-            <MenuItemToggleInfo
-                channel={channel}
-                {...rest}
-            />
             <MenuItemToggleMuteChannel
                 userID={user.id}
                 channel={channel}
                 isMuted={isMuted}
+                {...rest}
             />
             {isMobile && (
                 <>

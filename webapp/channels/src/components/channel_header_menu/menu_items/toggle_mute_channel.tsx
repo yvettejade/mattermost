@@ -14,16 +14,17 @@ import * as Menu from 'components/menu';
 
 import {Constants, NotificationLevels} from 'utils/constants';
 
-type Props = {
+interface Props extends Menu.FirstMenuItemProps {
     userID: string;
     channel: Channel;
     isMuted: boolean;
-};
+}
 
 export default function ToggleMuteChannel({
     isMuted,
     channel,
     userID,
+    ...rest
 }: Props) {
     const dispatch = useDispatch();
 
@@ -76,6 +77,7 @@ export default function ToggleMuteChannel({
             id='channelToggleMuteChannel'
             onClick={handleClick}
             labels={text}
+            {...rest}
         />
     );
 }
