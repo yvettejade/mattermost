@@ -6,6 +6,8 @@ import React from 'react';
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import * as channelBookmarkSelectors from 'mattermost-redux/selectors/entities/channel_bookmarks';
+import * as scheduledPostSelectors from 'mattermost-redux/selectors/entities/scheduled_posts';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {openModal} from 'actions/views/modals';
@@ -358,6 +360,65 @@ describe('channel_info_rhs/menu', () => {
         );
         await act(async () => props.actions.getChannelStats());
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    test('should render Unreads MenuItem by id even with zero unreads', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            buildState({
+                entities: {
+                    channels: {
+                        messageCounts: {
+                            [channelId]: {total: 10, root: 8},
+                        },
+                        myMembers: {
+                            [channelId]: {
+                                channel_id: channelId,
+                                msg_count: 10,
+                                msg_count_root: 8,
+                                mention_count: 0,
+                                mention_count_root: 0,
+                                urgent_mention_count: 0,
+                            },
+                        },
+                    },
+                },
+            }),
+        );
+        await act(async () => defaultProps.actions.getChannelStats());
+
+        const unreadsById = document.getElementById('channelInfoRHSUnreads');
+        expect(unreadsById).toBeInTheDocument();
+        expect(unreadsById).toHaveAttribute('id', 'channelInfoRHSUnreads');
+        expect(unreadsById).toHaveTextContent('Unreads');
+        expect(unreadsById).toHaveTextContent('0');
+    });
+
+    test('should still render Unreads by id when bookmark or scheduled selectors throw', async () => {
+        jest.spyOn(channelBookmarkSelectors, 'getChannelBookmarks').mockImplementation(() => {
+            throw new Error('channelBookmarks missing');
+        });
+        jest.spyOn(scheduledPostSelectors, 'showChannelOrThreadScheduledPostIndicator').mockImplementation(() => {
+            throw new Error('scheduledPosts missing');
+        });
+
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            buildState(),
+        );
+        await act(async () => defaultProps.actions.getChannelStats());
+
+        expect(document.getElementById('channelInfoRHSUnreads')).toBeInTheDocument();
+        expect(screen.getByText('Notification Preferences')).toBeInTheDocument();
+        expect(screen.getByText('Members')).toBeInTheDocument();
+        expect(screen.queryByText('Bookmarks')).not.toBeInTheDocument();
+        expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
+
+        jest.restoreAllMocks();
     });
 
     test('should display Unreads with a zero badge and keep the row after Members/Pins order', async () => {
