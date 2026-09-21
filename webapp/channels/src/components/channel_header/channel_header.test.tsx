@@ -300,9 +300,9 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...populatedProps}/>,
         );
 
-        // ChannelInfoButton renders a button with channel-info class
-        const channelInfoButton = container.querySelector('.channel-header__info');
-        expect(channelInfoButton).not.toBeNull();
+        const channelInfo = container.querySelector('.channel-header__info');
+        expect(channelInfo).not.toBeNull();
+        expect(container.querySelector('#channel-info-btn')).toBeNull();
     });
 
     test('should match snapshot with last active display', () => {

@@ -4,12 +4,10 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import {isMac} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
-import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
@@ -106,9 +104,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     };
 
     handleShortcut = (e: KeyboardEvent) => {
-        const channelInfoShortcutMac = isMac() && e.shiftKey;
-        const channelInfoShortcut = !isMac() && e.altKey;
-
         if (cmdOrCtrlPressed(e, true)) {
             if (e.shiftKey && isKeyPressed(e, Constants.KeyCodes.PERIOD)) {
                 e.preventDefault();
@@ -127,13 +122,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                     this.props.actions.closeRightHandSide();
                 } else {
                     this.props.actions.openAtPrevious(this.previous);
-                }
-            } else if (isKeyPressed(e, Constants.KeyCodes.I) && (channelInfoShortcutMac || channelInfoShortcut)) {
-                e.preventDefault();
-                if (this.props.isOpen && this.props.isChannelInfo) {
-                    this.props.actions.closeRightHandSide();
-                } else if (this.props.channel) {
-                    this.props.actions.showChannelInfo(this.props.channel.id);
                 }
             }
         }
@@ -197,6 +185,9 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('mousedown', this.handleClickOutside);
+        if (this.props.isChannelInfo) {
+            this.props.actions.closeRightHandSide();
+        }
     }
 
     componentWillUnmount() {
@@ -205,6 +196,10 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
+        if (this.props.isChannelInfo) {
+            this.props.actions.closeRightHandSide();
+        }
+
         this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
@@ -270,7 +265,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             searchVisible,
             isPluginView,
             isOpen,
-            isChannelInfo,
             isChannelMembers,
             isExpanded,
             isPostEditHistory,
@@ -300,9 +294,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = <RhsCard previousRhsState={previousRhsState}/>;
         } else if (isPluginView) {
             content = <RhsPlugin/>;
-        } else if (isChannelInfo) {
-            currentChannelNeeded = true;
-            content = <ChannelInfoRhs/>;
         } else if (isChannelMembers) {
             currentChannelNeeded = true;
             content = <ChannelMembersRhs/>;

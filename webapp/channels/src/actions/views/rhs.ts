@@ -481,12 +481,8 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
-export function showChannelInfo(channelId: string) {
-    return {
-        type: ActionTypes.UPDATE_RHS_STATE,
-        channelId,
-        state: RHSStates.CHANNEL_INFO,
-    };
+export function showChannelInfo(_channelId: string) {
+    return {type: 'NOOP_SHOW_CHANNEL_INFO'};
 }
 
 export function closeRightHandSide(): ActionFunc {
@@ -614,8 +610,7 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         }
 
         if (previous.isChannelInfo) {
-            const currentChannelId = getCurrentChannelId(getState());
-            return dispatch(showChannelInfo(currentChannelId));
+            return dispatch(openRHSSearch());
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
