@@ -5,8 +5,6 @@ import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
-import {createBrowserHistory} from 'history';
-
 import {scrollPostListToUnread} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
@@ -437,15 +435,14 @@ describe('channel_info_rhs/menu', () => {
     });
 
     test('should count non-error scheduled posts for the channel key only and navigate', async () => {
-        const history = createBrowserHistory();
-        const push = jest.spyOn(history, 'push');
+        const historyMock = (global as any).historyMock;
+        historyMock.push.mockClear();
 
         renderWithContext(
             <Menu
                 {...defaultProps}
             />,
             enabledFeaturesState,
-            {history},
         );
         await act(async () => defaultProps.actions.getChannelStats());
 
@@ -454,7 +451,7 @@ describe('channel_info_rhs/menu', () => {
         expect(scheduledItem.parentElement).toHaveTextContent('1');
 
         await userEvent.click(scheduledItem);
-        expect(push).toHaveBeenCalledWith('/team-slug/scheduled_posts?target_id=channel_id');
+        expect(historyMock.push).toHaveBeenCalledWith('/team-slug/scheduled_posts?target_id=channel_id');
     });
 
     test('should render menu rows in the locked order', async () => {

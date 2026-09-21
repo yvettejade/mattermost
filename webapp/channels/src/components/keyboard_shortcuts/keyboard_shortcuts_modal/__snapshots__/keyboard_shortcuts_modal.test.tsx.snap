@@ -391,6 +391,28 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                         class="shortcut-line"
                       >
                         <span>
+                          View channel info:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Alt
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          I
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
                           Toggle unread/all channels:
                         </span>
                         <mark
@@ -1262,6 +1284,28 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
                           .
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          View channel info:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Alt
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          I
                         </mark>
                       </div>
                       <div

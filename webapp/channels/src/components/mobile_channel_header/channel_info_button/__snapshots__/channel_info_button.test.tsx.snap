@@ -1,3 +1,16 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/ChannelHeaderMobile/ChannelInfoButton should match snapshot 1`] = `<div />`;
+exports[`components/ChannelHeaderMobile/ChannelInfoButton should match snapshot 1`] = `
+<div>
+  <button
+    aria-label="View Info"
+    class="navbar-toggle navbar-right__icon navbar-info-button pull-right"
+    type="button"
+  >
+    <i
+      aria-hidden="true"
+      class="icon icon-information-outline"
+    />
+  </button>
+</div>
+`;
