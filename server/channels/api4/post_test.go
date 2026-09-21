@@ -1991,6 +1991,21 @@ func TestUpdatePost(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("edit others posts permission can function independently of edit own post", func(t *testing.T) {
+		th.LoginBasic2(t)
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, rpost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		_, _, err = client.UpdatePost(context.Background(), rpost.Id, rpost)
+		require.NoError(t, err)
+	})
+
 	t.Run("should be able to add new files", func(t *testing.T) {
 		th.LoginBasic(t)
 		// create new file
@@ -2424,6 +2439,20 @@ func TestPatchPost(t *testing.T) {
 	t.Run("different user", func(t *testing.T) {
 		th.LoginBasic2(t)
 		patch := &model.PostPatch{}
+		_, resp, err := client.PatchPost(context.Background(), post.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel_user without edit_others_posts cannot patch another user's post", func(t *testing.T) {
+		th.LoginBasic2(t)
+		role, appErr := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
+		require.Nil(t, appErr)
+		require.NotContains(t, role.Permissions, model.PermissionEditOthersPosts.Id)
+		require.Contains(t, role.Permissions, model.PermissionEditPost.Id)
+
+		message := "hijacked by channel_user"
+		patch := &model.PostPatch{Message: &message}
 		_, resp, err := client.PatchPost(context.Background(), post.Id, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -2976,6 +3005,48 @@ func TestPinPost(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPinPostByDifferentUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	post := th.CreatePost(t)
+	require.Equal(t, th.BasicUser.Id, post.UserId)
+
+	th.LoginBasic2(t)
+	role, appErr := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
+	require.Nil(t, appErr)
+	require.NotContains(t, role.Permissions, model.PermissionEditOthersPosts.Id)
+
+	_, err := th.Client.PinPost(context.Background(), post.Id)
+	require.NoError(t, err)
+
+	rpost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+	require.Nil(t, appErr)
+	require.True(t, rpost.IsPinned)
+	require.Equal(t, post.Message, rpost.Message)
+
+	_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, &model.Post{
+		Id:        post.Id,
+		ChannelId: post.ChannelId,
+		Message:   "hijacked after pin",
+	})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	message := "hijacked after pin via patch"
+	_, resp, err = th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{Message: &message})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+	th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+	patched, _, err := th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{Message: &message})
+	require.NoError(t, err)
+	require.Equal(t, message, patched.Message)
+}
+
 func TestUnpinPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -3028,6 +3099,24 @@ func TestUnpinPost(t *testing.T) {
 
 	_, err = th.SystemAdminClient.UnpinPost(context.Background(), pinnedPost.Id)
 	require.NoError(t, err)
+}
+
+func TestUnpinPostByDifferentUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	pinnedPost := th.CreatePinnedPost(t)
+	require.NotEqual(t, th.BasicUser2.Id, pinnedPost.UserId)
+	require.Equal(t, th.BasicUser.Id, pinnedPost.UserId)
+
+	th.LoginBasic2(t)
+	_, err := th.Client.UnpinPost(context.Background(), pinnedPost.Id)
+	require.NoError(t, err)
+
+	rpost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
+	require.Nil(t, appErr)
+	require.False(t, rpost.IsPinned)
+	require.Equal(t, pinnedPost.Message, rpost.Message)
 }
 
 func TestGetPostsForChannel(t *testing.T) {
