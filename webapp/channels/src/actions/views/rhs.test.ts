@@ -38,6 +38,7 @@ import {
     unsuppressRHS,
     goBack,
     showChannelMembers,
+    showChannelBookmarks,
     openShowEditHistory,
     updateSearchTeam,
 } from 'actions/views/rhs';
@@ -448,6 +449,38 @@ describe('rhs view actions', () => {
                     channelId: currentChannelId,
                     state: RHSStates.CHANNEL_MEMBERS,
                     previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelBookmarks', () => {
+        test('it dispatches the right actions', async () => {
+            await store.dispatch(showChannelBookmarks(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: null,
+                },
+            ]);
+        });
+
+        test('it preserves the previous Info-family state', async () => {
+            const state = cloneDeep(initialState);
+            set(state, 'views.rhs.rhsState', RHSStates.CHANNEL_INFO);
+            store = mockStore(state);
+
+            await store.dispatch(showChannelBookmarks(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: RHSStates.CHANNEL_INFO,
                 },
             ]);
         });
@@ -885,6 +918,19 @@ describe('rhs view actions', () => {
             store.dispatch(openAtPrevious({}));
 
             expect(store.getActions()).toEqual(actionsForEmptySearch());
+        });
+
+        it('opens channel bookmarks', async () => {
+            await store.dispatch(openAtPrevious({isChannelBookmarks: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: null,
+                },
+            ]);
         });
     });
 

@@ -38,6 +38,7 @@ const ChannelInfoButton = ({channel}: Props) => {
     const isChannelInfo = rhsState === RHSStates.CHANNEL_INFO ||
         rhsState === RHSStates.CHANNEL_MEMBERS ||
         rhsState === RHSStates.CHANNEL_FILES ||
+        rhsState === RHSStates.CHANNEL_BOOKMARKS ||
         rhsState === RHSStates.PIN;
 
     const buttonActive = isRhsOpen && isChannelInfo;

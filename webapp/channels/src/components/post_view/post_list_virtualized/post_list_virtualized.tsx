@@ -205,6 +205,7 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         window.addEventListener('resize', this.handleWindowResize);
         EventEmitter.addListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
+        EventEmitter.addListener(EventTypes.POST_LIST_SCROLL_TO_UNREAD_MESSAGES, this.handleScrollToUnreadMessages);
     }
 
     getSnapshotBeforeUpdate(prevProps: Props) {
@@ -274,6 +275,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.mounted = false;
         window.removeEventListener('resize', this.handleWindowResize);
         EventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
+        EventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_TO_UNREAD_MESSAGES, this.handleScrollToUnreadMessages);
     }
 
     static getDerivedStateFromProps(props: Props) {
@@ -613,6 +615,17 @@ export default class PostList extends React.PureComponent<Props, State> {
 
     scrollToUnreadMessages = () => {
         this.props.actions.toggleShouldStartFromBottomWhenUnread();
+    };
+
+    handleScrollToUnreadMessages = () => {
+        if (this.props.shouldStartFromBottomWhenUnread) {
+            this.scrollToUnreadMessages();
+            return;
+        }
+
+        if (getNewMessagesIndex(this.state.postListIds) >= 0) {
+            this.scrollToNewMessage();
+        }
     };
 
     scrollToBottom = () => {

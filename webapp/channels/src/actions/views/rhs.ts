@@ -79,6 +79,7 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
             RHSStates.CHANNEL_FILES,
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
+            RHSStates.CHANNEL_BOOKMARKS,
         ].includes(rhsState)) {
             action.channelId = channelId || getCurrentChannelId(getState());
         }
@@ -489,6 +490,25 @@ export function showChannelInfo(channelId: string) {
     };
 }
 
+export function showChannelBookmarks(channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.CHANNEL_BOOKMARKS) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            state: RHSStates.CHANNEL_BOOKMARKS,
+            previousRhsState,
+        });
+
+        return {data: true};
+    };
+}
+
 export function closeRightHandSide(): ActionFunc {
     return (dispatch) => {
         const actionsBatch: AnyAction[] = [
@@ -620,6 +640,10 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
             return dispatch(showChannelMembers(currentChannelId));
+        }
+        if (previous.isChannelBookmarks) {
+            const currentChannelId = getCurrentChannelId(getState());
+            return dispatch(showChannelBookmarks(currentChannelId));
         }
         if (previous.isMentionSearch) {
             return dispatch(showMentions());

@@ -4,12 +4,13 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
 import type {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 
 import {renderWithContext, act} from 'tests/react_testing_utils';
-import {PostListRowListIds, PostRequestTypes} from 'utils/constants';
+import {EventTypes, PostListRowListIds, PostRequestTypes} from 'utils/constants';
 
 import PostList from './post_list_virtualized';
 
@@ -981,5 +982,27 @@ describe('PostList', () => {
         );
         const initScrollToIndex = ref.current!.initScrollToIndex();
         expect(initScrollToIndex).toEqual({index: 5, position: 'start', offset: -50});
+    });
+
+    test('should invoke the toast unread jump when the unread event is emitted', () => {
+        const actions = {
+            ...baseActions,
+            toggleShouldStartFromBottomWhenUnread: jest.fn(),
+        };
+        renderWithContext(
+            <PostList
+                {...baseProps}
+                shouldStartFromBottomWhenUnread={true}
+                actions={actions}
+            />,
+        );
+
+        const unreadListener = (EventEmitter.addListener as jest.Mock).mock.calls.find(
+            ([event]) => event === EventTypes.POST_LIST_SCROLL_TO_UNREAD_MESSAGES,
+        )?.[1];
+
+        expect(unreadListener).toEqual(expect.any(Function));
+        unreadListener();
+        expect(actions.toggleShouldStartFromBottomWhenUnread).toHaveBeenCalled();
     });
 });

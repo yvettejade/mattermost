@@ -509,6 +509,7 @@ export const EventTypes = Object.assign(
     },
     keyMirror({
         POST_LIST_SCROLL_TO_BOTTOM: null,
+        POST_LIST_SCROLL_TO_UNREAD_MESSAGES: null,
     }),
 );
 
@@ -991,6 +992,7 @@ export const RHSStates = {
     CHANNEL_FILES: 'channel-files',
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
+    CHANNEL_BOOKMARKS: 'channel-bookmarks',
     EDIT_HISTORY: 'edit-history',
 };
 
