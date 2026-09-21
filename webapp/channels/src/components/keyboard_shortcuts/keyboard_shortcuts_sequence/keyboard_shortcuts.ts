@@ -240,7 +240,7 @@ export const KEYBOARD_SHORTCUTS = {
         },
         mac: {
             id: 'shortcuts.nav.open_channel_info.mac',
-            defaultMessage: 'View channel info:\t⌘|Shift|I',
+            defaultMessage: 'View channel info:\t⌘|Alt|I',
         },
     }),
     navToggleUnreads: defineMessages({
