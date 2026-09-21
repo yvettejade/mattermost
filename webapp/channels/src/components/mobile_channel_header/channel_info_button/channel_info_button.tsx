@@ -48,8 +48,8 @@ const NavbarInfoButton = ({channel, actions}: Props) => {
             id='channel-info-btn'
             onClick={toggleRHS}
             aria-label={intl.formatMessage({
-                id: 'channel_header.openChannelInfo',
-                defaultMessage: 'View Info',
+                id: 'accessibility.button.Info',
+                defaultMessage: 'Info',
             })}
         >
             <i
