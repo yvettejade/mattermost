@@ -337,6 +337,27 @@ describe('Channel Info RHS', () => {
                 // * Make sure we are back in the channel info rhs
                 ensureRHSIsOpenOnChannelInfo(testChannel);
             });
+            it('should show Unreads before Members and keep Files after the feature rows', () => {
+                // # Go to test channel
+                cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
+                // # Click on the channel info button
+                cy.get('#channel-info-btn').click();
+
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').then((menu) => {
+                    const labels = [...menu.find('button')].map((button) => button.getAttribute('aria-label'));
+                    expect(labels.indexOf('Unreads')).to.be.greaterThan(-1);
+                    expect(labels.indexOf('Unreads')).to.be.lessThan(labels.indexOf('Members'));
+                    expect(labels.indexOf('Members')).to.be.lessThan(labels.indexOf('Pinned messages'));
+                    expect(labels.indexOf('Pinned messages')).to.be.lessThan(labels.indexOf('Files'));
+                    expect(labels.indexOf('Files')).to.be.lessThan(labels.indexOf('Channel Settings'));
+                    expect(labels.indexOf('Channel Settings')).to.be.lessThan(labels.indexOf('Notification Preferences'));
+                });
+
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Unreads').should('be.visible');
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Unreads').parent().should('contain', '0');
+            });
+
             it('should be able to view channel members and come back', () => {
                 // # Go to test channel
                 cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
@@ -529,6 +550,36 @@ describe('Channel Info RHS', () => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');
                 });
             });
+        });
+
+        describe('bottom menu', () => {
+            it('should hide Members in a DM', () => {
+                // # Go to the DM
+                cy.visit(`/${testTeam.name}/messages/@${directUser.username}`);
+
+                // # Click on the channel info button
+                cy.get('#channel-info-btn').click();
+
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Unreads').should('be.visible');
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Members').should('not.exist');
+            });
+        });
+    });
+
+    it('should keep Info open when switching channels', () => {
+        cy.apiCreateChannel(testTeam.id, 'channel-switch', 'Switch Channel', 'O').then(({channel}) => {
+            cy.apiAddUserToChannel(channel.id, admin.id);
+
+            // # Open Info on the first channel
+            cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+            cy.get('#channel-info-btn').click();
+            ensureRHSIsOpenOnChannelInfo(testChannel);
+
+            // # Switch channels
+            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+
+            // * Info stays open and rebinds to the new channel
+            ensureRHSIsOpenOnChannelInfo(channel);
         });
     });
 });
