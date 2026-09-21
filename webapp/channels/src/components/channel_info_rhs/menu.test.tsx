@@ -5,6 +5,8 @@ import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
+
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -47,8 +49,6 @@ jest.mock('react-router-dom', () => ({
         push: mockHistoryPush,
     }),
 }));
-
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import Menu from './menu';
 

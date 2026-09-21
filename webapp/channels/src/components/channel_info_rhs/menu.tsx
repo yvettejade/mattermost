@@ -180,7 +180,7 @@ export default function Menu(props: MenuProps) {
     const currentTeam = useSelector(getCurrentTeam);
     const getUnreadCount = useMemo(makeGetChannelUnreadCount, []);
     const unreadCount = useSelector((state: GlobalState) => getUnreadCount(state, channel.id));
-    const scheduledIndicator = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id));
+    const scheduledCount = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id).count);
     const bookmarks = useSelector((state: GlobalState) => getChannelBookmarks(state, channel.id));
     const bookmarkCount = Object.keys(bookmarks).length;
 
@@ -307,7 +307,7 @@ export default function Menu(props: MenuProps) {
                         defaultMessage: 'Scheduled posts',
                     })}
                     opensSubpanel={true}
-                    badge={scheduledIndicator.count}
+                    badge={scheduledCount}
                     onClick={handleScheduledClick}
                 />
             )}
