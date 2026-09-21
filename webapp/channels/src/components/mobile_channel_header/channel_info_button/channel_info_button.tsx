@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+import {useIntl} from 'react-intl';
+
 import type {Channel} from '@mattermost/types/channels';
 
 type Props = {
@@ -10,8 +13,22 @@ type Props = {
     };
 };
 
-const NavbarInfoButton = (_props: Props) => {
-    return null;
+const NavbarInfoButton = ({channel, actions}: Props) => {
+    const {formatMessage} = useIntl();
+
+    return (
+        <button
+            className='navbar-toggle navbar-right__icon navbar-info-button pull-right'
+            type='button'
+            aria-label={formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'})}
+            onClick={() => actions.showChannelInfo(channel.id)}
+        >
+            <i
+                className='icon icon-information-outline'
+                aria-hidden={true}
+            />
+        </button>
+    );
 };
 
 export default NavbarInfoButton;

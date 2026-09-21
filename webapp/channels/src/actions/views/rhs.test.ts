@@ -38,6 +38,8 @@ import {
     unsuppressRHS,
     goBack,
     showChannelMembers,
+    showChannelInfo,
+    showChannelBookmarks,
     openShowEditHistory,
     updateSearchTeam,
 } from 'actions/views/rhs';
@@ -453,6 +455,36 @@ describe('rhs view actions', () => {
         });
     });
 
+    describe('showChannelInfo', () => {
+        test('it dispatches UPDATE_RHS_STATE for channel info', () => {
+            store.dispatch(showChannelInfo(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_INFO,
+                    previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelBookmarks', () => {
+        test('it dispatches UPDATE_RHS_STATE for channel bookmarks', () => {
+            store.dispatch(showChannelBookmarks(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: null,
+                },
+            ]);
+        });
+    });
+
     describe('openShowEditHistory', () => {
         test('it dispatches the right actions', async () => {
             const post = TestHelper.getPostMock();
@@ -755,6 +787,32 @@ describe('rhs view actions', () => {
             ]));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        it('opens channel info', () => {
+            store.dispatch(openAtPrevious({isChannelInfo: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_INFO,
+                    previousRhsState: null,
+                },
+            ]);
+        });
+
+        it('opens channel bookmarks', () => {
+            store.dispatch(openAtPrevious({isChannelBookmarks: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_BOOKMARKS,
+                    previousRhsState: null,
+                },
+            ]);
         });
 
         it('opens pinned posts', async () => {

@@ -29,26 +29,30 @@ const Icon = styled.i`
     justify-content: center;
 `;
 
+export function isChannelInfoButtonActive(rhsState: RhsState): boolean {
+    return rhsState === RHSStates.CHANNEL_INFO ||
+        rhsState === RHSStates.CHANNEL_MEMBERS ||
+        rhsState === RHSStates.CHANNEL_FILES ||
+        rhsState === RHSStates.PIN ||
+        rhsState === RHSStates.CHANNEL_BOOKMARKS;
+}
+
 const ChannelInfoButton = ({channel}: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
 
     const rhsState: RhsState = useSelector(getRhsState);
     const isRhsOpen: boolean = useSelector(getIsRhsOpen);
-    const isChannelInfo = rhsState === RHSStates.CHANNEL_INFO ||
-        rhsState === RHSStates.CHANNEL_MEMBERS ||
-        rhsState === RHSStates.CHANNEL_FILES ||
-        rhsState === RHSStates.PIN;
+    const isChannelInfo = isChannelInfoButtonActive(rhsState);
 
     const buttonActive = isRhsOpen && isChannelInfo;
     const toggleRHS = useCallback(() => {
         if (buttonActive) {
-            const action = isChannelInfo ? closeRightHandSide() : showChannelInfo(channel.id);
-            dispatch(action);
+            dispatch(closeRightHandSide());
         } else {
             dispatch(showChannelInfo(channel.id));
         }
-    }, [buttonActive, channel.id, isChannelInfo, dispatch]);
+    }, [buttonActive, channel.id, dispatch]);
 
     let tooltip;
     if (buttonActive) {
