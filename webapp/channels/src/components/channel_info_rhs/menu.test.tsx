@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as channelBookmarkSelectors from 'mattermost-redux/selectors/entities/channel_bookmarks';
@@ -471,7 +472,7 @@ describe('channel_info_rhs/menu', () => {
                 entities: {
                     general: {
                         config: {
-                            CollapsedThreads: 'always_on',
+                            CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                         },
                     },
                     channels: {
@@ -670,7 +671,7 @@ describe('channel_info_rhs/menu', () => {
                     scheduledPosts: {
                         byId: {
                             ok: {id: 'ok'},
-                            failed: {id: 'failed', error_code: 'failed'},
+                            failed: {id: 'failed', error_code: 'unable_to_send'},
                         },
                         byChannelOrThreadId: {
                             [channelId]: ['ok', 'failed'],
