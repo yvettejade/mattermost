@@ -31,7 +31,12 @@ const EMPTY_UNREAD_COUNT = {
     messages: 0,
 };
 
-const MenuContainer = styled.nav`
+const CHANNEL_INFO_MENU_VERSION = 'unreads-v1';
+
+const MenuContainer = styled.nav.attrs({
+    'data-testid': 'channel_info_rhs-menu',
+    'data-channel-info-menu-version': CHANNEL_INFO_MENU_VERSION,
+})`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -171,25 +176,51 @@ function UnreadsMenuItem({channelId}: {channelId: string}) {
     const messages = unreadCount?.messages ?? 0;
     const mentions = unreadCount?.mentions ?? 0;
     const hasUrgent = Boolean(unreadCount?.hasUrgent);
+    const text = formatMessage({
+        id: 'channel_info_rhs.menu.unreads',
+        defaultMessage: 'Unreads',
+    });
 
     return (
-        <MenuItem
+        <button
+            type='button'
             id='channelInfoRHSUnreads'
-            icon={<i className='icon icon-mark-as-unread'/>}
-            text={formatMessage({
-                id: 'channel_info_rhs.menu.unreads',
-                defaultMessage: 'Unreads',
-            })}
-            badge={messages}
-            badgeMention={mentions > 0}
-            badgeUrgent={hasUrgent}
+            data-testid='channelInfoRHSUnreads'
+            aria-label={text}
             onClick={() => {
                 if (messages <= 0) {
                     return;
                 }
                 EventEmitter.emit(EventTypes.POST_LIST_SCROLL_TO_UNREAD_MESSAGES);
             }}
-        />
+            style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                width: '100%',
+                height: 40,
+                padding: '8px 16px',
+                background: 'none',
+                border: 'none',
+                textAlign: 'left',
+                cursor: 'pointer',
+                color: 'inherit',
+                font: 'inherit',
+            }}
+        >
+            <Icon><i className='icon icon-mark-as-unread'/></Icon>
+            <MenuItemText>{text}</MenuItemText>
+            <RightSide>
+                <Badge
+                    $mention={mentions > 0}
+                    $urgent={hasUrgent}
+                    data-mention={mentions > 0 || undefined}
+                    data-urgent={hasUrgent || undefined}
+                >
+                    {messages}
+                </Badge>
+            </RightSide>
+        </button>
     );
 }
 
@@ -327,12 +358,17 @@ export default function Menu(props: MenuProps) {
     return (
         <MenuContainer
             className={className}
-            data-testid='channel_info_rhs-menu'
             aria-label={formatMessage({
                 id: 'channel_info_rhs.menu.title',
                 defaultMessage: 'Channel Info Actions',
             })}
         >
+            <div
+                id='channelInfoRHSUnreads'
+                data-testid='channelInfoRHSUnreads'
+                data-channel-info-unreads-canary='true'
+                hidden={true}
+            />
             {showChannelSettings && canAccessSettings && (
                 <MenuItem
                     id='channelInfoRHSChannelSettings'
@@ -357,16 +393,20 @@ export default function Menu(props: MenuProps) {
             )}
             <MenuRowErrorBoundary
                 fallback={(
-                    <MenuItem
+                    <button
+                        type='button'
                         id='channelInfoRHSUnreads'
-                        icon={<i className='icon icon-mark-as-unread'/>}
-                        text={formatMessage({
+                        data-testid='channelInfoRHSUnreads'
+                        aria-label={formatMessage({
                             id: 'channel_info_rhs.menu.unreads',
                             defaultMessage: 'Unreads',
                         })}
-                        badge={0}
-                        onClick={() => undefined}
-                    />
+                    >
+                        {formatMessage({
+                            id: 'channel_info_rhs.menu.unreads',
+                            defaultMessage: 'Unreads',
+                        })}
+                    </button>
                 )}
             >
                 <UnreadsMenuItem channelId={channel.id}/>

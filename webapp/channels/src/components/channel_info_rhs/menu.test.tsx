@@ -393,8 +393,15 @@ describe('channel_info_rhs/menu', () => {
         const unreadsById = document.getElementById('channelInfoRHSUnreads');
         expect(unreadsById).toBeInTheDocument();
         expect(unreadsById).toHaveAttribute('id', 'channelInfoRHSUnreads');
-        expect(unreadsById).toHaveTextContent('Unreads');
-        expect(unreadsById).toHaveTextContent('0');
+        expect(unreadsById).toHaveAttribute('data-channel-info-unreads-canary', 'true');
+
+        const menu = screen.getByTestId('channel_info_rhs-menu');
+        expect(menu).toHaveAttribute('data-channel-info-menu-version', 'unreads-v1');
+
+        const unreadsButton = screen.getByRole('button', {name: 'Unreads'});
+        expect(unreadsButton).toHaveAttribute('id', 'channelInfoRHSUnreads');
+        expect(unreadsButton).toHaveTextContent('0');
+        expect(document.querySelectorAll('#channelInfoRHSUnreads').length).toBeGreaterThanOrEqual(1);
     });
 
     test('should still render Unreads by id when bookmark or scheduled selectors throw', async () => {
