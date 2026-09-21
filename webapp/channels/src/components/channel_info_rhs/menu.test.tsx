@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createBrowserHistory} from 'history';
 import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
@@ -10,9 +9,9 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {openModal} from 'actions/views/modals';
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {
     act,
     renderWithContext,
@@ -21,6 +20,7 @@ import {
     fireEvent,
 } from 'tests/react_testing_utils';
 import Constants, {EventTypes, ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
@@ -80,10 +80,10 @@ function buildState(overrides: DeepPartial<GlobalState> = {}): DeepPartial<Globa
             teams: {
                 currentTeamId: 'team_id',
                 teams: {
-                    team_id: {
-                        id: 'team_id',
-                        name: 'team-1',
-                    },
+                    team_id: TestHelper.getTeamMock({id: 'team_id', name: 'team-1'}),
+                },
+                myMembers: {
+                    team_id: {team_id: 'team_id', user_id: 'current_user_id', roles: 'team_user'},
                 },
             },
             preferences: {
@@ -110,6 +110,7 @@ describe('channel_info_rhs/menu', () => {
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
             showChannelBookmarks: jest.fn(),
+            openScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         },
     };
@@ -123,13 +124,10 @@ describe('channel_info_rhs/menu', () => {
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
             showChannelBookmarks: jest.fn(),
+            openScheduledPosts: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         };
         jest.spyOn(EventEmitter, 'emit').mockImplementation(jest.fn());
-    });
-
-    afterEach(() => {
-        jest.restoreAllMocks();
     });
 
     test('should display notifications preferences', async () => {
@@ -594,8 +592,6 @@ describe('channel_info_rhs/menu', () => {
     });
 
     test('should show Scheduled posts with a non-error badge and navigate away', async () => {
-        const history = createBrowserHistory();
-        history.push = jest.fn();
         const props = {...defaultProps};
 
         renderWithContext(
@@ -621,7 +617,6 @@ describe('channel_info_rhs/menu', () => {
                     },
                 },
             }),
-            {history},
         );
         await act(async () => props.actions.getChannelStats());
 
@@ -630,7 +625,7 @@ describe('channel_info_rhs/menu', () => {
         expect(scheduledItem.parentElement).toHaveTextContent('1');
 
         await userEvent.click(scheduledItem);
-        expect(history.push).toHaveBeenCalledWith(`/${'team-1'}/scheduled_posts?target_id=${channelId}`);
+        expect(props.actions.openScheduledPosts).toHaveBeenCalledWith(channelId);
     });
 
     test('should show Scheduled posts with a zero badge in a GM when gated on', async () => {

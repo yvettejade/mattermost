@@ -21,6 +21,7 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 import RenameChannelModal from 'components/rename_channel_modal';
 import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 
+import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
@@ -182,6 +183,13 @@ const ChannelInfoRhs = ({
         dialogProps: {channel, currentUser, focusOriginElement: 'channelInfoRHSNotificationSettings'},
     });
 
+    const openScheduledPosts = () => {
+        if (!currentTeam?.name) {
+            return;
+        }
+        getHistory().push(`/${currentTeam.name}/scheduled_posts?target_id=${channel.id}`);
+    };
+
     const openUnarchiveChannel = () => actions.openModal({
         modalId: ModalIdentifiers.UNARCHIVE_CHANNEL,
         dialogType: UnarchiveChannelModal,
@@ -276,6 +284,7 @@ const ChannelInfoRhs = ({
                             showPinnedPosts: actions.showPinnedPosts,
                             showChannelMembers: actions.showChannelMembers,
                             showChannelBookmarks: actions.showChannelBookmarks,
+                            openScheduledPosts,
                             getChannelStats: actions.getChannelStats,
                         }}
                     />

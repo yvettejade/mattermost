@@ -8,6 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {act, renderWithContext} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelInfoRHS from './channel_info_rhs';
@@ -17,6 +18,18 @@ jest.mock('./about_area', () => (props: any) => {
     mockAboutArea(props);
     return <div>{'test-about-area'}</div>;
 });
+
+const mockMenu = jest.fn();
+jest.mock('./menu', () => (props: any) => {
+    mockMenu(props);
+    return <div>{'test-menu'}</div>;
+});
+
+jest.mock('utils/browser_history', () => ({
+    getHistory: jest.fn(() => ({
+        push: jest.fn(),
+    })),
+}));
 
 describe('channel_info_rhs', () => {
     const OriginalProps = {
@@ -52,6 +65,7 @@ describe('channel_info_rhs', () => {
     beforeEach(() => {
         props = {...OriginalProps};
         mockAboutArea.mockClear();
+        mockMenu.mockClear();
     });
 
     describe('about area', () => {
@@ -114,5 +128,23 @@ describe('channel_info_rhs', () => {
                 }),
             }),
         );
+    });
+
+    test('openScheduledPosts navigates to the team scheduled posts page for this channel', () => {
+        const push = jest.fn();
+        (getHistory as jest.Mock).mockReturnValue({push});
+        props.currentTeam = {name: 'team-1'} as Team;
+        props.channel = {id: 'channel_id', display_name: 'my channel title', type: 'O'} as Channel;
+
+        renderWithContext(
+            <ChannelInfoRHS
+                {...props}
+            />,
+        );
+
+        const lastArgs = mockMenu.mock.calls[mockMenu.mock.calls.length - 1][0];
+        lastArgs.actions.openScheduledPosts(props.channel.id);
+
+        expect(push).toHaveBeenCalledWith('/team-1/scheduled_posts?target_id=channel_id');
     });
 });

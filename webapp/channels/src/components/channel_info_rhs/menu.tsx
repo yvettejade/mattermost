@@ -4,7 +4,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
@@ -12,7 +11,6 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {isScheduledPostsEnabled, showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {openModal} from 'actions/views/modals';
@@ -148,6 +146,7 @@ interface MenuProps {
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
         showChannelBookmarks: (channelId: string) => void;
+        openScheduledPosts: (channelId: string) => void;
         getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<{data: ChannelStats}>;
     };
 }
@@ -155,7 +154,6 @@ interface MenuProps {
 export default function Menu(props: MenuProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const history = useHistory();
     const {
         channel,
         channelStats,
@@ -177,8 +175,7 @@ export default function Menu(props: MenuProps) {
     const bookmarks = useSelector((state: GlobalState) => getChannelBookmarks(state, channel.id));
     const bookmarkCount = Object.keys(bookmarks).length;
     const scheduledPostsEnabled = useSelector(isScheduledPostsEnabled);
-    const scheduledPostData = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id));
-    const currentTeam = useSelector(getCurrentTeam);
+    const scheduledPostCount = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, channel.id).count);
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
@@ -294,13 +291,8 @@ export default function Menu(props: MenuProps) {
                         id: 'channel_info_rhs.menu.scheduled_posts',
                         defaultMessage: 'Scheduled posts',
                     })}
-                    badge={scheduledPostData.count}
-                    onClick={() => {
-                        if (!currentTeam?.name) {
-                            return;
-                        }
-                        history.push(`/${currentTeam.name}/scheduled_posts?target_id=${channel.id}`);
-                    }}
+                    badge={scheduledPostCount}
+                    onClick={() => actions.openScheduledPosts(channel.id)}
                 />
             )}
             <MenuItem
