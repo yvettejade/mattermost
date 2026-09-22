@@ -21,6 +21,7 @@ import BackstageNavbar from 'components/backstage/components/backstage_navbar';
 import DiscardChangesModal from 'components/discard_changes_modal';
 import GlobalClassificationBanner from 'components/global_classification_banner';
 import ModalController from 'components/modal_controller';
+import {mainContentProps} from 'components/skip_to_content/skip_to_content';
 import SystemNotice from 'components/system_notice';
 
 import {LhsItemType} from 'types/store/lhs';
@@ -244,10 +245,11 @@ const AdminConsole = (props: Props) => {
             <SystemNotice/>
             <BackstageNavbar team={props.team}/>
             <AdminSidebar onSearchChange={handleSearchChange}/>
-            <div
+            <main
                 className='admin-console__wrapper admin-console'
                 id='adminConsoleWrapper'
                 ref={handleFocusScroller}
+                tabIndex={mainContentProps.tabIndex}
             >
                 <SearchKeywordMarking
                     keyword={search}
@@ -255,7 +257,7 @@ const AdminConsole = (props: Props) => {
                 >
                     {renderRoutes(extraProps)}
                 </SearchKeywordMarking>
-            </div>
+            </main>
             <GlobalClassificationBanner position='bottom'/>
             <DiscardChangesModal
                 show={showNavigationPrompt}

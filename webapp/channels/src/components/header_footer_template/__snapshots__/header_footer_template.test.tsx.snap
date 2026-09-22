@@ -5,8 +5,10 @@ exports[`components/HeaderFooterTemplate should match snapshot with about link 1
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     />
     <div
       class="row footer"
@@ -60,8 +62,10 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     />
     <div
       class="row footer"
@@ -145,13 +149,15 @@ exports[`components/HeaderFooterTemplate should match snapshot with children 1`]
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     >
       <p>
         test
       </p>
-    </div>
+    </main>
     <div
       class="row footer"
     >
@@ -193,8 +199,10 @@ exports[`components/HeaderFooterTemplate should match snapshot with help link 1`
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     />
     <div
       class="row footer"
@@ -248,8 +256,10 @@ exports[`components/HeaderFooterTemplate should match snapshot with privacy poli
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     />
     <div
       class="row footer"
@@ -303,8 +313,10 @@ exports[`components/HeaderFooterTemplate should match snapshot with term of serv
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     />
     <div
       class="row footer"
@@ -358,8 +370,10 @@ exports[`components/HeaderFooterTemplate should match snapshot without children 
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     />
     <div
       class="row footer"
@@ -402,8 +416,10 @@ exports[`components/HeaderFooterTemplate should set classes on body and #root on
   <div
     class="inner-wrap"
   >
-    <div
+    <main
       class="row content"
+      id="main-content"
+      tabindex="-1"
     />
     <div
       class="row footer"

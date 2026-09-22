@@ -56,6 +56,7 @@
   "accessibility.sidebar.types.public": "public channel",
   "accessibility.sidebar.types.unread": "unread",
   "accessibility.sidebar.types.urgent_mention": "including an urgent mention",
+  "accessibility.skipToMainContent": "Skip to main content",
   "activity_log_modal.android": "Android",
   "activity_log_modal.androidNativeApp": "Android Native App",
   "activity_log_modal.androidNativeClassicApp": "Android Native Classic App",

@@ -26,6 +26,7 @@ import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
 import Readout from 'components/readout/readout';
+import SkipToContent, {mainContentProps} from 'components/skip_to_content/skip_to_content';
 import {WithUserTheme} from 'components/theme_provider';
 
 import webSocketClient from 'client/web_websocket_client';
@@ -309,6 +310,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         return (
             <RootProvider>
+                <SkipToContent/>
                 <MobileViewWatcher/>
                 <LuxonController/>
                 <PerformanceReporterController/>
@@ -424,7 +426,10 @@ export default class Root extends React.PureComponent<Props, State> {
                         <GlobalHeader/>
                         <CloudEffects/>
                         <TeamSidebar/>
-                        <div className='main-wrapper'>
+                        <main
+                            className='main-wrapper'
+                            {...mainContentProps}
+                        >
                             <Switch>
                                 {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
                                     <Route
@@ -492,7 +497,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                 <RootRedirect/>
                             </Switch>
                             <SidebarRight/>
-                        </div>
+                        </main>
                         <GlobalClassificationBanner position='bottom'/>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
