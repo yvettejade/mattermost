@@ -52,7 +52,6 @@ const AssistantButton = () => {
             <RobotHappyIcon
                 size={16}
                 color='currentColor'
-                style={{width: 16, height: 16}}
             />
         </HeaderIconWrapper>
     );
