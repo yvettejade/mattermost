@@ -6,6 +6,8 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {RobotHappyIcon} from '@mattermost/compass-icons/components';
+
 import {closeRightHandSide, showAssistant} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
@@ -47,7 +49,11 @@ const AssistantButton = () => {
             tooltip={tooltip}
             ariaLabelOverride={tooltip}
         >
-            <i className='icon icon-robot-happy'/>
+            <RobotHappyIcon
+                size={16}
+                color='currentColor'
+                style={{width: 16, height: 16}}
+            />
         </HeaderIconWrapper>
     );
 };
