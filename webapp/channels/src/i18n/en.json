@@ -3972,6 +3972,8 @@
   "channel_header.flagged": "Saved messages",
   "channel_header.groupMessageHasGuests": "This group message has guests",
   "channel_header.headerText.addNewButton": "Add a channel header",
+  "channel_header.headerText.showLess": "Show less",
+  "channel_header.headerText.showMore": "Show more",
   "channel_header.lastActive": "Last online {timestamp}",
   "channel_header.lastOnline": "Last online {timestamp}",
   "channel_header.leave": "Leave Channel",
