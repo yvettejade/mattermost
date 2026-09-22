@@ -9,7 +9,7 @@ import {makeAsyncComponent} from 'components/async_load';
 import ChannelIdentifierRouter from 'components/channel_layout/channel_identifier_router';
 import LoadingScreen from 'components/loading_screen';
 
-import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+import {ONLINE_CARDS_URL_SUFFIX, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 import type {OwnProps, PropsFromRedux} from './index';
@@ -30,6 +30,13 @@ const Drafts = makeAsyncComponent('Drafts', lazy(() => import('components/drafts
     ),
 );
 const Recaps = makeAsyncComponent('Recaps', lazy(() => import('components/recaps')),
+    (
+        <div className='app__content'>
+            <LoadingScreen/>
+        </div>
+    ),
+);
+const OnlineCards = makeAsyncComponent('OnlineCards', lazy(() => import('components/online_cards')),
     (
         <div className='app__content'>
             <LoadingScreen/>
@@ -117,6 +124,10 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                         <Route
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
                             component={Drafts}
+                        />
+                        <Route
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/${ONLINE_CARDS_URL_SUFFIX}`}
+                            component={OnlineCards}
                         />
                         <Route
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/${SCHEDULED_POST_URL_SUFFIX}`}
