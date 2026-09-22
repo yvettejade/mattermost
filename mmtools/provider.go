@@ -42,6 +42,12 @@ func NewMMToolProvider(pluginAPI mmapi.Client, search *search.Search, httpClient
 // aware of tool capabilities even when they can't be executed in the current context.
 func (p *MMToolProvider) GetTools(bot *bots.Bot) []llm.Tool {
 	builtInTools := []llm.Tool{}
+	// MattermostBot answers from the lexical retrieval injected before the model
+	// runs. Embeddings, web search, and other tools would let it cite something
+	// that retrieval did not return.
+	if bots.IsMattermostBot(bot) {
+		return builtInTools
+	}
 
 	// Add search tool if search service is available and enabled
 	if p.search.Enabled() {

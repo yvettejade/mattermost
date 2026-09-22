@@ -81,6 +81,10 @@ func (p *MMToolProvider) formatSearchResults(results []search.RAGResult) string 
 
 		builder.WriteString(fmt.Sprintf("%d. **%s** in ~%s (Score: %.2f)\n",
 			i+1, username, channelName, result.Score))
+		if result.PostID != "" {
+			builder.WriteString(fmt.Sprintf("   PostID: %s\n", result.PostID))
+			builder.WriteString(fmt.Sprintf("   Permalink: %s\n", p.permalinkFor(result)))
+		}
 
 		// Add message content (truncate if too long)
 		message := result.Content
@@ -91,4 +95,14 @@ func (p *MMToolProvider) formatSearchResults(results []search.RAGResult) string 
 	}
 
 	return builder.String()
+}
+
+func (p *MMToolProvider) permalinkFor(result search.RAGResult) string {
+	siteURL := ""
+	if p.pluginAPI != nil {
+		if cfg := p.pluginAPI.GetConfig(); cfg != nil && cfg.ServiceSettings.SiteURL != nil {
+			siteURL = *cfg.ServiceSettings.SiteURL
+		}
+	}
+	return search.Permalink(siteURL, result.TeamName, result.PostID)
 }
