@@ -283,6 +283,22 @@ describe('components/widgets/inputs/Input', () => {
         });
     });
 
+    test('should merge field error id with consumer aria-describedby', () => {
+        renderWithContext(
+            <Input
+                name='loginId'
+                value=''
+                customMessage={{type: 'error', value: 'Please enter your email'}}
+                aria-describedby='login-body-card-banner'
+            />,
+        );
+
+        expect(screen.getByRole('textbox')).toHaveAttribute(
+            'aria-describedby',
+            'error_loginId login-body-card-banner',
+        );
+    });
+
     describe('interaction between validations', () => {
         test('should prioritize required validation over minLength on blur for empty input', async () => {
             renderWithContext(

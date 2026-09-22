@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AlertBanner from '.';
 
@@ -45,6 +45,19 @@ describe('Components/AlertBanner', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('danger mode is announced as an alert', () => {
+        renderWithContext(
+            <AlertBanner
+                mode='danger'
+                title='Something went wrong'
+            />,
+        );
+
+        const alert = screen.getByRole('alert');
+        expect(alert).toHaveTextContent('Something went wrong');
+        expect(alert).toHaveAttribute('aria-live', 'assertive');
     });
 
     test('should match snapshot when buttons are passed', () => {

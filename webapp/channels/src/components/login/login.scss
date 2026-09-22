@@ -131,12 +131,25 @@
                 }
 
                 .login-body-card-form {
-                    .login-body-card-form-input {
+                    .login-body-card-form-field {
                         margin-top: 22px;
                     }
 
+                    .login-body-card-form-label {
+                        display: block;
+                        margin-bottom: 6px;
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
+                        font-size: 14px;
+                        font-weight: 600;
+                        line-height: 20px;
+                    }
+
+                    .login-body-card-form-input {
+                        margin-top: 0;
+                    }
+
                     .login-body-card-form-password-input {
-                        margin-top: 24px;
+                        margin-top: 0;
                     }
 
                     .login-body-card-form-link {
@@ -291,6 +304,10 @@
                     }
 
                     .login-body-card-form {
+                        .login-body-card-form-field:first-of-type {
+                            margin-top: 0;
+                        }
+
                         .login-body-card-form-input {
                             margin-top: 0;
                         }
