@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-ai/database"
 	"github.com/mattermost/mattermost-plugin-ai/embeddings"
 	"github.com/mattermost/mattermost-plugin-ai/enterprise"
+	"github.com/mattermost/mattermost-plugin-ai/grounding"
 	"github.com/mattermost/mattermost-plugin-ai/i18n"
 	"github.com/mattermost/mattermost-plugin-ai/indexer"
 	"github.com/mattermost/mattermost-plugin-ai/llm"
@@ -348,6 +349,7 @@ func (p *Plugin) OnActivate() error {
 		nil, // meetingsService will be set after it's created
 		&p.configuration,
 	)
+	conversationsService.SetGrounding(grounding.New(p.API, mmClient))
 
 	meetingsService := meetings.NewService(
 		pluginAPI,

@@ -55,6 +55,13 @@ func computeAllowToolsInChannel(configEnabled bool, post *model.Post, postingUse
 	return configEnabled && !isAutomatedInvoker(post, postingUser)
 }
 
+func channelToolsAllowed(bot *bots.Bot, configEnabled bool, post *model.Post, postingUser *model.User) bool {
+	if bots.IsMattermostBot(bot) {
+		return false
+	}
+	return computeAllowToolsInChannel(configEnabled, post, postingUser)
+}
+
 func (c *Conversations) MessageHasBeenPosted(ctx *plugin.Context, post *model.Post) {
 	if err := c.handleMessages(post); err != nil {
 		if errors.Is(err, ErrNoResponse) {
@@ -124,9 +131,10 @@ func (c *Conversations) handleMentions(bot *bots.Bot, post *model.Post, postingU
 		return err
 	}
 
-	// Check config to determine if tools should be allowed in channel mentions
+	// Check config to determine if tools should be allowed in channel mentions.
+	// MattermostBot stays read-only in channels until a confirm step exists.
 	configEnabled := c.configProvider != nil && c.configProvider.EnableChannelMentionToolCalling()
-	allowToolsInChannel := computeAllowToolsInChannel(configEnabled, post, postingUser)
+	allowToolsInChannel := channelToolsAllowed(bot, configEnabled, post, postingUser)
 
 	responseRootID := post.Id
 	if post.RootId != "" {

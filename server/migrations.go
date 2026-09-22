@@ -233,7 +233,8 @@ func runAllMigrations(mutexAPI cluster.MutexPluginAPI, pluginAPI *pluginapi.Clie
 		return cfg, false, fmt.Errorf("failed to check separate services from bots migration: %w", err)
 	}
 
-	if !servicesToBotsNeeded && !separateServicesFromBotsNeeded {
+	_, seedNeeded := ensureMattermostBotConfig(cfg)
+	if !servicesToBotsNeeded && !separateServicesFromBotsNeeded && !seedNeeded {
 		return cfg, false, nil
 	}
 
@@ -277,6 +278,13 @@ func runAllMigrations(mutexAPI cluster.MutexPluginAPI, pluginAPI *pluginapi.Clie
 		changed = true
 		cfg = newCfg
 		pluginAPI.Log.Info("Migration completed: separate services from bots")
+	}
+
+	seededCfg, didSeed := ensureMattermostBotConfig(cfg)
+	if didSeed {
+		changed = true
+		cfg = seededCfg
+		pluginAPI.Log.Info("Configuration updated: default MattermostBot")
 	}
 
 	// Release mutex before saving config to avoid deadlock when SavePluginConfig

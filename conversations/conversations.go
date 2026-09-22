@@ -13,12 +13,12 @@ import (
 	"github.com/mattermost/mattermost-plugin-ai/bots"
 	"github.com/mattermost/mattermost-plugin-ai/enterprise"
 	"github.com/mattermost/mattermost-plugin-ai/format"
+	"github.com/mattermost/mattermost-plugin-ai/grounding"
 	"github.com/mattermost/mattermost-plugin-ai/i18n"
 	"github.com/mattermost/mattermost-plugin-ai/llm"
 	"github.com/mattermost/mattermost-plugin-ai/llmcontext"
 	"github.com/mattermost/mattermost-plugin-ai/mmapi"
 	"github.com/mattermost/mattermost-plugin-ai/mmtools"
-	"github.com/mattermost/mattermost-plugin-ai/prompts"
 	"github.com/mattermost/mattermost-plugin-ai/streaming"
 	"github.com/mattermost/mattermost-plugin-ai/subtitles"
 	"github.com/mattermost/mattermost-plugin-ai/threads"
@@ -56,6 +56,7 @@ type Conversations struct {
 	i18n             *i18n.Bundle
 	meetingsService  MeetingsService
 	configProvider   ConfigProvider
+	retriever        *grounding.Service
 }
 
 // MeetingsService defines the interface for meetings functionality needed by conversations
@@ -95,10 +96,36 @@ func (c *Conversations) SetMeetingsService(meetingsService MeetingsService) {
 	c.meetingsService = meetingsService
 }
 
+// SetGrounding sets the lexical retriever used by MattermostBot.
+func (c *Conversations) SetGrounding(retriever *grounding.Service) {
+	c.retriever = retriever
+}
+
 // ProcessUserRequestWithContext is an internal helper that uses an existing context to process a message
 func (c *Conversations) ProcessUserRequestWithContext(bot *bots.Bot, postingUser *model.User, channel *model.Channel, post *model.Post, context *llm.Context, allowToolsInChannel bool) (*llm.TextStreamResult, error) {
 	isDM := mmapi.IsDMWith(bot.GetMMBot().UserId, channel)
 	toolsDisabled := !isDM && !allowToolsInChannel
+	// Phase 1 keeps MattermostBot read-only. Sources are retrieved before the
+	// model runs, so it does not need a tool call to search or to post.
+	if bots.IsMattermostBot(bot) {
+		toolsDisabled = true
+	}
+	var grounded []grounding.Source
+	if bots.IsMattermostBot(bot) {
+		var retrieveErr error
+		grounded, retrieveErr = c.retrieveGrounded(bot, postingUser, channel, post)
+		if retrieveErr != nil {
+			c.mmClient.LogWarn("grounded retrieval failed", "error", retrieveErr.Error())
+			grounded = nil
+		}
+		if len(grounded) == 0 {
+			return llm.NewStreamFromString(grounding.RefusalMessage), nil
+		}
+		if context == nil {
+			context = llm.NewContext()
+		}
+		applyGroundedSources(context, grounded)
+	}
 	if context != nil {
 		if toolsDisabled && context.Tools != nil {
 			context.DisabledToolsInfo = context.Tools.GetToolsInfo()
@@ -110,7 +137,7 @@ func (c *Conversations) ProcessUserRequestWithContext(bot *bots.Bot, postingUser
 	var posts []llm.Post
 	if post.RootId == "" {
 		// A new conversation
-		prompt, err := c.prompts.Format(prompts.PromptDirectMessageQuestionSystem, context)
+		prompt, err := c.prompts.Format(c.systemPromptName(bot), context)
 		if err != nil {
 			return nil, fmt.Errorf("failed to format prompt: %w", err)
 		}
@@ -154,6 +181,15 @@ func (c *Conversations) ProcessUserRequestWithContext(bot *bots.Bot, postingUser
 	result, err := bot.LLM().ChatCompletion(completionRequest, opts...)
 	if err != nil {
 		return nil, err
+	}
+	if bots.IsMattermostBot(bot) {
+		// Buffer the answer so a reply that does not cite a retrieved post is
+		// replaced. That decision cannot be made on a partial token.
+		answer, readErr := result.ReadAll()
+		if readErr != nil {
+			return nil, readErr
+		}
+		return llm.NewStreamFromString(grounding.EnforceCitedAnswer(answer, grounded)), nil
 	}
 
 	// Decorate the stream with web search annotations if available
@@ -289,7 +325,7 @@ func (c *Conversations) existingConversationToLLMPosts(bot *bots.Bot, conversati
 	}
 
 	// Plain DM conversation
-	prompt, err := c.prompts.Format(prompts.PromptDirectMessageQuestionSystem, context)
+	prompt, err := c.prompts.Format(c.systemPromptName(bot), context)
 	if err != nil {
 		return nil, fmt.Errorf("failed to format prompt: %w", err)
 	}

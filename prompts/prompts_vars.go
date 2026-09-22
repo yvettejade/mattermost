@@ -16,6 +16,7 @@ const (
 	PromptMeetingSummaryGeneral            = "meeting_summary_general"
 	PromptMeetingSummarySystem             = "meeting_summary_system"
 	PromptMeetingSummaryUser               = "meeting_summary_user"
+	PromptMattermostBotSystem              = "mattermostbot_system"
 	PromptSearchResults                    = "search_results"
 	PromptSearchSystem                     = "search_system"
 	PromptSearchUser                       = "search_user"
