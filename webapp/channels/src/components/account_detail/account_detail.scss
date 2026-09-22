@@ -1,0 +1,44 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AccountDetail {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'main';
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    &__main {
+        overflow: auto;
+        padding: 24px;
+        grid-area: main;
+    }
+
+    &__tabs {
+        display: flex;
+        margin-bottom: 16px;
+        gap: 8px;
+    }
+
+    &__accountName {
+        margin: 0 0 4px;
+        color: var(--center-channel-color);
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__accountType {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
