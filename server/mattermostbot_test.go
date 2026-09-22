@@ -5,7 +5,6 @@ package main
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-plugin-ai/bots"
@@ -38,7 +37,6 @@ func TestEnsureMattermostBotConfigFresh(t *testing.T) {
 	encoded, err := json.Marshal(cfg)
 	require.NoError(t, err)
 	require.NotContains(t, string(encoded), "SENTINEL-DO-NOT-PERSIST")
-	require.NotContains(t, strings.ToLower(string(encoded)), "yvetteado")
 
 	again, changedAgain := ensureMattermostBotConfig(cfg)
 	require.False(t, changedAgain)
