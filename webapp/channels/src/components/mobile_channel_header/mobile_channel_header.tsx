@@ -8,6 +8,8 @@ import {FormattedMessage} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import AssistantButton from 'components/channel_header/assistant_button';
+
 import ChannelInfoButton from './channel_info_button';
 import CollapseLhsButton from './collapse_lhs_button';
 import CollapseRhsButton from './collapse_rhs_button';
@@ -107,6 +109,9 @@ export default class MobileChannelHeader extends React.PureComponent<Props> {
                                     {heading}
                                 </div>
                                 <div className='spacer'/>
+                                {channel && (
+                                    <AssistantButton/>
+                                )}
                                 {channel && (
                                     <ChannelInfoButton
                                         channel={channel}
