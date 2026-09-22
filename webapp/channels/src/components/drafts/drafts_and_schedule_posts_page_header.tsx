@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useHistory, useRouteMatch} from 'react-router-dom';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import Header from 'components/widgets/header';
 
@@ -12,6 +15,17 @@ type Props = {
 }
 
 export default function DraftsAndSchedulePostsPageHeader(props: Props) {
+    const history = useHistory();
+    const match = useRouteMatch<{team: string}>('/:team');
+
+    const openTransfer = useCallback(() => {
+        if (!match?.params.team) {
+            return;
+        }
+
+        history.push(`/${match.params.team}/transfer`);
+    }, [history, match?.params.team]);
+
     return (
         <div
             id='app-content'
@@ -31,6 +45,19 @@ export default function DraftsAndSchedulePostsPageHeader(props: Props) {
                         id='drafts.subtitle'
                         defaultMessage="Any messages you've started will show here"
                     />
+                }
+                right={
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        size='sm'
+                        onClick={openTransfer}
+                    >
+                        <FormattedMessage
+                            id='drafts.transfer'
+                            defaultMessage='Transfer'
+                        />
+                    </Button>
                 }
             />
             {props.children}
