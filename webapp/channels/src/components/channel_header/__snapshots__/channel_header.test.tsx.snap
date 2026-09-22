@@ -44,7 +44,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -149,7 +148,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -259,7 +257,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -366,7 +363,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -473,7 +469,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -580,7 +575,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -687,7 +681,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -804,7 +797,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -911,7 +903,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -1002,7 +993,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -1107,7 +1097,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -1231,7 +1220,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -1338,7 +1326,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -1445,7 +1432,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -1552,7 +1538,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
@@ -1675,7 +1660,6 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                 <svg
                   fill="currentColor"
                   height="16"
-                  style="width: 16px; height: 16px;"
                   version="1.1"
                   viewBox="0 0 24 24"
                   width="16"
