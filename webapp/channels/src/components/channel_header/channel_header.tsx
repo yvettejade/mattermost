@@ -28,6 +28,7 @@ import {
 import {canPopout, isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
 import {isEmptyObject} from 'utils/utils';
 
+import ChannelHeaderEditButton from './channel_header_edit_button';
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import HeaderIconWrapper from './components/header_icon_wrapper';
@@ -408,6 +409,10 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    <ChannelHeaderEditButton
+                                        channel={channel}
+                                        dmUser={dmUser}
+                                    />
                                     <Pluggable
                                         pluggableName='ChannelHeaderIcon'
                                         channel={channel}

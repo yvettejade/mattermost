@@ -36,6 +36,16 @@ exports[`components/ChannelHeader should match snapshot with last active display
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <button
+                aria-label="Edit header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderEditHeaderButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-pencil-outline"
+                />
+              </button>
             </div>
             <div
               class="channel-header__description"
@@ -117,6 +127,16 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
               >
                 <i
                   class="icon icon-file-text-outline"
+                />
+              </button>
+              <button
+                aria-label="Edit header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderEditHeaderButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -796,6 +816,16 @@ exports[`components/ChannelHeader should render properly when custom status is e
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <button
+                aria-label="Edit header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderEditHeaderButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-pencil-outline"
+                />
+              </button>
             </div>
             <div
               class="channel-header__description"
@@ -877,6 +907,16 @@ exports[`components/ChannelHeader should render properly when custom status is s
               >
                 <i
                   class="icon icon-file-text-outline"
+                />
+              </button>
+              <button
+                aria-label="Edit header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderEditHeaderButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
