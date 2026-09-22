@@ -485,6 +485,7 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function showChannelInfo(_channelId: string) {
     return {type: 'NOOP_SHOW_CHANNEL_INFO'};
 }

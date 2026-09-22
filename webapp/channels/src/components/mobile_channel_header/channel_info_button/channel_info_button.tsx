@@ -10,6 +10,7 @@ type Props = {
     };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const NavbarInfoButton = (_props: Props) => {
     return null;
 };
