@@ -14,6 +14,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCompleteReadsEnvSetAfterClientIsCreated(t *testing.T) {
+	t.Setenv(APIKeyEnv, "")
+	client := NewGrokClient(nil)
+
+	_, err := client.Complete(context.Background(), []Message{{Role: "user", Content: "hi"}})
+	require.ErrorIs(t, err, ErrAPIKeyMissing)
+
+	const key = "yvette-late-env-key"
+	t.Setenv(APIKeyEnv, key)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "Bearer "+key, r.Header.Get("Authorization"))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"choices":[{"message":{"content":"late env reply"}}]}`)
+	}))
+	t.Cleanup(server.Close)
+	client.HTTP = server.Client()
+	client.Endpoint = server.URL
+	client.Models = []string{"grok-4"}
+
+	reply, err := client.Complete(context.Background(), []Message{{Role: "user", Content: "hi"}})
+	require.NoError(t, err)
+	require.Equal(t, "late env reply", reply)
+}
+
 func TestCompleteMissingKey(t *testing.T) {
 	t.Setenv(APIKeyEnv, "   ")
 	client := NewGrokClient(nil)

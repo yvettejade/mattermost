@@ -86,11 +86,12 @@ func (c *GrokClient) Complete(ctx context.Context, messages []Message) (string, 
 	if c == nil {
 		return "", errNoCompleter
 	}
-	key := c.Key
-	if strings.TrimSpace(key) == "" {
-		key = os.Getenv(APIKeyEnv)
+	// Read the env on every call. An empty Key must not freeze a blank value from
+	// process start; the variable can appear after the server is already up.
+	key := strings.TrimSpace(c.Key)
+	if key == "" {
+		key = strings.TrimSpace(os.Getenv(APIKeyEnv))
 	}
-	key = strings.TrimSpace(key)
 	if key == "" {
 		return "", ErrAPIKeyMissing
 	}

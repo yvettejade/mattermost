@@ -42,7 +42,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -134,7 +134,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -231,7 +231,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -325,7 +325,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -419,7 +419,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -513,7 +513,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -607,7 +607,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -711,7 +711,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -805,7 +805,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -883,7 +883,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -975,7 +975,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1086,7 +1086,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1180,7 +1180,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1274,7 +1274,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1368,7 +1368,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1478,7 +1478,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                 id="channelHeaderAssistantButton"
               >
                 <i
-                  class="icon icon-robot-outline"
+                  class="icon icon-robot-happy"
                 />
               </button>
             </div>

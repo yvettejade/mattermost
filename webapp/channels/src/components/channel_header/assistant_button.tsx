@@ -47,7 +47,7 @@ const AssistantButton = () => {
             tooltip={tooltip}
             ariaLabelOverride={tooltip}
         >
-            <i className='icon icon-robot-outline'/>
+            <i className='icon icon-robot-happy'/>
         </HeaderIconWrapper>
     );
 };
