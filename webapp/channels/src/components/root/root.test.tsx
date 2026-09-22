@@ -246,6 +246,23 @@ describe('components/Root', () => {
             });
         });
 
+        test('should not show for the public international money page', async () => {
+            const props = {
+                ...landingProps,
+                ...{
+                    location: {
+                        pathname: '/international',
+                    },
+                } as RouteComponentProps,
+            };
+
+            renderWithContext(<Root {...props}/>);
+
+            await waitFor(() => {
+                expect(props.history.push).not.toHaveBeenCalled();
+            });
+        });
+
         test('should not show for Desktop App login flow', async () => {
             const props = {
                 ...landingProps,
@@ -320,6 +337,7 @@ describe('doesRouteBelongToTeamControllerRoutes', () => {
         expect(doesRouteBelongToTeamControllerRoutes('/reset_password')).toBe(false);
         expect(doesRouteBelongToTeamControllerRoutes('/access_problem')).toBe(false);
         expect(doesRouteBelongToTeamControllerRoutes('/login')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/international')).toBe(false);
         expect(doesRouteBelongToTeamControllerRoutes('/error')).toBe(false);
     });
 
