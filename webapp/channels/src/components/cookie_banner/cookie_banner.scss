@@ -1,0 +1,86 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.CookieBanner {
+    position: fixed;
+    z-index: 1100;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    display: flex;
+    max-width: 720px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-m);
+    margin: 0 auto;
+    background-color: var(--center-channel-bg);
+    box-shadow: 0 8px 24px rgba(var(--center-channel-color-rgb), 0.16);
+    color: var(--center-channel-color);
+    gap: 16px;
+}
+
+.CookieBanner__content {
+    display: flex;
+    min-width: 240px;
+    flex: 1 1 280px;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.CookieBanner__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 22px;
+}
+
+.CookieBanner__message,
+.CookieBanner__preferencesTitle,
+.CookieBanner__choiceDesc {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.CookieBanner__preferences {
+    display: flex;
+    flex-direction: column;
+    padding-top: 8px;
+    gap: 10px;
+}
+
+.CookieBanner__preferencesTitle {
+    color: var(--center-channel-color);
+    font-weight: 600;
+}
+
+.CookieBanner__choice {
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    font-weight: 400;
+    gap: 10px;
+}
+
+.CookieBanner__choice input {
+    margin-top: 3px;
+}
+
+.CookieBanner__choiceName {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.CookieBanner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
