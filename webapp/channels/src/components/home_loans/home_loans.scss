@@ -1,0 +1,98 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.HomeLoans {
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'body';
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+
+    &__header {
+        border-bottom: var(--border-default);
+        grid-area: header;
+    }
+
+    &__headerActions {
+        display: flex;
+        gap: 8px;
+    }
+
+    &__body {
+        display: flex;
+        overflow: auto;
+        flex-direction: column;
+        padding: 24px;
+        gap: 16px;
+        grid-area: body;
+    }
+
+    &__specials {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        margin: 0;
+        gap: 12px;
+        list-style: none;
+    }
+
+    &__special {
+        display: grid;
+        align-items: center;
+        padding: 16px;
+        border: var(--border-default);
+        border-radius: 8px;
+        background: var(--center-channel-bg);
+        gap: 16px;
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    &__specialMain {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__specialName {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__specialMeta {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__specialRate {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 24px;
+        text-align: right;
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-rows: 0 1fr;
+
+        > .Header {
+            display: none;
+        }
+
+        &__special {
+            grid-template-columns: 1fr;
+        }
+
+        &__specialRate {
+            text-align: left;
+        }
+    }
+}
