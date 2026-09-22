@@ -4,6 +4,8 @@
 import React, {useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 
+import {mainContentProps} from 'components/skip_to_content/skip_to_content';
+
 import HelpAttaching from './attaching';
 import HelpCommands from './commands';
 import HelpFormatting from './formatting';
@@ -24,21 +26,34 @@ const Help = (): JSX.Element => {
         window.scrollTo(0, 0);
     }, [currentPage]);
 
+    let pageContent: JSX.Element;
     switch (currentPage) {
     case 'sending':
-        return <HelpSending/>;
+        pageContent = <HelpSending/>;
+        break;
     case 'mentioning':
-        return <HelpMentioning/>;
+        pageContent = <HelpMentioning/>;
+        break;
     case 'formatting':
-        return <HelpFormatting/>;
+        pageContent = <HelpFormatting/>;
+        break;
     case 'attaching':
-        return <HelpAttaching/>;
+        pageContent = <HelpAttaching/>;
+        break;
     case 'commands':
-        return <HelpCommands/>;
+        pageContent = <HelpCommands/>;
+        break;
     case 'messaging':
     default:
-        return <HelpMessaging/>;
+        pageContent = <HelpMessaging/>;
+        break;
     }
+
+    return (
+        <main {...mainContentProps}>
+            {pageContent}
+        </main>
+    );
 };
 
 export default Help;

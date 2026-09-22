@@ -8,6 +8,7 @@ import {useSelector} from 'react-redux';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import ExternalLink from 'components/external_link';
+import {mainContentProps} from 'components/skip_to_content/skip_to_content';
 
 type Props = {
     children?: React.ReactNode | React.ReactNodeArray;
@@ -98,9 +99,12 @@ const HeaderFooterNotLoggedIn = (props: Props) => {
 
     return (
         <div className='inner-wrap'>
-            <div className='row content'>
+            <main
+                className='row content'
+                {...mainContentProps}
+            >
                 {props.children}
-            </div>
+            </main>
             <div className='row footer'>
                 <div
                     id='footer_section'
