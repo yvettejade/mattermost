@@ -56,13 +56,17 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 </span>
               </span>
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  not the bot description
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    not the bot description
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -128,13 +132,17 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 class="header-status__text"
               />
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  not the bot description
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    not the bot description
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -213,13 +221,17 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -298,13 +310,17 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -383,13 +399,17 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -468,13 +488,17 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -553,13 +577,17 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -648,13 +676,17 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -733,13 +765,17 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -816,13 +852,17 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 </span>
               </span>
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  not the bot description
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    not the bot description
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -902,13 +942,17 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 />
               </span>
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  not the bot description
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    not the bot description
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -987,13 +1031,17 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1072,13 +1120,17 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1157,13 +1209,17 @@ exports[`components/ChannelHeader should render properly when populated with cha
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  See $MM_CHANNELMENTION0$
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    See $MM_CHANNELMENTION0$
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1242,13 +1298,17 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1343,13 +1403,17 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               id="channelHeaderDescription"
             >
               <div
-                class="header-description__text"
+                class="channel-header-text"
               >
-                <p
-                  class="markdown__paragraph-inline"
+                <div
+                  class="header-description__text"
                 >
-                  header
-                </p>
+                  <p
+                    class="markdown__paragraph-inline"
+                  >
+                    header
+                  </p>
+                </div>
               </div>
             </div>
           </div>
