@@ -21,6 +21,7 @@ import ChannelIdentifierRouter from 'components/channel_layout/channel_identifie
 import {useTeamByName} from 'components/common/hooks/use_team';
 import LoadingScreen from 'components/loading_screen';
 import SidebarRight from 'components/sidebar_right';
+import {mainContentProps} from 'components/skip_to_content/skip_to_content';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Constants from 'utils/constants';
@@ -73,7 +74,10 @@ export default function ChannelPopout() {
     return (
         <>
             {isDesktopApp() && <UnreadsStatusHandler/>}
-            <div className={classNames('main-wrapper', 'channel-popout', {'rhs-open': rhsOpen})}>
+            <main
+                className={classNames('main-wrapper', 'channel-popout', {'rhs-open': rhsOpen})}
+                {...mainContentProps}
+            >
                 <div
                     id='channel_view'
                     className='channel-view'
@@ -87,7 +91,7 @@ export default function ChannelPopout() {
                     </div>
                 </div>
                 <SidebarRight/>
-            </div>
+            </main>
         </>
     );
 }

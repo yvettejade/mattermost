@@ -5,6 +5,7 @@ import React, {useState, useCallback} from 'react';
 import {Route} from 'react-router-dom';
 
 import AnnouncementBar from 'components/announcement_bar';
+import {mainContentProps} from 'components/skip_to_content/skip_to_content';
 
 import type {HeaderProps} from './header';
 
@@ -42,9 +43,14 @@ export const HFRoute = ({path, component}: HFRouteProps) => {
                             <React.Suspense fallback={null}>
                                 <Header {...headerProps}/>
                             </React.Suspense>
-                            <React.Suspense fallback={null}>
-                                <Component onCustomizeHeader={customizeHeader}/>
-                            </React.Suspense>
+                            <main
+                                className='header-footer-route-content'
+                                {...mainContentProps}
+                            >
+                                <React.Suspense fallback={null}>
+                                    <Component onCustomizeHeader={customizeHeader}/>
+                                </React.Suspense>
+                            </main>
                             <React.Suspense fallback={null}>
                                 <Footer/>
                             </React.Suspense>
