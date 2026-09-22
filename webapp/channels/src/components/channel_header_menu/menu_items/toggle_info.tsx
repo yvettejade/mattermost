@@ -9,8 +9,8 @@ interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ToggleInfo = (_props: Props) => {
+// The channel-info menu item was removed. The props type stays so header menus can keep passing them.
+const ToggleInfo: (props: Props) => null = () => {
     return null;
 };
 

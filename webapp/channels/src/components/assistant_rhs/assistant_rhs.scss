@@ -1,8 +1,8 @@
 .assistant-rhs {
     &__transcript {
         flex: 1 1 auto;
-        overflow-y: auto;
         padding: 16px;
+        overflow-y: auto;
     }
 
     &__empty,
@@ -47,15 +47,15 @@
     &__composer {
         display: flex;
         align-items: flex-end;
-        gap: 8px;
         padding: 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        gap: 8px;
     }
 
     &__input {
-        flex: 1 1 auto;
         min-height: 40px;
         max-height: 120px;
+        flex: 1 1 auto;
         padding: 8px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;

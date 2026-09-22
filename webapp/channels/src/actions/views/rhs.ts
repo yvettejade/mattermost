@@ -485,10 +485,10 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function showChannelInfo(_channelId: string) {
+// Channel info no longer opens a sidebar. The parameter stays in the type so callers keep passing a channel id.
+export const showChannelInfo: (channelId: string) => {type: string} = () => {
     return {type: 'NOOP_SHOW_CHANNEL_INFO'};
-}
+};
 
 export function closeRightHandSide(): ActionFunc {
     return (dispatch) => {
