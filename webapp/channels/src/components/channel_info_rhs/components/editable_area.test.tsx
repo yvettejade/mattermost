@@ -70,4 +70,18 @@ describe('channel_info_rhs/components/editable_area', () => {
         await userEvent.click(screen.getByLabelText('Edit'));
         expect(mockOnEdit).toHaveBeenCalledTimes(2);
     });
+
+    test('should not show empty label or edit control when empty and not editable', () => {
+        renderWithContext(
+            <EditableArea
+                content=''
+                editable={false}
+                emptyLabel='Add a channel header'
+                onEdit={() => {}}
+            />,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+    });
 });

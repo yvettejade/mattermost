@@ -85,6 +85,7 @@ interface Props {
 
 const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) => {
     const {formatMessage} = useIntl();
+    const hasHeader = Boolean(channel.header?.trim());
 
     return (
         <>
@@ -122,13 +123,13 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                 </ChannelPurpose>
             )}
 
-            {channel.header && (
+            {(hasHeader || canEditChannelProperties) && (
                 <ChannelHeader>
                     <ChannelDescriptionHeading>
                         {formatMessage({id: 'channel_info_rhs.about_area.channel_header.heading', defaultMessage: 'Channel Header'})}
                     </ChannelDescriptionHeading>
                     <EditableArea
-                        content={(
+                        content={hasHeader && (
                             <LineLimiter
                                 maxLines={4}
                                 lineHeight={20}
@@ -141,6 +142,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                         editable={canEditChannelProperties}
                         onEdit={actions.editChannelHeader}
                         editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
+                        emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
                     />
                 </ChannelHeader>
             )}

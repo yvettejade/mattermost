@@ -7,6 +7,10 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
+import RenameChannelModal from 'components/rename_channel_modal';
+
 import {act, renderWithContext} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -90,6 +94,55 @@ describe('channel_info_rhs', () => {
                 }),
             );
         });
+
+        test('should not be editable without manage properties permission', async () => {
+            props.canManageProperties = false;
+
+            renderWithContext(
+                <ChannelInfoRHS
+                    {...props}
+                />,
+            );
+
+            await act(async () => {
+                props.actions.getChannelStats();
+            });
+
+            expect(mockAboutArea).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    canEditChannelProperties: false,
+                }),
+            );
+        });
+    });
+
+    test('editChannelHeader opens Edit Channel Header modal and not purpose/rename', () => {
+        renderWithContext(
+            <ChannelInfoRHS
+                {...props}
+            />,
+        );
+
+        const lastArgs = mockAboutArea.mock.calls[mockAboutArea.mock.calls.length - 1][0];
+        lastArgs.actions.editChannelHeader();
+
+        expect(props.actions.openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel: props.channel},
+        });
+        expect(props.actions.openModal).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
+                dialogType: EditChannelPurposeModal,
+            }),
+        );
+        expect(props.actions.openModal).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.RENAME_CHANNEL,
+                dialogType: RenameChannelModal,
+            }),
+        );
     });
 
     test('editChannelName opens Rename Channel modal', () => {
