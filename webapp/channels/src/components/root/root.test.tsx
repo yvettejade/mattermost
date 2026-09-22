@@ -19,6 +19,7 @@ import Root, {doesRouteBelongToTeamControllerRoutes} from './root';
 jest.mock('actions/telemetry_actions');
 
 jest.mock('components/announcement_bar', () => () => <div/>);
+jest.mock('components/cookie_banner', () => () => <div/>);
 jest.mock('components/team_sidebar', () => () => <div/>);
 jest.mock('components/mobile_view_watcher', () => () => <div/>);
 jest.mock('./performance_reporter_controller', () => () => <div/>);
