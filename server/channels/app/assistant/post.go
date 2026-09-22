@@ -94,12 +94,12 @@ func FormatContext(posts []Post) string {
 	return b.String()
 }
 
-func truncate(s string, max int, suffix string) string {
-	if max <= 0 || utf8.RuneCountInString(s) <= max {
+func truncate(s string, limit int, suffix string) string {
+	if limit <= 0 || utf8.RuneCountInString(s) <= limit {
 		return s
 	}
 	runes := []rune(s)
-	return string(runes[:max]) + suffix
+	return string(runes[:limit]) + suffix
 }
 
 // TruncateReply caps user-visible assistant text.

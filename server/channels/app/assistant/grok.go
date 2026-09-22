@@ -136,7 +136,10 @@ func (c *GrokClient) Complete(ctx context.Context, messages []Message) (string, 
 		}
 
 		respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-		resp.Body.Close()
+		// Close is best-effort; a close error after a failed read must not hide that read error.
+		if cerr := resp.Body.Close(); cerr != nil && readErr == nil {
+			readErr = cerr
+		}
 		if readErr != nil {
 			lastErr = errors.New(Redact(readErr.Error(), key))
 			continue
