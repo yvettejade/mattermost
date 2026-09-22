@@ -1,0 +1,121 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.InternationalMoney {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 16px 48px;
+
+    &__card {
+        display: flex;
+        width: 100%;
+        max-width: 480px;
+        flex-direction: column;
+        padding: 32px;
+        border: var(--border-default);
+        border-radius: var(--radius-m);
+        background: var(--center-channel-bg);
+        box-shadow: var(--elevation-2);
+        gap: 16px;
+    }
+
+    &__heading {
+        padding: 0;
+        margin: 0;
+        color: var(--title-color-indigo-500);
+        font-size: 32px;
+        font-weight: 600;
+        line-height: 40px;
+    }
+
+    &__subtitle,
+    &__disclaimer,
+    &__error {
+        padding: 0;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__error {
+        color: var(--error-text);
+    }
+
+    &__sectionTitle {
+        padding: 0;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    &__label {
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    &__input {
+        padding: 10px 12px;
+        border: var(--border-default);
+        border-radius: var(--radius-s);
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__quote {
+        padding: 0;
+        margin: 0;
+    }
+
+    &__quoteRow {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: var(--border-light);
+        gap: 16px;
+
+        dt,
+        dd {
+            padding: 0;
+            margin: 0;
+        }
+
+        dt {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        dd {
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            text-align: right;
+        }
+    }
+
+    &__logOn {
+        align-self: flex-start;
+    }
+}
