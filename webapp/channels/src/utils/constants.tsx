@@ -2201,6 +2201,7 @@ export const PageLoadContext = {
 } as const;
 
 export const DRAFT_URL_SUFFIX = 'drafts';
+export const ONLINE_URL_SUFFIX = 'online';
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
 export const scheduledPosts = {
