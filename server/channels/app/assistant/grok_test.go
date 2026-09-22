@@ -120,15 +120,13 @@ func TestCompleteRedactsKeyFromFallbackError(t *testing.T) {
 }
 
 func modelFromBody(body string) string {
-	const marker = `"model":"`
-	start := strings.Index(body, marker)
-	if start < 0 {
+	_, rest, found := strings.Cut(body, `"model":"`)
+	if !found {
 		return ""
 	}
-	rest := body[start+len(marker):]
-	end := strings.Index(rest, `"`)
-	if end < 0 {
+	model, _, found := strings.Cut(rest, `"`)
+	if !found {
 		return ""
 	}
-	return rest[:end]
+	return model
 }

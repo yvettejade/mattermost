@@ -111,7 +111,7 @@ func (c *GrokClient) Complete(ctx context.Context, messages []Message) (string, 
 
 	payload := make([]chatMessage, 0, len(messages))
 	for _, message := range messages {
-		payload = append(payload, chatMessage{Role: message.Role, Content: message.Content})
+		payload = append(payload, chatMessage(message))
 	}
 
 	var lastErr error

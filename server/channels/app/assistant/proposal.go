@@ -88,7 +88,7 @@ func notesGrounded(notes, corpus string) bool {
 	if strings.Contains(strings.ToLower(corpus), strings.ToLower(notes)) {
 		return true
 	}
-	for _, word := range strings.Fields(notes) {
+	for word := range strings.FieldsSeq(notes) {
 		cleaned := strings.Trim(word, ".,;:!?\"'()[]")
 		if utf8.RuneCountInString(cleaned) >= 4 && nameInCorpus(cleaned, corpus) {
 			return true
