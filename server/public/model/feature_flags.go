@@ -123,6 +123,10 @@ type FeatureFlags struct {
 	// non-members find a private channel in Browse Channels and request to join it.
 	DiscoverableChannels bool
 
+	// FEATURE_FLAG_REMOVAL: ChannelHeaderInlineEdit - Remove this when inline header editing is GA.
+	// Gates hover-to-edit and inline markdown editing of the channel header in the webapp.
+	ChannelHeaderInlineEdit bool
+
 	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
 	MobileEphemeralMode bool
 }
@@ -182,6 +186,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ManagedChannelCategories = false
 
 	f.DiscoverableChannels = false
+
+	f.ChannelHeaderInlineEdit = false
 
 	f.MobileEphemeralMode = false
 }
