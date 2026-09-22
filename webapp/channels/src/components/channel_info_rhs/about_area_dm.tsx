@@ -86,6 +86,9 @@ interface Props {
 
 const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
     const {formatMessage} = useIntl();
+    const hasHeader = Boolean(channel.header?.trim());
+    const canEditHeader = !channel.delete_at;
+    const showHeader = !dmUser.user.is_bot && (hasHeader || canEditHeader);
 
     return (
         <>
@@ -113,10 +116,10 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
                 </UserInfo>
             </UserInfoContainer>
 
-            {!dmUser.user.is_bot && channel.header && (
+            {showHeader && (
                 <ChannelHeader>
                     <EditableArea
-                        content={(
+                        content={hasHeader && (
                             <LineLimiter
                                 maxLines={4}
                                 lineHeight={20}
@@ -126,9 +129,10 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
                                 <Markdown message={channel.header}/>
                             </LineLimiter>
                         )}
-                        editable={true}
+                        editable={canEditHeader}
                         onEdit={actions.editChannelHeader}
                         editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
+                        emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
                     />
                 </ChannelHeader>
             )}
