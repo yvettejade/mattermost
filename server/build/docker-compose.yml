@@ -58,7 +58,10 @@ services:
         service: otel-collector
 
   start_dependencies:
-    image: mattermost/mattermost-wait-for-dep:latest
+    # The old mattermost/mattermost-wait-for-dep image is not pullable on this
+    # fork's CI (the compose step exits in about a second). Busybox from ECR
+    # Public is the same TCP wait.
+    image: public.ecr.aws/docker/library/busybox:1.36
     networks:
       - mm-test
     depends_on:
@@ -70,7 +73,25 @@ services:
       - elasticsearch
       - opensearch
       - redis
-    command: postgres:5432 minio:9000 azurite:10000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 redis:6379
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        for target in postgres:5432 minio:9000 azurite:10000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 redis:6379; do
+          host=$${target%%:*}
+          port=$${target##*:}
+          echo "waiting for $$host:$$port"
+          i=0
+          until nc -z "$$host" "$$port"; do
+            i=$$((i+1))
+            if [ "$$i" -gt 90 ]; then
+              echo "timed out waiting for $$host:$$port"
+              exit 1
+            fi
+            sleep 2
+          done
+        done
 
 networks:
   mm-test:
