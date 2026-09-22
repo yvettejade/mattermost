@@ -255,6 +255,14 @@ func TestIsValidService(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "xAI service does not store an API key",
+			service: ServiceConfig{
+				ID:   "grok",
+				Type: ServiceTypeXAI,
+			},
+			want: true,
+		},
+		{
 			name: "OpenAI Compatible service does not require API key",
 			service: ServiceConfig{
 				ID:     "service-2",

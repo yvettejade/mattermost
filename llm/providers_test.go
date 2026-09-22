@@ -30,6 +30,11 @@ func TestGetOpenAICompatibleProvider(t *testing.T) {
 			wantFound:   true,
 		},
 		{
+			name:        "xai returns provider",
+			serviceType: ServiceTypeXAI,
+			wantFound:   true,
+		},
+		{
 			name:        "unregistered type returns false",
 			serviceType: "nonexistent",
 			wantFound:   false,
@@ -178,5 +183,24 @@ func TestScaleTransportFactoryNilBase(t *testing.T) {
 	}
 	if cat.Base != nil {
 		t.Error("expected Base to be nil when nil is passed")
+	}
+}
+
+func TestXAIProviderConfig(t *testing.T) {
+	p, ok := GetOpenAICompatibleProvider(ServiceTypeXAI)
+	if !ok {
+		t.Fatal("xAI provider not found in registry")
+	}
+	if p.DefaultModel != GrokModelID {
+		t.Errorf("DefaultModel = %q, want %q", p.DefaultModel, GrokModelID)
+	}
+	if p.FixedAPIURL != GrokAPIURL {
+		t.Errorf("FixedAPIURL = %q, want %q", p.FixedAPIURL, GrokAPIURL)
+	}
+	if p.UseMaxTokens {
+		t.Error("expected UseMaxTokens to be false so chat completions send max_completion_tokens")
+	}
+	if p.DisableStreamOptions {
+		t.Error("expected stream_options to stay enabled; grok chat completions accept include_usage")
 	}
 }

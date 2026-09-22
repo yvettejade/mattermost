@@ -38,6 +38,13 @@ var openAICompatibleProviders = map[string]OpenAICompatibleProvider{
 		DisableStreamOptions: true,
 		UseMaxTokens:         true,
 	},
+	// grok-4.6 chat completions accept max_completion_tokens (UseMaxTokens false)
+	// and stream_options.include_usage. The URL and model are fixed so a saved
+	// config cannot point this bot at a different host.
+	ServiceTypeXAI: {
+		DefaultModel: GrokModelID,
+		FixedAPIURL:  GrokAPIURL,
+	},
 	ServiceTypeScale: {
 		DefaultModel:         "openai/gpt-4o",
 		DisableStreamOptions: true,

@@ -145,6 +145,10 @@ func IsValidService(service ServiceConfig) bool {
 		return service.APIKey != ""
 	case ServiceTypeScale:
 		return service.APIKey != "" && service.APIURL != ""
+	case ServiceTypeXAI:
+		// The key is supplied from the environment when the client is built.
+		// Persisting it here would write a secret into plugin config.
+		return true
 	default:
 		return false
 	}

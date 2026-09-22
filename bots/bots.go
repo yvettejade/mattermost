@@ -356,6 +356,15 @@ func (b *MMBots) ensureDefaultProfileImage(bot *Bot) {
 }
 
 func (b *MMBots) getLLM(serviceConfig llm.ServiceConfig, botConfig llm.BotConfig) (llm.LanguageModel, error) {
+	resolved, keyReady := ResolveServiceAPIKey(serviceConfig)
+	if resolved.Type == llm.ServiceTypeXAI && !keyReady {
+		if b.pluginAPI != nil {
+			b.pluginAPI.Log.Warn("YvetteGrokAPI is unset; Grok completions are unavailable")
+		}
+		return NewKeyUnsetModel(), nil
+	}
+	serviceConfig = resolved
+
 	// Create the correct model
 	var result llm.LanguageModel
 	switch serviceConfig.Type {
