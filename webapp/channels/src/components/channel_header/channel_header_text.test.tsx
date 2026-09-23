@@ -3,13 +3,62 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {Permissions} from 'mattermost-redux/constants';
+
+import * as modalActions from 'actions/views/modals';
+
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderText from './channel_header_text';
 
 describe('ChannelHeaderText', () => {
     const defaultTeamId = TestHelper.getTeamMock().id;
+
+    beforeEach(() => {
+        jest.spyOn(modalActions, 'openModal');
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    const stateWithChannelPermission = (channelId: string, permission?: string) => ({
+        entities: {
+            channels: {
+                myMembers: {
+                    [channelId]: {channel_id: channelId, roles: 'channel_role'},
+                },
+                roles: {
+                    [channelId]: new Set(['channel_role']),
+                },
+            },
+            teams: {
+                myMembers: {
+                    [defaultTeamId]: {team_id: defaultTeamId, roles: 'team_role'},
+                },
+            },
+            users: {
+                currentUserId: 'user_id',
+                profiles: {
+                    user_id: {
+                        id: 'user_id',
+                        roles: 'system_role',
+                    },
+                },
+            },
+            roles: {
+                roles: {
+                    system_role: {permissions: []},
+                    team_role: {permissions: []},
+                    channel_role: {permissions: permission ? [permission] : []},
+                },
+            },
+        },
+    });
 
     test('should render channel header text when header exists for a channel', () => {
         const channel = TestHelper.getChannelMock({header: 'Test Header'});
@@ -66,80 +115,99 @@ describe('ChannelHeaderText', () => {
         expect(container.childNodes.length).toBe(0);
     });
 
-    test('should return null for DM channels without header', () => {
+    test('should show add channel header button for DM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'D', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
     });
 
-    test('should return null for GM channels without header', () => {
+    test('should show add channel header button for GM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'G', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
     });
 
-    test('should return null for public channels without header regardless of permissions', () => {
+    test('should show add channel header button for public channels without header with manage permission', () => {
         const channel = TestHelper.getChannelMock({
             type: 'O',
             header: '',
         });
 
-        const state = {
-            entities: {
-                channels: {
-                    myMembers: {
-                        [channel.id]: {channel_id: channel.id, roles: 'channel_role'},
-                    },
-                    roles: {
-                        [channel.id]: new Set(['channel_role']),
-                    },
-                },
-                teams: {
-                    myMembers: {
-                        [defaultTeamId]: {team_id: defaultTeamId, roles: 'team_role'},
-                    },
-                },
-                users: {
-                    currentUserId: 'user_id',
-                    profiles: {
-                        user_id: {
-                            id: 'user_id',
-                            roles: 'system_role',
-                        },
-                    },
-                },
-                roles: {
-                    roles: {
-                        system_role: {permissions: ['test_system_permission']},
-                        team_role: {permissions: ['test_team_permission']},
-                        channel_role: {permissions: ['manage_public_channel_properties']},
-                    },
-                },
-            },
-        };
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            stateWithChannelPermission(channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES),
+        );
+
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
+    });
+
+    test('should return null for public channels without header without manage permission', () => {
+        const channel = TestHelper.getChannelMock({
+            type: 'O',
+            header: '',
+        });
 
         const {container} = renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
-            state,
+            stateWithChannelPermission(channel.id),
         );
 
         expect(container.childNodes.length).toBe(0);
+    });
+
+    test('should show add channel header button for private channels without header with manage permission', () => {
+        const channel = TestHelper.getChannelMock({
+            type: 'P',
+            header: '',
+        });
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            stateWithChannelPermission(channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES),
+        );
+
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
+    });
+
+    test('should dispatch open modal when clicking add channel header button', async () => {
+        const channel = TestHelper.getChannelMock({type: 'D', header: ''});
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Add a channel header'}));
+
+        expect(modalActions.openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        });
     });
 });
