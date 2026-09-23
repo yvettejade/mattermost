@@ -433,9 +433,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                                     className='NavGroupContent'
                                                 >
                                                     {this.renderNewDropBox(droppableSnapshot.isDraggingOver)}
-                                                    {category.type === CategoryTypes.DIRECT_MESSAGES && (
-                                                        <SidebarMatterBot collapsed={category.collapsed}/>
-                                                    )}
                                                     {renderedChannels}
                                                     {this.showPlaceholder() ? droppableProvided.placeholder : null}
                                                 </ul>
@@ -445,6 +442,9 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 }}
                             </Droppable>
                             {inviteMembersButton}
+                            {category.type === CategoryTypes.DIRECT_MESSAGES && !category.collapsed && (
+                                <SidebarMatterBot collapsed={false}/>
+                            )}
                             {addChannelsCtaButton}
                         </div>
                     );

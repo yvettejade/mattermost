@@ -35,7 +35,7 @@ const SidebarMatterBot = ({collapsed}: Props) => {
     });
 
     return (
-        <li
+        <div
             className={classNames('SidebarChannel', {
                 collapsed,
                 expanded: !collapsed,
@@ -56,7 +56,7 @@ const SidebarMatterBot = ({collapsed}: Props) => {
                     </span>
                 </div>
             </button>
-        </li>
+        </div>
     );
 };
 
