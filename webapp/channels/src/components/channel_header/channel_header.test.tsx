@@ -302,6 +302,7 @@ describe('components/ChannelHeader', () => {
 
         const button = container.querySelector('#channelHeaderAssistantButton');
         expect(button).not.toBeNull();
+        expect(button!.querySelector('.icon-robot-happy')).not.toBeNull();
         await userEvent.click(button!);
         expect(store.getState().views.rhs.rhsState).toBe(RHSStates.ASSISTANT);
 
