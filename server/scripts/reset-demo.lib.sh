@@ -17,6 +17,9 @@ DEMO_SEED_INNER=/tmp/import.jsonl
 
 DEMO_TEAM="demo"
 DEMO_SAMPLE_TEAMS=("ad-1" "reiciendis-0")
+# Public channels created by seed-demo.py. Members are added after import so
+# they show up in the sidebar. guest stays out; guests are not in these projects.
+DEMO_SEEDED_CHANNELS=(proj-search proj-mobile proj-auth engineering design-review)
 DEMO_SAMPLE_USERS=(
     ashley.berry bobby.watson craig.reed diana.wagner gerald.gomez
     joe.cruz karen.austin keith.ryan kimberly.george lois.harper
@@ -190,7 +193,7 @@ SQL
     job_id=$(echo "$proc_out" | grep -oE "ID: [a-z0-9]+" | head -1 | awk '{print $2}')
     [ -n "$job_id" ] || demo_die "Could not parse job id from mmctl output"
 
-    for i in {1..60}; do
+    for i in {1..180}; do
         status=$("$DEMO_MMCTL" --local import job show "$job_id" 2>/dev/null | grep -E "^\s*Status:" | awk '{print $2}')
         if [ "$status" = "success" ]; then
             demo_ok "Import job completed (${i}s)"
@@ -201,6 +204,23 @@ SQL
             demo_die "Import job failed"
         fi
         sleep 1
+    done
+
+    demo_log "Project channel memberships"
+
+    local ch member
+    local -a members=()
+    for member in "${DEMO_SAMPLE_USERS[@]}"; do
+        if [ "$member" != "guest" ]; then
+            members+=("$member")
+        fi
+    done
+    for ch in "${DEMO_SEEDED_CHANNELS[@]}"; do
+        if "$DEMO_MMCTL" --local channel users add "${DEMO_TEAM}:${ch}" yvette "${members[@]}" >/dev/null 2>&1; then
+            demo_ok "Members added to #${ch}"
+        else
+            demo_warn "Could not add members to #${ch} (channel missing, or users already in it)"
+        fi
     done
 
     demo_log "Summary"
