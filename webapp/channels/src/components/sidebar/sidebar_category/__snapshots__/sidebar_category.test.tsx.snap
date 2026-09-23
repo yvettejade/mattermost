@@ -260,6 +260,29 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
             class="NavGroupContent"
           >
             <li
+              class="SidebarChannel expanded"
+            >
+              <button
+                aria-label="MatterBot"
+                class="SidebarLink"
+                id="sidebarItem_matterbot"
+                type="button"
+              >
+                <i
+                  class="icon icon-robot-happy"
+                />
+                <div
+                  class="SidebarChannelLinkLabel_wrapper"
+                >
+                  <span
+                    class="SidebarChannelLinkLabel"
+                  >
+                    MatterBot
+                  </span>
+                </div>
+              </button>
+            </li>
+            <li
               id="mock-sidebar-channel"
             />
           </ul>
@@ -329,7 +352,31 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
         >
           <ul
             class="NavGroupContent"
-          />
+          >
+            <li
+              class="SidebarChannel expanded"
+            >
+              <button
+                aria-label="MatterBot"
+                class="SidebarLink"
+                id="sidebarItem_matterbot"
+                type="button"
+              >
+                <i
+                  class="icon icon-robot-happy"
+                />
+                <div
+                  class="SidebarChannelLinkLabel_wrapper"
+                >
+                  <span
+                    class="SidebarChannelLinkLabel"
+                  >
+                    MatterBot
+                  </span>
+                </div>
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
       <div

@@ -36,15 +36,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -126,15 +117,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -225,15 +207,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -317,15 +290,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -413,15 +377,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -507,15 +462,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -599,15 +545,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -705,15 +642,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -799,15 +727,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -875,15 +794,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -967,15 +877,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1080,15 +981,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -1172,15 +1064,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1268,15 +1151,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
                   class="icon icon-file-text-outline"
                 />
               </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
-                />
-              </button>
             </div>
             <div
               class="channel-header__description"
@@ -1360,15 +1234,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>
@@ -1470,15 +1335,6 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               >
                 <i
                   class="icon icon-file-text-outline"
-                />
-              </button>
-              <button
-                aria-label="Assistant"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
-                id="channelHeaderAssistantButton"
-              >
-                <i
-                  class="icon icon-robot-happy"
                 />
               </button>
             </div>

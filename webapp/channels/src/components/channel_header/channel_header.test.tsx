@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -295,19 +295,13 @@ describe('components/ChannelHeader', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should open the assistant chat from the header', async () => {
-        const {container, store} = renderWithContext(
+    test('should not render an assistant button in the channel header', () => {
+        const {container} = renderWithContext(
             <ChannelHeader {...populatedProps}/>,
         );
 
-        const button = container.querySelector('#channelHeaderAssistantButton');
-        expect(button).not.toBeNull();
-        expect(button!.querySelector('.icon-robot-happy')).not.toBeNull();
-        await userEvent.click(button!);
-        expect(store.getState().views.rhs.rhsState).toBe(RHSStates.ASSISTANT);
-
-        await userEvent.click(button!);
-        expect(store.getState().views.rhs.rhsState).toBeNull();
+        expect(container.querySelector('#channelHeaderAssistantButton')).toBeNull();
+        expect(container.querySelector('.icon-robot-happy')).toBeNull();
     });
 
     test('should contain the channel info button', () => {
