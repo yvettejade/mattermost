@@ -881,7 +881,7 @@
   },
   {
     "id": "api.command_assistant.jira_not_configured",
-    "translation": "Jira is not configured. Set YvetteJiraMCP on the server."
+    "translation": "Jira is not configured. Set YvetteJira on the server."
   },
   {
     "id": "api.command_assistant.name",

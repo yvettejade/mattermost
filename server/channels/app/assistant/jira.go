@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -20,12 +21,14 @@ import (
 const (
 	// JiraTokenEnv is read on every lookup. The value is never written into
 	// source, logs, or errors.
-	JiraTokenEnv = "YvetteJiraMCP"
+	JiraTokenEnv = "YvetteJira"
 	// JiraURLEnv overrides the official Atlassian Rovo MCP endpoint.
 	JiraURLEnv = "JIRA_MCP_URL"
 	// defaultJiraMCPURL is the current official remote MCP endpoint
 	// (https://mcp.atlassian.com/v2/mcp). /v1/sse is deprecated.
 	defaultJiraMCPURL = "https://mcp.atlassian.com/v2/mcp"
+	// jiraSiteHost is the only Atlassian site a lookup may use.
+	jiraSiteHost = "fe-anysphere-demo.atlassian.net"
 
 	mcpProtocolVersion = "2025-03-26"
 
@@ -37,8 +40,8 @@ const (
 	jiraResourcesTool = "getAccessibleAtlassianResources"
 )
 
-// ErrJiraNotConfigured is returned when YvetteJiraMCP is unset or blank.
-var ErrJiraNotConfigured = errors.New("YvetteJiraMCP is not set")
+// ErrJiraNotConfigured is returned when YvetteJira is unset or blank.
+var ErrJiraNotConfigured = errors.New("YvetteJira is not set")
 
 // ErrJiraLookup is returned when the MCP call fails or lists no Jira tool.
 var ErrJiraLookup = errors.New("jira lookup failed")
@@ -48,12 +51,12 @@ type JiraClient struct {
 	HTTP *http.Client
 	// URL overrides JIRA_MCP_URL. Production leaves it empty.
 	URL string
-	// Token overrides YvetteJiraMCP. Production leaves it empty so the
+	// Token overrides YvetteJira. Production leaves it empty so the
 	// token is read on each lookup.
 	Token string
 }
 
-// NewJiraClient returns a client that reads YvetteJiraMCP at lookup time.
+// NewJiraClient returns a client that reads YvetteJira at lookup time.
 func NewJiraClient(httpClient *http.Client) *JiraClient {
 	if httpClient == nil {
 		httpClient = &http.Client{
@@ -314,11 +317,12 @@ func (s *mcpSession) resolveCloudID(ctx context.Context, tools map[string]toolDe
 	if err != nil {
 		return "", err
 	}
-	ids := cloudIDsFromResources(text)
-	if len(ids) == 0 {
-		return "", errors.New("jira tool requires cloudId and the server returned no site")
+	// Only the demo site. A longer accessible-resources list must not win.
+	id, ok := cloudIDForSite(text, jiraSiteHost)
+	if !ok {
+		return "", errors.New("the fe-anysphere-demo site was not available")
 	}
-	return ids[0], nil
+	return id, nil
 }
 
 func (s *mcpSession) call(ctx context.Context, method string, params any) (json.RawMessage, error) {
@@ -674,32 +678,62 @@ func decodeSSE(body []byte) (json.RawMessage, error) {
 	return last, nil
 }
 
-func cloudIDsFromResources(text string) []string {
+func cloudIDForSite(text, host string) (string, bool) {
 	payload := jsonPayload(text)
 	if payload == nil {
-		return nil
+		return "", false
 	}
-	var ids []string
-	var walk func(any)
-	walk = func(n any) {
-		switch t := n.(type) {
-		case map[string]any:
-			if id, ok := firstString(t, "cloudId", "cloud_id"); ok && validCloudID(id) {
-				ids = append(ids, id)
-			} else if id, ok := t["id"].(string); ok && validCloudID(id) && siteObject(t) {
-				ids = append(ids, id)
+	return cloudIDForSiteNode(payload, host)
+}
+
+func cloudIDForSiteNode(n any, host string) (string, bool) {
+	switch t := n.(type) {
+	case map[string]any:
+		if id, ok := cloudIDFromResource(t, host); ok {
+			return id, true
+		}
+		for _, child := range t {
+			if id, ok := cloudIDForSiteNode(child, host); ok {
+				return id, true
 			}
-			for _, child := range t {
-				walk(child)
-			}
-		case []any:
-			for _, child := range t {
-				walk(child)
+		}
+	case []any:
+		for _, child := range t {
+			if id, ok := cloudIDForSiteNode(child, host); ok {
+				return id, true
 			}
 		}
 	}
-	walk(payload)
-	return dedupeStrings(ids)
+	return "", false
+}
+
+func cloudIDFromResource(m map[string]any, host string) (string, bool) {
+	raw, _ := m["url"].(string)
+	if !strings.EqualFold(urlHost(raw), host) {
+		return "", false
+	}
+	if id, ok := firstString(m, "cloudId", "cloud_id", "id"); ok && validCloudID(id) {
+		return id, true
+	}
+	return "", false
+}
+
+func urlHost(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return ""
+	}
+	if parsed.Hostname() == "" {
+		parsed, err = url.Parse("https://" + raw)
+		if err != nil {
+			return ""
+		}
+	}
+	return parsed.Hostname()
 }
 
 func jsonPayload(text string) any {
@@ -727,32 +761,9 @@ func firstString(m map[string]any, keys ...string) (string, bool) {
 	return "", false
 }
 
-func siteObject(m map[string]any) bool {
-	url, _ := m["url"].(string)
-	if strings.Contains(strings.ToLower(url), "atlassian.net") {
-		return true
-	}
-	_, hasName := m["name"].(string)
-	_, hasScopes := m["scopes"]
-	return hasName && hasScopes
-}
-
 func validCloudID(id string) bool {
 	id = strings.TrimSpace(id)
 	return id != "" && len(id) <= 200 && !strings.ContainsAny(id, " \t\r\n")
-}
-
-func dedupeStrings(in []string) []string {
-	seen := map[string]bool{}
-	out := make([]string, 0, len(in))
-	for _, item := range in {
-		if seen[item] {
-			continue
-		}
-		seen[item] = true
-		out = append(out, item)
-	}
-	return out
 }
 
 func sanitizeKeys(keys []string) []string {

@@ -207,6 +207,8 @@ func TestJiraLookupMissingTokenDoesNotDial(t *testing.T) {
 	})})
 	_, err := client.Lookup(context.Background(), "open jira tickets", nil)
 	require.ErrorIs(t, err, ErrJiraNotConfigured)
+	require.Equal(t, "YvetteJira is not set", err.Error())
+	require.NotContains(t, err.Error(), "YvetteJiraMCP")
 	require.False(t, dialed)
 }
 
@@ -223,7 +225,9 @@ func TestJiraLookupReadsTokenAndURLAfterClientIsCreated(t *testing.T) {
 	_, err := client.Lookup(context.Background(), "open jira tickets", nil)
 	require.ErrorIs(t, err, ErrJiraNotConfigured)
 
+	t.Setenv("YvetteJiraMCP", "do-not-use-this-token")
 	t.Setenv(JiraTokenEnv, jiraTestToken)
+	require.Equal(t, "YvetteJira", JiraTokenEnv)
 	t.Setenv(JiraURLEnv, server.URL)
 	packet, err := client.Lookup(context.Background(), "open jira tickets", nil)
 	require.NoError(t, err)
@@ -306,18 +310,40 @@ func TestJiraLookupUsesDiscoverResultNamesOnly(t *testing.T) {
 	require.Contains(t, fake.searchArgs["jql"], "bugs")
 }
 
-func TestJiraLookupCloudIDComesFromListedResourcesTool(t *testing.T) {
+func TestJiraLookupCloudIDUsesFeAnysphereDemoNotFirstSite(t *testing.T) {
 	fake := &fakeMCP{
-		tools:      `{"tools":[` + searchSchema("cloudId", "jql") + `,` + resourcesSchema() + `]}`,
-		resources:  `[{"id":"site-123","url":"https://example.atlassian.net","name":"Example","scopes":["read:jira-work"]}]`,
+		tools: `{"tools":[` + searchSchema("cloudId", "jql") + `,` + resourcesSchema() + `]}`,
+		resources: `[
+			{"id":"other-site","url":"https://example.atlassian.net","name":"Example","scopes":["read:jira-work"]},
+			{"id":"demo-site","url":"https://fe-anysphere-demo.atlassian.net/jira","name":"Demo","scopes":["read:jira-work"]}
+		]`,
 		searchBody: "PLAT-1 status is Open assignee is sam",
 	}
 	client, _ := newFake(t, fake)
 	packet, err := client.Lookup(context.Background(), "open jira tickets", nil)
 	require.NoError(t, err)
 	require.Contains(t, packet, "PLAT-1 status is Open")
-	require.Equal(t, "site-123", fake.searchArgs["cloudId"])
+	require.Equal(t, "demo-site", fake.searchArgs["cloudId"])
+	require.NotEqual(t, "other-site", fake.searchArgs["cloudId"])
 	require.Contains(t, fake.calls, "call:"+jiraResourcesTool)
+}
+
+func TestJiraLookupFailsWhenFeAnysphereDemoSiteIsAbsent(t *testing.T) {
+	fake := &fakeMCP{
+		tools: `{"tools":[` + searchSchema("cloudId", "jql") + `,` + resourcesSchema() + `]}`,
+		resources: `[
+			{"id":"first-site","url":"https://example.atlassian.net","name":"Example","scopes":["read:jira-work"]},
+			{"id":"second-site","url":"https://other.atlassian.net/","name":"Other","scopes":["read:jira-work"]}
+		]`,
+		searchBody: "PLAT-1 status is Open assignee is sam",
+	}
+	client, _ := newFake(t, fake)
+	_, err := client.Lookup(context.Background(), "open jira tickets", nil)
+	require.ErrorIs(t, err, ErrJiraLookup)
+	require.Contains(t, err.Error(), "the fe-anysphere-demo site was not available")
+	require.NotContains(t, fake.calls, "call:"+jiraSearchTool)
+	require.NotContains(t, err.Error(), "first-site")
+	require.NotContains(t, err.Error(), "second-site")
 }
 
 func TestJiraLookupFailsWhenCloudIDRequiredAndUnknown(t *testing.T) {
