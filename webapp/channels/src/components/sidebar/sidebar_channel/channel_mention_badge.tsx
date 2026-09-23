@@ -7,6 +7,8 @@ import type {MessageDescriptor} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {formatMentionBadgeCount} from 'utils/mention_badge_count';
+
 type Props = {
     unreadMentions: number;
     hasUrgent?: boolean;
@@ -24,7 +26,7 @@ export default function ChannelMentionBadge({unreadMentions, hasUrgent, icon, cl
             >
                 {icon}
                 <span className='unreadMentions'>
-                    {unreadMentions}
+                    {formatMentionBadgeCount(unreadMentions)}
                 </span>
             </span>
         );

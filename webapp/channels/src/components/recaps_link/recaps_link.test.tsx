@@ -81,4 +81,11 @@ describe('components/recaps_link/RecapsLink', () => {
         expect(screen.queryByText('2')).not.toBeInTheDocument();
         expect(container.querySelector('.SidebarChannel')).toHaveClass('unread');
     });
+
+    test('caps recap badge display at 99+ when unread count exceeds 99 (EC-3)', () => {
+        mockGetBadge.mockReturnValue({count: 150, hasFailed: false});
+        renderLink();
+        expect(screen.getByText('99+')).toBeInTheDocument();
+        expect(screen.queryByText('150')).not.toBeInTheDocument();
+    });
 });
