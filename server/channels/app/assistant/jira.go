@@ -248,7 +248,7 @@ func (s *mcpSession) initialize(ctx context.Context) error {
 func (s *mcpSession) listTools(ctx context.Context) (map[string]toolDef, error) {
 	tools := map[string]toolDef{}
 	cursor := ""
-	for page := 0; page < 5; page++ {
+	for range 5 {
 		params := map[string]any{}
 		if cursor != "" {
 			params["cursor"] = cursor
@@ -650,7 +650,7 @@ func decodeSSE(body []byte) (json.RawMessage, error) {
 		last = result
 		return nil
 	}
-	for _, line := range strings.Split(string(body), "\n") {
+	for line := range strings.SplitSeq(string(body), "\n") {
 		line = strings.TrimRight(line, "\r")
 		if line == "" {
 			if err := flush(); err != nil {
@@ -801,7 +801,7 @@ func jiraTextTerms(question string, keys []string) string {
 	}
 	project := projectKey(question)
 	var terms []string
-	for _, word := range strings.Fields(question) {
+	for word := range strings.FieldsSeq(question) {
 		clean := strings.Trim(word, ".,!?:;\"'`()[]{}")
 		if clean == "" || jiraFiller[strings.ToLower(clean)] || strings.EqualFold(clean, "project") {
 			continue
