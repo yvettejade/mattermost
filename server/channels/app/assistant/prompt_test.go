@@ -41,6 +41,18 @@ func TestBuildMessagesGroundsOnlyVisiblePosts(t *testing.T) {
 	require.NotContains(t, user, "private-dm")
 }
 
+func TestBuildMessagesIncludesJiraPacket(t *testing.T) {
+	req := Route("status of PLAT-9", time.Now().UTC())
+	req.JiraPacket = "tool getJiraIssue:\nPLAT-9 status is Open assignee is sam\n"
+	system, user := BuildMessages(req, nil)
+	require.Contains(t, system, "Do not invent issue keys, statuses, or assignees")
+	require.Contains(t, system, "Jira packet")
+	require.Contains(t, user, "Jira packet:")
+	require.Contains(t, user, "PLAT-9 status is Open assignee is sam")
+	require.Contains(t, user, "(no posts)")
+	require.NotContains(t, user, "ZZ-999")
+}
+
 func TestBuildMessagesIncludesContextNote(t *testing.T) {
 	req := Route("catch me up", time.Now().UTC())
 	req.ContextNote = "Last visit time is not available."

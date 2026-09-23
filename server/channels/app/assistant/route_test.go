@@ -90,3 +90,34 @@ func TestRouteFeatureFlags(t *testing.T) {
 	require.True(t, call.CallsMentioned)
 	require.Equal(t, ActionScheduleMeeting, call.Action)
 }
+
+func TestRouteJira(t *testing.T) {
+	now := time.Date(2026, 9, 22, 15, 0, 0, 0, time.UTC)
+
+	issue := Route("status of plat-9", now)
+	require.True(t, issue.WantsJira)
+	require.Equal(t, []string{"PLAT-9"}, issue.IssueKeys)
+	require.Equal(t, ActionAnswer, issue.Action)
+
+	tickets := Route("any open tickets", now)
+	require.True(t, tickets.WantsJira)
+	require.Empty(t, tickets.IssueKeys)
+
+	project := Route("what is happening in jira project PLAT", now)
+	require.True(t, project.WantsJira)
+
+	summary := Route("summarize jira tickets", now)
+	require.True(t, summary.WantsJira)
+	require.Equal(t, ActionSummarize, summary.Action)
+
+	plain := Route("what did we decide?", now)
+	require.False(t, plain.WantsJira)
+	require.Empty(t, plain.IssueKeys)
+
+	channelProject := Route("the project timeline", now)
+	require.False(t, channelProject.WantsJira)
+
+	pull := Route("see PR-135", now)
+	require.False(t, pull.WantsJira)
+	require.Empty(t, pull.IssueKeys)
+}

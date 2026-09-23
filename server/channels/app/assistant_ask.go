@@ -50,6 +50,21 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 		return failed, true
 	}
 
+	if req.WantsJira {
+		jctx, jcancel := context.WithTimeout(context.WithoutCancel(rctx.Context()), 20*time.Second)
+		packet, jerr := assistant.NewJiraClient(nil).Lookup(jctx, req.Raw, req.IssueKeys)
+		jcancel()
+		jiraSecret := os.Getenv(assistant.JiraTokenEnv)
+		if jerr != nil {
+			if errors.Is(jerr, assistant.ErrJiraNotConfigured) {
+				return args.T("api.command_assistant.jira_not_configured"), true
+			}
+			rctx.Logger().Warn("assistant jira lookup failed", mlog.String("error", assistant.Redact(jerr.Error(), jiraSecret)))
+			return args.T("api.command_assistant.jira_failed"), true
+		}
+		req.JiraPacket = assistant.Redact(packet, jiraSecret)
+	}
+
 	since := time.Time{}
 	if req.HasSince || req.SinceLastVisit {
 		since = req.Since
@@ -66,16 +81,21 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 		if errors.Is(err, assistant.ErrAPIKeyMissing) {
 			return args.T("api.command_assistant.not_configured"), true
 		}
-		rctx.Logger().Warn("assistant completion failed", mlog.String("error", assistant.Redact(err.Error(), os.Getenv(assistant.APIKeyEnv))))
+		rctx.Logger().Warn("assistant completion failed", mlog.String("error", redactAssistantSecrets(err.Error())))
 		return args.T("api.command_assistant.failed"), true
 	}
 	if result.MissingContext {
 		return args.T("api.command_assistant.no_posts"), false
 	}
 
-	reply := assistant.Redact(result.Reply, os.Getenv(assistant.APIKeyEnv))
+	reply := redactAssistantSecrets(result.Reply)
 	reply = a.applyAssistantActions(rctx, args, req, result, reply)
 	return assistant.TruncateReply(reply), false
+}
+
+func redactAssistantSecrets(message string) string {
+	message = assistant.Redact(message, os.Getenv(assistant.APIKeyEnv))
+	return assistant.Redact(message, os.Getenv(assistant.JiraTokenEnv))
 }
 
 func assistantText(args *model.CommandArgs, id string) string {

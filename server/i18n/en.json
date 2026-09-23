@@ -876,6 +876,14 @@
     "translation": "[summarize | catchup | draft | board | schedule] [request]"
   },
   {
+    "id": "api.command_assistant.jira_failed",
+    "translation": "Jira lookup failed, so I cannot answer with issue keys, statuses, or assignees."
+  },
+  {
+    "id": "api.command_assistant.jira_not_configured",
+    "translation": "Jira is not configured. Set YvetteJiraMCP on the server."
+  },
+  {
     "id": "api.command_assistant.name",
     "translation": "assistant"
   },

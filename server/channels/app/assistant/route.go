@@ -52,6 +52,9 @@ type Request struct {
 	PlaybooksUnavailable bool
 	AskedForCanvas       bool
 	CallsMentioned       bool
+	WantsJira            bool
+	IssueKeys            []string
+	JiraPacket           string
 	ContextNote          string
 	Raw                  string
 }
@@ -73,7 +76,25 @@ var (
 	reRFC3339            = regexp.MustCompile(`(?i)\bsince\s+(\d{4}-\d{2}-\d{2}t\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:z|[+-]\d{2}:\d{2}))\b`)
 	reDate               = regexp.MustCompile(`(?i)\bsince\s+(\d{4}-\d{2}-\d{2})\b`)
 	reWord               = regexp.MustCompile(`(?i)\b([a-z0-9]+)\b`)
+	reJiraWord           = regexp.MustCompile(`(?i)\bjira\b`)
+	reTicket             = regexp.MustCompile(`(?i)\btickets?\b`)
+	reIssueKey           = regexp.MustCompile(`\b([A-Za-z][A-Za-z0-9]{1,9}-\d+)\b`)
 )
+
+// Prefixes that look like Jira keys and are not. A bare key still routes to
+// Jira; these do not, unless the message also says jira or ticket.
+var nonJiraKeyPrefixes = map[string]bool{
+	"API":   true,
+	"CVE":   true,
+	"CVSS":  true,
+	"HTTP":  true,
+	"HTTPS": true,
+	"ISO":   true,
+	"PR":    true,
+	"RFC":   true,
+	"SHA":   true,
+	"UTF":   true,
+}
 
 // Route maps a slash-command message onto a specialist and an action.
 // now is injected so relative windows such as "since yesterday" are testable.
@@ -127,6 +148,8 @@ func Route(message string, now time.Time) Request {
 	if req.Action == ActionCatchUp && !req.HasSince && !req.SinceUnparsed && !req.SinceLastVisit {
 		req.SinceLastVisit = true
 	}
+	req.IssueKeys = issueKeys(raw)
+	req.WantsJira = reJiraWord.MatchString(lower) || reTicket.MatchString(lower) || len(req.IssueKeys) > 0
 	return req
 }
 
@@ -270,6 +293,24 @@ func hasWord(lower string, words ...string) bool {
 		}
 	}
 	return false
+}
+
+func issueKeys(raw string) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, match := range reIssueKey.FindAllStringSubmatch(raw, -1) {
+		key := strings.ToUpper(match[1])
+		prefix := key[:strings.IndexByte(key, '-')]
+		if nonJiraKeyPrefixes[prefix] || seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, key)
+		if len(out) == 5 {
+			break
+		}
+	}
+	return out
 }
 
 func atoi(s string) int {

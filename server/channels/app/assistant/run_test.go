@@ -24,6 +24,30 @@ func (f *fakeCompleter) Complete(_ context.Context, messages []Message) (string,
 	return f.reply, f.err
 }
 
+func TestRunAnswersFromJiraPacketWhenPostsAreEmpty(t *testing.T) {
+	req := Route("status of PLAT-9", time.Now())
+	req.JiraPacket = "tool getJiraIssue:\nPLAT-9 status is Open assignee is sam\n"
+	fake := &fakeCompleter{reply: "PLAT-9 is Open and assigned to sam."}
+	result, err := Run(context.Background(), req, nil, fake)
+	require.NoError(t, err)
+	require.False(t, result.MissingContext)
+	require.True(t, fake.called)
+	require.Contains(t, fake.messages[0].Content, "Do not invent issue keys, statuses, or assignees")
+	require.Contains(t, fake.messages[1].Content, "PLAT-9 status is Open assignee is sam")
+	require.Contains(t, result.Reply, "assigned to sam")
+}
+
+func TestRunDropsInventedJiraKey(t *testing.T) {
+	req := Route("status of PLAT-9", time.Now())
+	req.JiraPacket = "tool getJiraIssue:\nPLAT-9 status is Open assignee is sam\n"
+	fake := &fakeCompleter{reply: "PLAT-9 is Open. ZZ-999 is Done and assigned to dana."}
+	result, err := Run(context.Background(), req, nil, fake)
+	require.NoError(t, err)
+	require.Equal(t, UngroundedJiraReply, result.Reply)
+	require.NotContains(t, result.Reply, "ZZ-999")
+	require.NotContains(t, result.Reply, "dana")
+}
+
 func TestRunSkipsModelWhenContextIsEmpty(t *testing.T) {
 	fake := &fakeCompleter{reply: "invented answer"}
 	result, err := Run(context.Background(), Route("what did we decide?", time.Now()), nil, fake)
