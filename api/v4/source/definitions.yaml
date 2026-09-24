@@ -4354,6 +4354,72 @@ components:
         reason:
           type: string
           description: Reason code if not available (translation ID)
+    GrokAgentStatus:
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: Whether the built-in workspace agent is available
+        provider:
+          type: string
+          description: grok when YvetteGrokAPI is set, otherwise workspace
+        model:
+          type: string
+          description: Grok model name
+        github_repo:
+          type: string
+          description: GitHub repository used for repo context
+        jira_project_key:
+          type: string
+          description: Jira project key used for ticket context
+        jira_base_url:
+          type: string
+          description: Jira site used for ticket links
+    GrokAgentQueryRequest:
+      type: object
+      required:
+        - channel_id
+      properties:
+        channel_id:
+          type: string
+          description: Channel whose history grounds the answer
+        root_id:
+          type: string
+          description: Optional thread root to summarize or answer from
+        message:
+          type: string
+          description: User question or action request
+        intent:
+          type: string
+          description: Optional intent override (ask, summarize, draft, schedule, canvas, route, github, jira)
+    GrokAgentAction:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        payload:
+          type: string
+    GrokAgentQueryResponse:
+      type: object
+      properties:
+        intent:
+          type: string
+        reply:
+          type: string
+        provider:
+          type: string
+        model:
+          type: string
+        sources:
+          type: array
+          items:
+            type: string
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/GrokAgentAction"
     AIBridgeTestHelperStatus:
       type: object
       properties:
