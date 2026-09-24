@@ -820,6 +820,54 @@ func (a *App) DeleteEphemeralPost(rctx request.CTX, userID, postID string) {
 	a.Publish(message)
 }
 
+// postContentChanged reports whether the update rewrites message content,
+// files, props, or reactions — as opposed to an IsPinned-only change.
+func postContentChanged(oldPost, received *model.Post) bool {
+	if received.Message != oldPost.Message {
+		return true
+	}
+	if !oldPost.FileIds.Equals(received.FileIds) {
+		return true
+	}
+	if received.HasReactions != oldPost.HasReactions {
+		return true
+	}
+	oldForProps := oldPost.Clone()
+	oldForProps.SanitizeProps()
+	return model.StringInterfaceToJSON(received.GetProps()) != model.StringInterfaceToJSON(oldForProps.GetProps())
+}
+
+// checkPostContentEditPermissions enforces ownership (or edit_others_posts /
+// manage_system) on content edits. Pin-only updates and TrustedUpdate callers
+// are exempt. Empty sessions are treated as internal callers.
+func (a *App) checkPostContentEditPermissions(rctx request.CTX, oldPost, received *model.Post, opts *model.UpdatePostOptions) *model.AppError {
+	if opts != nil && opts.TrustedUpdate {
+		return nil
+	}
+	if !postContentChanged(oldPost, received) {
+		return nil
+	}
+
+	session := rctx.Session()
+	if session == nil || (session.UserId == "" && !session.IsUnrestricted()) {
+		return nil
+	}
+
+	if session.UserId == oldPost.UserId {
+		return nil
+	}
+
+	if oldPost.Type == model.PostTypeCard && a.Config().FeatureFlags.IntegratedBoards {
+		return nil
+	}
+
+	if ok, _ := a.SessionHasPermissionToChannel(rctx, *session, oldPost.ChannelId, model.PermissionEditOthersPosts); ok {
+		return nil
+	}
+
+	return model.NewAppError("UpdatePost", "api.context.permissions.app_error", nil, "userId="+session.UserId+", permission="+model.PermissionEditOthersPosts.Id, http.StatusForbidden)
+}
+
 func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError) {
 	if updatePostOptions == nil {
 		updatePostOptions = model.DefaultUpdatePostOptions()
@@ -879,6 +927,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if restrictDM {
 		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 		return nil, false, err
+	}
+
+	if appErr = a.checkPostContentEditPermissions(rctx, oldPost, receivedUpdatedPost, updatePostOptions); appErr != nil {
+		return nil, false, appErr
 	}
 
 	newPost := oldPost.Clone()

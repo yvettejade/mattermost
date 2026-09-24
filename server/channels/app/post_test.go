@@ -2199,6 +2199,92 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestUpdatePostContentOwnership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	post, _, err := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "original " + model.NewId(),
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, err)
+
+	t.Run("non-owner session cannot rewrite another user's message", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Roles = model.SystemUserRoleId
+
+		edited := post.Clone()
+		edited.Message = "hijacked " + model.NewId()
+		_, _, appErr := th.App.UpdatePost(th.Context, edited, model.DefaultUpdatePostOptions())
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		fetched, fetchErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, fetchErr)
+		require.Equal(t, post.Message, fetched.Message)
+	})
+
+	t.Run("non-owner can pin and unpin via PatchPost", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Roles = model.SystemUserRoleId
+
+		pinned := true
+		updated, _, appErr := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: &pinned}, nil)
+		require.Nil(t, appErr)
+		require.True(t, updated.IsPinned)
+		require.Equal(t, post.Message, updated.Message)
+
+		unpinned := false
+		updated, _, appErr = th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: &unpinned}, nil)
+		require.Nil(t, appErr)
+		require.False(t, updated.IsPinned)
+		require.Equal(t, post.Message, updated.Message)
+	})
+
+	t.Run("TrustedUpdate allows content edit without ownership", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Roles = model.SystemUserRoleId
+
+		trustedMessage := "trusted " + model.NewId()
+		edited := post.Clone()
+		edited.Message = trustedMessage
+		updated, _, appErr := th.App.UpdatePost(th.Context, edited, &model.UpdatePostOptions{TrustedUpdate: true})
+		require.Nil(t, appErr)
+		require.Equal(t, trustedMessage, updated.Message)
+		post = updated
+	})
+
+	t.Run("edit_others_posts can rewrite another user's message", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Roles = model.SystemUserRoleId
+
+		peerMessage := "peer edit " + model.NewId()
+		edited := post.Clone()
+		edited.Message = peerMessage
+		updated, _, appErr := th.App.UpdatePost(th.Context, edited, model.DefaultUpdatePostOptions())
+		require.Nil(t, appErr)
+		require.Equal(t, peerMessage, updated.Message)
+		post = updated
+	})
+
+	t.Run("system admin can rewrite another user's message", func(t *testing.T) {
+		th.Context.Session().UserId = th.SystemAdminUser.Id
+		th.Context.Session().Roles = model.SystemUserRoleId + " " + model.SystemAdminRoleId
+
+		adminMessage := "admin edit " + model.NewId()
+		edited := post.Clone()
+		edited.Message = adminMessage
+		updated, _, appErr := th.App.UpdatePost(th.Context, edited, model.DefaultUpdatePostOptions())
+		require.Nil(t, appErr)
+		require.Equal(t, adminMessage, updated.Message)
+	})
+}
+
 func TestSearchPostsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	perPage := 5
