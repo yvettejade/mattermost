@@ -820,6 +820,30 @@
     "translation": "Unable to update commands across teams."
   },
   {
+    "id": "api.command_agent.desc",
+    "translation": "Ask the Mattermost workspace agent, powered by Grok Chat"
+  },
+  {
+    "id": "api.command_agent.help",
+    "translation": "**Mattermost agent**\n\n`/agent [ask|summarize|draft|schedule|canvas|route|github|jira] [message]`\n\nExamples:\n- `/agent summarize`\n- `/agent what did we decide about headers?`\n- `/agent draft a project update`\n- `/agent schedule standup tomorrow 10am`\n- `/agent canvas Q4 plan`\n- `/agent github`\n- `/agent jira YJIRA-22`"
+  },
+  {
+    "id": "api.command_agent.hint",
+    "translation": "[ask|summarize|draft|schedule|canvas|route|github|jira] [message]"
+  },
+  {
+    "id": "api.command_agent.name",
+    "translation": "agent"
+  },
+  {
+    "id": "api.command_agent.permission.app_error",
+    "translation": "You do not have permission to use the agent in this channel."
+  },
+  {
+    "id": "api.command_agent.query.app_error",
+    "translation": "The workspace agent could not answer that request."
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "Set your status away"
   },
@@ -6483,6 +6507,18 @@
   {
     "id": "app.get_user_team_scheduled_posts.error",
     "translation": "Error occurred fetching scheduled posts."
+  },
+  {
+    "id": "app.grok_agent.channel_required",
+    "translation": "A channel_id is required."
+  },
+  {
+    "id": "app.grok_agent.permission_denied",
+    "translation": "You do not have permission to read this channel."
+  },
+  {
+    "id": "app.grok_agent.query_failed",
+    "translation": "The workspace agent could not complete the request."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
