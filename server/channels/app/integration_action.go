@@ -396,7 +396,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 			}
 		}
 
-		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true}); appErr != nil {
+		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true, TrustedUpdate: true}); appErr != nil {
 			return "", appErr
 		}
 	}

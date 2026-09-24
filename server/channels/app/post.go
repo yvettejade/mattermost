@@ -862,6 +862,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, false, appErr
 	}
 
+	if appErr = a.checkUpdatePostOwnership(rctx, oldPost, receivedUpdatedPost, updatePostOptions); appErr != nil {
+		return nil, false, appErr
+	}
+
 	channel, appErr := a.GetChannel(rctx, oldPost.ChannelId)
 	if appErr != nil {
 		return nil, false, appErr
