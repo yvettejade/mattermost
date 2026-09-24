@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Group, GroupSearchParams} from '@mattermost/types/groups';
+
 import {searchGroups} from 'mattermost-redux/actions/groups';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {searchAssociatedGroupsForReferenceLocal} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
-export function searchAssociatedGroupsForReference(prefix, teamId, channelId, opts = {}) {
-    return async (dispatch, getState) => {
+import type {DispatchFunc, GetStateFunc} from 'types/store';
+
+export function searchAssociatedGroupsForReference(prefix: string, teamId: string, channelId: string | undefined, opts: Partial<GroupSearchParams> = {}) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<{data: Group[]}> => {
         const state = getState();
         if (!haveIChannelPermission(state,
             teamId,
@@ -18,7 +22,7 @@ export function searchAssociatedGroupsForReference(prefix, teamId, channelId, op
             return {data: []};
         }
         if (isCustomGroupsEnabled(state)) {
-            const params = {
+            const params: GroupSearchParams = {
                 q: prefix,
                 filter_allow_reference: true,
                 page: 0,
@@ -30,6 +34,6 @@ export function searchAssociatedGroupsForReference(prefix, teamId, channelId, op
 
             await dispatch(searchGroups(params));
         }
-        return {data: searchAssociatedGroupsForReferenceLocal(state, prefix, teamId, channelId)};
+        return {data: searchAssociatedGroupsForReferenceLocal(state, prefix, teamId, channelId!)};
     };
 }
