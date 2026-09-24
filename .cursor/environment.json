@@ -8,6 +8,9 @@
   "repositoryDependencies": [
     "github.com/mattermost/enterprise"
   ],
+  "egressAllowlist": [
+    "api.x.ai"
+  ],
   "install": "bash .cursor/scripts/cloud-agent-install.sh",
   "start": "bash .cursor/scripts/cloud-agent-start.sh",
   "ports": [
