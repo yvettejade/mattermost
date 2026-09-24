@@ -1092,6 +1092,30 @@
     "translation": "Unable to generate presign url."
   },
   {
+    "id": "api.command_grok.desc",
+    "translation": "Ask Grok to answer from channel history, summarize, draft, schedule, or surface GitHub/Jira"
+  },
+  {
+    "id": "api.command_grok.help",
+    "translation": "I'm Grok, the workspace agent. Try `/grok summarize`, `/grok catch up`, `/grok draft …`, `/grok schedule …`, `/grok canvas …`, `/grok github`, `/grok jira`, or `/grok route …`. You can also mention `@grok` or DM me."
+  },
+  {
+    "id": "api.command_grok.hint",
+    "translation": "[summarize | catch up | draft | schedule | canvas | github | jira | route | question]"
+  },
+  {
+    "id": "api.command_grok.name",
+    "translation": "grok"
+  },
+  {
+    "id": "api.command_grok.request.app_error",
+    "translation": "Grok could not answer that request. Try again or mention @grok in the channel."
+  },
+  {
+    "id": "api.command_grok.unavailable.app_error",
+    "translation": "The Grok workspace agent is unavailable."
+  },
+  {
     "id": "api.command_groupmsg.desc",
     "translation": "Sends a Group Message to the specified users"
   },
@@ -6483,6 +6507,10 @@
   {
     "id": "app.get_user_team_scheduled_posts.error",
     "translation": "Error occurred fetching scheduled posts."
+  },
+  {
+    "id": "app.grok_agent.ensure_bot.app_error",
+    "translation": "Failed to create or load the Grok workspace agent bot."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
