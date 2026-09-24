@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelInfoButton from './channel_info_button';
@@ -24,5 +24,14 @@ describe('components/ChannelHeaderMobile/ChannelInfoButton', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should open channel info on click', async () => {
+        renderWithContext(
+            <ChannelInfoButton {...baseProps}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Info'}));
+        expect(baseProps.actions.showChannelInfo).toHaveBeenCalledWith('channel_id');
     });
 });

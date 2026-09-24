@@ -44,7 +44,12 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
         channel,
         postRightVisible: Boolean(selectedPostId) && rhsState !== RHSStates.EDIT_HISTORY,
         postCardVisible: Boolean(selectedPostCardId),
-        searchVisible: Boolean(rhsState) && rhsState !== RHSStates.PLUGIN,
+        searchVisible: rhsState !== null && ![
+            RHSStates.PLUGIN,
+            RHSStates.CHANNEL_INFO,
+            RHSStates.CHANNEL_MEMBERS,
+            RHSStates.EDIT_HISTORY,
+        ].includes(rhsState),
         previousRhsState: getPreviousRhsState(state),
         isPinnedPosts: rhsState === RHSStates.PIN,
         isChannelFiles: rhsState === RHSStates.CHANNEL_FILES,
