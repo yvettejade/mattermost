@@ -1131,6 +1131,30 @@
     "translation": "You don't have the appropriate permissions to create a new group message."
   },
   {
+    "id": "api.command_grok.desc",
+    "translation": "Ask Grok, the workspace AI agent, about this channel or thread"
+  },
+  {
+    "id": "api.command_grok.help",
+    "translation": "Ask Grok from chat. Examples:\n`/grok summarize` — recap this channel or thread\n`/grok catch up` — what you missed\n`/grok draft a project update`\n`/grok schedule standup tomorrow`\n`/grok canvas Q4 plan`\n`/grok github` or `/grok jira YJIRA-24`\n`/grok route this to a specialist`\nYou can also mention `@grok` or DM the Grok bot."
+  },
+  {
+    "id": "api.command_grok.hint",
+    "translation": "[summarize | catch up | draft | schedule | canvas | github | jira | route | question]"
+  },
+  {
+    "id": "api.command_grok.name",
+    "translation": "grok"
+  },
+  {
+    "id": "api.command_grok.request.app_error",
+    "translation": "Grok could not answer that request. Try again in a channel you can access."
+  },
+  {
+    "id": "api.command_grok.unavailable.app_error",
+    "translation": "The Grok workspace agent is unavailable."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Show Mattermost help message"
   },
@@ -6483,6 +6507,10 @@
   {
     "id": "app.get_user_team_scheduled_posts.error",
     "translation": "Error occurred fetching scheduled posts."
+  },
+  {
+    "id": "app.grok_agent.ensure_bot.app_error",
+    "translation": "Failed to create or load the Grok workspace agent."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
