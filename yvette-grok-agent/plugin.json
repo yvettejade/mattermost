@@ -1,0 +1,77 @@
+{
+    "id": "com.mattermost.yvette-grok-agent",
+    "name": "Yvette Grok Agent",
+    "description": "Slackbot-class workspace agent that answers from Mattermost history via Grok Chat and can summarize, draft, schedule, canvas, and route work.",
+    "homepage_url": "https://github.com/yvettejade/mattermost",
+    "support_url": "https://fe-anysphere-demo.atlassian.net/jira/software/projects/YJIRA/",
+    "release_notes_url": "https://fe-anysphere-demo.atlassian.net/browse/YJIRA-26",
+    "min_server_version": "9.0.0",
+    "server": {
+        "executables": {
+            "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64",
+            "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
+            "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+        },
+        "executable": "server/dist/plugin-linux-amd64"
+    },
+    "settings_schema": {
+        "header": "Bot-held integrations for @yvette-grok. The Grok API key is read from the YvetteGrokAPI environment variable, not this form.",
+        "footer": "This plugin coexists with the core Agents Bridge / mattermost-ai plugin. RHS is deferred.",
+        "settings": [
+            {
+                "key": "GitHubRepo",
+                "display_name": "GitHub repository URL",
+                "type": "text",
+                "default": "https://github.com/yvettejade/mattermost",
+                "help_text": "Repository surfaced when users ask about GitHub."
+            },
+            {
+                "key": "GitHubToken",
+                "display_name": "GitHub token",
+                "type": "text",
+                "help_text": "Optional bot-held token for yvettejade/mattermost. Leave empty to cite the repo URL only."
+            },
+            {
+                "key": "JiraURL",
+                "display_name": "Jira project URL",
+                "type": "text",
+                "default": "https://fe-anysphere-demo.atlassian.net/jira/software/projects/YJIRA/",
+                "help_text": "YJIRA project surfaced when users ask about tickets."
+            },
+            {
+                "key": "JiraEmail",
+                "display_name": "Jira email",
+                "type": "text",
+                "help_text": "Optional Atlassian email for the bot-held Jira token."
+            },
+            {
+                "key": "JiraToken",
+                "display_name": "Jira API token",
+                "type": "text",
+                "help_text": "Optional bot-held Jira token. Leave empty to cite the project URL only."
+            },
+            {
+                "key": "RouteWebhookURL",
+                "display_name": "Route webhook URL",
+                "type": "text",
+                "help_text": "Optional URL posted to when /yvette route hands off work. Receives JSON, never secrets."
+            },
+            {
+                "key": "GrokModel",
+                "display_name": "Grok model",
+                "type": "text",
+                "default": "grok-3",
+                "help_text": "Chat Completions model. Overridden by YvetteGrokModel when set."
+            },
+            {
+                "key": "GrokAPIURL",
+                "display_name": "Grok API URL",
+                "type": "text",
+                "default": "https://api.x.ai/v1/chat/completions",
+                "help_text": "Chat Completions endpoint. Overridden by YvetteGrokAPIURL when set."
+            }
+        ]
+    }
+}

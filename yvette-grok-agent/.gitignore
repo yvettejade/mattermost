@@ -1,0 +1,4 @@
+server/dist/
+dist/
+*.tar.gz
+cover.out
