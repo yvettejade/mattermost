@@ -1,0 +1,12 @@
+name = "jiragrokbot"
+main = "src/index.js"
+compatibility_date = "2026-08-31"
+workers_dev = true
+
+[vars]
+CURSOR_WEBHOOK_URL = "https://api2.cursor.sh/automations/webhook/6b187972-1e0c-583c-9f01-9c489c944f24"
+
+# Secrets (set via `wrangler secret put`, do NOT commit real values):
+#   wrangler secret put CURSOR_AUTH_TOKEN       # required
+#   wrangler secret put JIRA_WEBHOOK_SECRET     # required if forwarding Jira
+#   wrangler secret put LINEAR_WEBHOOK_SECRET   # required if forwarding Linear
