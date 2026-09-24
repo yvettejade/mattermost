@@ -412,36 +412,65 @@ func (p *Plugin) openScheduleDialog(req userRequest) error {
 	return p.client.Frontend.OpenInteractiveDialog(dialog)
 }
 
+const mattermostUserHeader = "Mattermost-User-Id"
+
 func (p *Plugin) handleScheduleDialog(w http.ResponseWriter, r *http.Request) {
+	headerUserID := strings.TrimSpace(r.Header.Get(mattermostUserHeader))
+	if headerUserID == "" {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var payload model.SubmitDialogRequest
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "invalid dialog payload", http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+
 	if payload.Cancelled {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{}`))
 		return
 	}
 
-	state, _ := p.getSession(payload.State)
+	if payload.CallbackId != actions.ScheduleCallbackID {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	state, err := p.getSession(payload.State)
+	if err != nil || !validScheduleSession(state) {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+	if state.UserID != headerUserID {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	p.deleteSession(payload.State)
 
-	channelID := firstNonEmpty(state.ChannelID, payload.ChannelId)
-	rootID := state.RootID
-	userID := firstNonEmpty(state.UserID, payload.UserId)
 	title := actions.SubmissionString(payload.Submission, "title")
 	when := actions.SubmissionString(payload.Submission, "when")
 	participants := actions.SubmissionString(payload.Submission, "participants")
-	proposer := userID
-	if user, err := p.API.GetUser(userID); err == nil && user != nil && user.Username != "" {
+	proposer := state.UserID
+	if user, appErr := p.API.GetUser(state.UserID); appErr == nil && user != nil && user.Username != "" {
 		proposer = "@" + user.Username
 	}
 
-	p.reply(userRequest{UserID: userID, ChannelID: channelID, RootID: rootID}, actions.MeetingProposal(title, when, participants, proposer))
+	p.reply(userRequest{
+		UserID:    state.UserID,
+		ChannelID: state.ChannelID,
+		RootID:    state.RootID,
+	}, actions.MeetingProposal(title, when, participants, proposer))
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(`{}`))
+}
+
+func validScheduleSession(state sessionState) bool {
+	return state.UserID != "" && state.ChannelID != "" && state.Kind == "schedule"
 }
 
 func (p *Plugin) siteURL() string {
