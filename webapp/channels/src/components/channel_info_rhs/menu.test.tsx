@@ -4,7 +4,9 @@
 import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {scrollPostListToUnread} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
@@ -17,21 +19,79 @@ import {
 } from 'tests/react_testing_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 jest.mock('selectors/views/channel_settings', () => ({
     canAccessChannelSettings: jest.fn(),
 }));
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'OPEN_MODAL'})),
 }));
+jest.mock('actions/views/channel', () => ({
+    scrollPostListToUnread: jest.fn(() => ({type: 'SCROLL_POST_LIST_TO_UNREAD'})),
+}));
 
 import Menu from './menu';
 
 const mockedCanAccessChannelSettings = canAccessChannelSettings as unknown as jest.Mock;
 const mockedOpenModal = openModal as unknown as jest.Mock;
+const mockedScrollPostListToUnread = scrollPostListToUnread as unknown as jest.Mock;
+
+const enabledFeaturesState = {
+    entities: {
+        general: {
+            config: {
+                FeatureFlagChannelBookmarks: 'true',
+                ScheduledPosts: 'true',
+            },
+            license: {
+                IsLicensed: 'true',
+            },
+        },
+        teams: {
+            currentTeamId: 'team-id',
+            teams: {
+                'team-id': {id: 'team-id', name: 'team-slug'},
+            },
+        },
+        channels: {
+            messageCounts: {
+                channel_id: {total: 10, root: 10},
+            },
+            myMembers: {
+                channel_id: {
+                    mention_count: 2,
+                    mention_count_root: 2,
+                    msg_count: 7,
+                    msg_count_root: 7,
+                    urgent_mention_count: 1,
+                },
+            },
+        },
+        channelBookmarks: {
+            byChannelId: {
+                channel_id: {
+                    bm1: {id: 'bm1'},
+                    bm2: {id: 'bm2'},
+                },
+            },
+        },
+        scheduledPosts: {
+            byId: {
+                sp1: {id: 'sp1'},
+                sp2: {id: 'sp2', error_code: 'unable_to_send'},
+            },
+            byChannelOrThreadId: {
+                channel_id: ['sp1', 'sp2'],
+                thread_id: ['sp3'],
+            },
+        },
+    },
+} as DeepPartial<GlobalState>;
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {
-        channel: {type: Constants.OPEN_CHANNEL} as Channel,
+        channel: {id: 'channel_id', type: Constants.OPEN_CHANNEL} as Channel,
         channelStats: {files_count: 3, pinnedpost_count: 12, member_count: 32} as ChannelStats,
         isArchived: false,
         actions: {
@@ -39,6 +99,7 @@ describe('channel_info_rhs/menu', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         },
     };
@@ -46,11 +107,13 @@ describe('channel_info_rhs/menu', () => {
     beforeEach(() => {
         mockedOpenModal.mockClear();
         mockedCanAccessChannelSettings.mockReset();
+        mockedScrollPostListToUnread.mockClear();
         defaultProps.actions = {
             openNotificationSettings: jest.fn(),
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showChannelBookmarks: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         };
     });
@@ -283,5 +346,138 @@ describe('channel_info_rhs/menu', () => {
         );
         await act(async () => props.actions.getChannelStats());
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    test('should show unreads at zero and jump without opening a new RHS', async () => {
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+        await act(async () => props.actions.getChannelStats());
+
+        const unreadsItem = screen.getByText('Unreads');
+        expect(unreadsItem).toBeInTheDocument();
+        expect(unreadsItem.parentElement).toHaveTextContent('0');
+
+        await userEvent.click(unreadsItem);
+        expect(mockedScrollPostListToUnread).toHaveBeenCalled();
+        expect(props.actions.showChannelMembers).not.toHaveBeenCalled();
+        expect(props.actions.showPinnedPosts).not.toHaveBeenCalled();
+        expect(props.actions.showChannelFiles).not.toHaveBeenCalled();
+        expect(props.actions.showChannelBookmarks).not.toHaveBeenCalled();
+    });
+
+    test('should show unread message count with mention as a secondary indicator', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            enabledFeaturesState,
+        );
+        await act(async () => defaultProps.actions.getChannelStats());
+
+        const unreadsItem = screen.getByText('Unreads');
+        expect(unreadsItem.parentElement).toHaveTextContent('3');
+        expect(unreadsItem.parentElement?.querySelector('.unreadMentions')).toHaveTextContent('2');
+        expect(unreadsItem.parentElement?.querySelector('.badge.urgent')).toBeInTheDocument();
+    });
+
+    test('should show bookmarks including on DM when enabled, with a zero count', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {id: 'channel_id', type: Constants.DM_CHANNEL} as Channel,
+        };
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            {
+                ...enabledFeaturesState,
+                entities: {
+                    ...enabledFeaturesState.entities,
+                    channelBookmarks: {
+                        byChannelId: {},
+                    },
+                },
+            } as DeepPartial<GlobalState>,
+        );
+        await act(async () => props.actions.getChannelStats());
+
+        const bookmarksItem = screen.getByText('Bookmarks');
+        expect(bookmarksItem).toBeInTheDocument();
+        expect(bookmarksItem.parentElement).toHaveTextContent('0');
+
+        await userEvent.click(bookmarksItem);
+        expect(props.actions.showChannelBookmarks).toHaveBeenCalledWith('channel_id');
+    });
+
+    test('should hide bookmarks when the feature is disabled', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+        );
+        await act(async () => defaultProps.actions.getChannelStats());
+
+        expect(screen.queryByText('Bookmarks')).not.toBeInTheDocument();
+    });
+
+    test('should hide scheduled posts when unlicensed or disabled', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+        );
+        await act(async () => defaultProps.actions.getChannelStats());
+
+        expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
+    });
+
+    test('should count non-error scheduled posts for the channel key only and navigate', async () => {
+        const historyMock = (global as any).historyMock;
+        historyMock.push.mockClear();
+
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            enabledFeaturesState,
+        );
+        await act(async () => defaultProps.actions.getChannelStats());
+
+        const scheduledItem = screen.getByText('Scheduled posts');
+        expect(scheduledItem).toBeInTheDocument();
+        expect(scheduledItem.parentElement).toHaveTextContent('1');
+
+        await userEvent.click(scheduledItem);
+        expect(historyMock.push).toHaveBeenCalledWith('/team-slug/scheduled_posts?target_id=channel_id');
+    });
+
+    test('should render menu rows in the locked order', async () => {
+        mockedCanAccessChannelSettings.mockReturnValue(true);
+
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            enabledFeaturesState,
+        );
+        await act(async () => defaultProps.actions.getChannelStats());
+
+        const labels = screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'));
+        expect(labels).toEqual([
+            'Channel Settings',
+            'Notification Preferences',
+            'Unreads',
+            'Members',
+            'Pinned messages',
+            'Bookmarks',
+            'Scheduled posts',
+            'Files',
+        ]);
     });
 });

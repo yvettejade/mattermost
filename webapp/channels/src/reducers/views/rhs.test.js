@@ -42,6 +42,24 @@ describe('Reducers.RHS', () => {
         expect(nextState).toEqual(initialState);
     });
 
+    test('should match RHS state to channel bookmarks', () => {
+        const nextState = rhsReducer(
+            {},
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.CHANNEL_BOOKMARKS,
+                channelId: '123',
+            },
+        );
+
+        expect(nextState).toEqual({
+            ...initialState,
+            selectedChannelId: '123',
+            rhsState: RHSStates.CHANNEL_BOOKMARKS,
+            isSidebarOpen: true,
+        });
+    });
+
     test('should match RHS state to pin', () => {
         const nextState = rhsReducer(
             {},
