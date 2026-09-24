@@ -703,6 +703,12 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 		})
 	}
 
+	if post.Type != model.PostTypeAutoResponder && post.Type != model.PostTypeBurnOnRead {
+		a.Srv().Go(func() {
+			a.MaybeHandleGrokMention(rctx, post, channel, user)
+		})
+	}
+
 	if triggerWebhooks && post.Type != model.PostTypeBurnOnRead {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(rctx, post, team, channel, user); err != nil {
