@@ -1,0 +1,9 @@
+dist/
+server/dist/
+*.tar.gz
+*.exe
+*.test
+coverage.out
+.env
+.idea/
+.vscode/
