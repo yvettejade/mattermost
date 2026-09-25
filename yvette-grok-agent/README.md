@@ -2,7 +2,7 @@
 
 In-Mattermost AI agent (Slackbot-like) backed by Grok Chat. This is a **sibling demo plugin** — plugin id `com.yvette.grok-agent` — and does **not** replace official `mattermost-ai` / Agents Bridge.
 
-Users stay in Mattermost: `@yvette-grok` mentions, DMs to the bot, and `/yvette` slash commands.
+**YJIRA-28 AC-2:** **Ask Grok** sits in the left sidebar immediately above Invite Members (expanded Direct Messages category) and opens a chat modal. Path A surfaces stay: `@yvette-grok`, bot DMs, and `/yvette`.
 
 ## Install
 
@@ -13,12 +13,26 @@ Users stay in Mattermost: `@yvette-grok` mentions, DMs to the bot, and `/yvette`
    make dist
    ```
 
-   Output: `dist/com.yvette.grok-agent-0.1.0.tar.gz`
+   Output: `dist/com.yvette.grok-agent-0.2.0.tar.gz` (includes `webapp/dist/main.js`).
 
 2. In Mattermost System Console → Plugins → Plugin Management → Upload Plugin, upload the tar.gz.
 3. Open the plugin settings, set **Yvette Grok API key** (`YvetteGrokAPI`), then Enable Plugin.
 
+This plugin registers `LeftSidebarAboveInviteMembers`. That slot is a **minimal core webapp Pluggable** (not in stock Mattermost). The matching patch lives in this repo:
+
+- `webapp/channels/src/plugins/registry.ts` — `registerLeftSidebarAboveInviteMembersComponent`
+- `webapp/channels/src/types/store/plugins.ts` + plugins reducer
+- `webapp/channels/src/components/sidebar/sidebar_category/sidebar_category.tsx` — `<Pluggable pluggableName='LeftSidebarAboveInviteMembers'/>` immediately before Invite Members
+
+Without that core patch, the modal still loads via `registerRootComponent`, but the LHS button will not appear.
+
 Minimum Mattermost server: 6.0.0. Plugin toolchain matches `server/.go-version` (Go 1.26.3).
+
+## Chat modal
+
+- Expand **Direct Messages** → **Ask Grok** is directly above Invite Members (still visible if the user cannot invite).
+- Collapse DMs → both Ask Grok and Invite Members hide.
+- Click opens a root modal. `POST /plugins/com.yvette.grok-agent/api/v1/chat` reuses the Path A intent/history/Grok pipeline. Requires `Mattermost-User-Id` and channel membership (same B1 discipline as `/dialog`).
 
 ## Secrets
 

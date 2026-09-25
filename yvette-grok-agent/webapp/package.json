@@ -1,0 +1,27 @@
+{
+  "name": "yvette-grok-agent-webapp",
+  "private": true,
+  "scripts": {
+    "build": "webpack --mode=production",
+    "test": "jest --colors"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.1.0",
+    "@testing-library/user-event": "14.5.2",
+    "@types/jest": "29.5.14",
+    "@types/react": "18.2.79",
+    "@types/react-dom": "18.2.25",
+    "css-loader": "7.1.2",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "style-loader": "4.0.0",
+    "ts-jest": "29.2.5",
+    "ts-loader": "9.5.1",
+    "typescript": "5.6.3",
+    "webpack": "5.97.1",
+    "webpack-cli": "6.0.1"
+  }
+}

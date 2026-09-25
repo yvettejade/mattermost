@@ -100,13 +100,16 @@ func (p *Plugin) rebuildClients(cfg *configuration) {
 }
 
 func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimSuffix(r.URL.Path, "/")
 	switch {
-	case r.Method == http.MethodGet && strings.TrimSuffix(r.URL.Path, "/") == "/healthz":
+	case r.Method == http.MethodGet && (path == "/healthz" || path == "/api/v1/healthz"):
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
-	case r.Method == http.MethodPost && r.URL.Path == "/dialog":
+	case r.Method == http.MethodPost && path == "/dialog":
 		p.handleScheduleDialog(w, r)
+	case r.Method == http.MethodPost && path == "/api/v1/chat":
+		p.handleChat(w, r)
 	default:
 		http.NotFound(w, r)
 	}

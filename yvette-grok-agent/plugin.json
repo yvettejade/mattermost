@@ -1,10 +1,10 @@
 {
     "id": "com.yvette.grok-agent",
     "name": "Yvette Grok Agent",
-    "description": "In-Mattermost Grok agent for Q&A, summaries, drafts, meeting proposals, and GitHub/YJIRA context. Sibling demo plugin — does not replace mattermost-ai.",
+    "description": "In-Mattermost Grok agent (YJIRA-28): Ask Grok left-sidebar chat modal plus Path A bot/slash. Sibling demo plugin — does not replace mattermost-ai.",
     "homepage_url": "https://github.com/yvettejade/mattermost/tree/master/yvette-grok-agent",
     "support_url": "https://github.com/yvettejade/mattermost/issues",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "min_server_version": "6.0.0",
     "server": {
         "executables": {
@@ -14,6 +14,9 @@
             "darwin-arm64": "server/dist/plugin-darwin-arm64",
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
         }
+    },
+    "webapp": {
+        "bundle_path": "webapp/dist/main.js"
     },
     "settings_schema": {
         "header": "Yvette Grok Agent (sibling demo plugin; plugin id is not mattermost-ai). Secrets are plugin-held — never commit them. Empty secret fields fall back to process environment.",

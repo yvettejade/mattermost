@@ -164,6 +164,67 @@ func TestHandleScheduleDialogValidSessionPosts(t *testing.T) {
 	api.AssertCalled(t, "CreatePost", mock.Anything)
 }
 
+func TestHandleChatMissingUserHeader(t *testing.T) {
+	api := &plugintest.API{}
+	p := newDialogTestPlugin(api)
+
+	body, _ := json.Marshal(chatRequestBody{Message: "help", ChannelID: "chan-1", TeamID: "team-1"})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/chat", bytes.NewReader(body))
+	rec := httptest.NewRecorder()
+
+	p.ServeHTTP(nil, rec, req)
+
+	require.Equal(t, http.StatusUnauthorized, rec.Code)
+	api.AssertNotCalled(t, "GetChannelMember", mock.Anything, mock.Anything)
+	api.AssertNotCalled(t, "CreatePost", mock.Anything)
+}
+
+func TestHandleChatForbiddenWithoutMembership(t *testing.T) {
+	api := &plugintest.API{}
+	p := newDialogTestPlugin(api)
+	api.On("GetChannelMember", "chan-1", "alice").Return(nil, model.NewAppError("GetChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusForbidden))
+
+	body, _ := json.Marshal(map[string]string{
+		"message":    "what happened?",
+		"channel_id": "chan-1",
+		"team_id":    "team-1",
+		"user_id":    "attacker",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/chat", bytes.NewReader(body))
+	req.Header.Set(mattermostUserHeader, "alice")
+	rec := httptest.NewRecorder()
+
+	p.ServeHTTP(nil, rec, req)
+
+	require.Equal(t, http.StatusForbidden, rec.Code)
+	api.AssertCalled(t, "GetChannelMember", "chan-1", "alice")
+	api.AssertNotCalled(t, "CreatePost", mock.Anything)
+}
+
+func TestHandleChatHappyPathHelpReply(t *testing.T) {
+	api := &plugintest.API{}
+	p := newDialogTestPlugin(api)
+	api.On("GetChannelMember", "chan-1", "alice").Return(&model.ChannelMember{UserId: "alice", ChannelId: "chan-1"}, nil)
+	api.On("HasPermissionToChannel", "alice", "chan-1", mock.Anything).Return(true)
+	api.On("GetChannel", "chan-1").Return(&model.Channel{Id: "chan-1", TeamId: "team-1"}, nil)
+	site := "https://mm.example"
+	api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: &site}})
+
+	body, _ := json.Marshal(chatRequestBody{Message: "help", ChannelID: "chan-1", TeamID: "ignored-team"})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/chat", bytes.NewReader(body))
+	req.Header.Set(mattermostUserHeader, "alice")
+	rec := httptest.NewRecorder()
+
+	p.ServeHTTP(nil, rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+	var resp chatResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+	require.Contains(t, resp.Reply, "Yvette Grok")
+	require.Equal(t, "help", resp.ActionsTaken[0].Type)
+	api.AssertNotCalled(t, "CreatePost", mock.Anything)
+}
+
 func newDialogTestPlugin(api *plugintest.API) *Plugin {
 	p := &Plugin{botUserID: "bot-user-id"}
 	p.SetAPI(api)
