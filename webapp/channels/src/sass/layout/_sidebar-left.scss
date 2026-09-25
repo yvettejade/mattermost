@@ -1084,6 +1084,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
         font-size: 14px;
         text-decoration: none;
 
+        &:is(button) {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+        }
+
         .emoji {
             color: var(--sidebar-text);
         }
