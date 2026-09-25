@@ -6,6 +6,7 @@
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
+import type {AssistantAsk, AssistantReply} from '@mattermost/types/assistant';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -3576,6 +3577,13 @@ export default class Client4 {
     };
 
     // Agent Routes
+    askAssistant = (channelId: string, ask: AssistantAsk) => {
+        return this.doFetch<AssistantReply>(
+            `${this.getChannelRoute(channelId)}/assistant`,
+            {method: 'post', body: JSON.stringify(ask)},
+        );
+    };
+
     getAgents = () => {
         return this.doFetch<Agent[]>(
             `${this.getAgentsRoute()}`,

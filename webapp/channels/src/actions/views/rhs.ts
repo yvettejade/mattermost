@@ -79,6 +79,7 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
             RHSStates.CHANNEL_FILES,
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
+            RHSStates.ASSISTANT,
         ].includes(rhsState)) {
             action.channelId = channelId || getCurrentChannelId(getState());
         }
@@ -269,6 +270,25 @@ export function showRHSPlugin(pluggableId: string) {
         type: ActionTypes.UPDATE_RHS_STATE,
         state: RHSStates.PLUGIN,
         pluggableId,
+    };
+}
+
+export function showAssistant(channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.ASSISTANT) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            state: RHSStates.ASSISTANT,
+            previousRhsState,
+        });
+
+        return {data: true};
     };
 }
 

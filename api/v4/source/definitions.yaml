@@ -65,6 +65,49 @@ components:
           schema:
             $ref: "#/components/schemas/AppError"
   schemas:
+    AssistantAsk:
+      type: object
+      properties:
+        message:
+          type: string
+          description: User utterance. Empty is treated as a summarize request.
+        root_id:
+          type: string
+          description: Optional thread root. Empty or omitted is channel scope.
+    AssistantReply:
+      type: object
+      properties:
+        reply:
+          type: string
+          description: Markdown reply
+        intent:
+          type: string
+          enum:
+            - summarize
+            - catch_up
+            - qa
+            - draft
+            - board
+            - schedule_meeting
+            - schedule_post
+            - jira
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantAction"
+    AssistantAction:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - scheduled_post
+            - board_channel
+            - card
+        id:
+          type: string
+        detail:
+          type: string
     User:
       type: object
       properties:
