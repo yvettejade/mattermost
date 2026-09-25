@@ -8,6 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
+import AssistantRhs from 'components/assistant_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
@@ -40,6 +41,7 @@ export type Props = {
     isChannelFiles: boolean;
     isChannelInfo: boolean;
     isChannelMembers: boolean;
+    isAssistant: boolean;
     isPluginView: boolean;
     isPostEditHistory: boolean;
     previousRhsState: RhsState;
@@ -96,6 +98,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelFiles: this.props.isChannelFiles,
             isChannelInfo: this.props.isChannelInfo,
             isChannelMembers: this.props.isChannelMembers,
+            isAssistant: this.props.isAssistant,
             isPostEditHistory: this.props.isPostEditHistory,
             selectedPostId: this.props.selectedPostId,
             selectedPostCardId: this.props.selectedPostCardId,
@@ -138,6 +141,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             (this.props.isChannelFiles !== prevProps.isChannelFiles) ||
             (this.props.isChannelInfo !== prevProps.isChannelInfo) ||
             (this.props.isChannelMembers !== prevProps.isChannelMembers) ||
+            (this.props.isAssistant !== prevProps.isAssistant) ||
             (this.props.isPostEditHistory !== prevProps.isPostEditHistory) ||
             (this.props.rhsChannel?.id !== prevProps.rhsChannel?.id) ||
             (this.props.teamId !== prevProps.teamId)
@@ -148,7 +152,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
             // For RHS with textbox, don't auto-focus the first element with this approach.
             // The RHS textbox will focus itself via use_textbox_focus.tsx hook with correct focus logic.
-            if (this.props.postRightVisible) {
+            if (this.props.postRightVisible || this.props.isAssistant) {
                 return;
             }
 
@@ -266,6 +270,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isPluginView,
             isOpen,
             isChannelMembers,
+            isAssistant,
             isExpanded,
             isPostEditHistory,
         } = this.props;
@@ -297,6 +302,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         } else if (isChannelMembers) {
             currentChannelNeeded = true;
             content = <ChannelMembersRhs/>;
+        } else if (isAssistant) {
+            currentChannelNeeded = true;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
         }
@@ -313,6 +320,34 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         const containerClassName = classNames('sidebar--right', 'move--left is-open', {
             'sidebar--right--expanded expanded': isSidebarRightExpanded,
         });
+
+        let rhsBody;
+        if (isRHSLoading) {
+            rhsBody = (
+                <div className='sidebar-right__body'>
+                    {/* Sometimes the channel/team is not loaded yet, so we need to wait for it */}
+                    <LoadingScreen centered={true}/>
+                </div>
+            );
+        } else if (isAssistant && channel) {
+            rhsBody = (
+                <AssistantRhs
+                    channel={channel}
+                    onClose={this.props.actions.closeRightHandSide}
+                />
+            );
+        } else {
+            rhsBody = (
+                <Search
+                    isSideBarRight={true}
+                    isSideBarRightOpen={true}
+                    getFocus={this.getSearchBarFocus}
+                    channelDisplayName={channelDisplayName}
+                >
+                    {content}
+                </Search>
+            );
+        }
 
         return (
             <>
@@ -333,21 +368,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                         className='sidebar-right-container'
                         ref={this.sidebarRight}
                     >
-                        {isRHSLoading ? (
-                            <div className='sidebar-right__body'>
-                                {/* Sometimes the channel/team is not loaded yet, so we need to wait for it */}
-                                <LoadingScreen centered={true}/>
-                            </div>
-                        ) : (
-                            <Search
-                                isSideBarRight={true}
-                                isSideBarRightOpen={true}
-                                getFocus={this.getSearchBarFocus}
-                                channelDisplayName={channelDisplayName}
-                            >
-                                {content}
-                            </Search>
-                        )}
+                        {rhsBody}
                     </div>
                 </ResizableRhs>
             </>

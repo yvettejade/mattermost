@@ -3107,6 +3107,13 @@ export default class Client4 {
         );
     };
 
+    askAssistant = (channelId: string, message: string, rootId = '', teamId = '') => {
+        return this.doFetch<{reply: string}>(
+            `${this.getChannelRoute(channelId)}/assistant`,
+            {method: 'post', body: JSON.stringify({message, root_id: rootId, team_id: teamId})},
+        );
+    };
+
     addCommand = (command: Command) => {
         return this.doFetch<Command>(
             `${this.getCommandsRoute()}`,
