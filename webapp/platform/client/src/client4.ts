@@ -6,6 +6,7 @@
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
+import type {GrokAgentQueryRequest, GrokAgentQueryResponse, GrokAgentStatus} from '@mattermost/types/grok_agent';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -472,6 +473,10 @@ export default class Client4 {
 
     getAgentsRoute() {
         return `${this.getBaseRoute()}/agents`;
+    }
+
+    getGrokAgentRoute() {
+        return `${this.getBaseRoute()}/grok_agent`;
     }
 
     getLLMServicesRoute() {
@@ -3594,6 +3599,20 @@ export default class Client4 {
         return this.doFetch<LLMService[]>(
             `${this.getBaseRoute()}/llmservices`,
             {method: 'get'},
+        );
+    };
+
+    getGrokAgentStatus = () => {
+        return this.doFetch<GrokAgentStatus>(
+            `${this.getGrokAgentRoute()}/status`,
+            {method: 'get'},
+        );
+    };
+
+    queryGrokAgent = (request: GrokAgentQueryRequest) => {
+        return this.doFetch<GrokAgentQueryResponse>(
+            `${this.getGrokAgentRoute()}/query`,
+            {method: 'post', body: JSON.stringify(request)},
         );
     };
 
