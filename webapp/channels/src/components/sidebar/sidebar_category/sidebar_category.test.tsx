@@ -234,4 +234,98 @@ describe('components/sidebar/sidebar_category', () => {
 
         expect(screen.getByText('Active Operations')).toBeInTheDocument();
     });
+
+    test('should render LeftSidebarAboveInviteMembers immediately above Invite Members', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        const onDragEnd = () => {};
+        renderWithContext(
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable
+                    droppableId='sidebar-categories'
+                    type='SIDEBAR_CATEGORY'
+                >
+                    {(provided) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                        >
+                            <SidebarCategory {...props}/>
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </DragDropContext>,
+            {
+                plugins: {
+                    components: {
+                        LeftSidebarAboveInviteMembers: [{
+                            id: 'grok-above-invite',
+                            pluginId: 'com.yvette.grok-agent',
+                            component: () => <div id='mock-above-invite-members'/>,
+                        }],
+                    },
+                },
+            },
+        );
+
+        const above = document.querySelector('#mock-above-invite-members');
+        const invite = document.querySelector('#mock-invite-members-button');
+        expect(above).toBeInTheDocument();
+        expect(invite).toBeInTheDocument();
+        expect(above!.compareDocumentPosition(invite!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    test('should not render LeftSidebarAboveInviteMembers when the DM category is collapsed', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                sorting: CategorySorting.Recency,
+                collapsed: true,
+            },
+        };
+
+        const onDragEnd = () => {};
+        renderWithContext(
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable
+                    droppableId='sidebar-categories'
+                    type='SIDEBAR_CATEGORY'
+                >
+                    {(provided) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                        >
+                            <SidebarCategory {...props}/>
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </DragDropContext>,
+            {
+                plugins: {
+                    components: {
+                        LeftSidebarAboveInviteMembers: [{
+                            id: 'grok-above-invite',
+                            pluginId: 'com.yvette.grok-agent',
+                            component: () => <div id='mock-above-invite-members'/>,
+                        }],
+                    },
+                },
+            },
+        );
+
+        expect(document.querySelector('#mock-above-invite-members')).not.toBeInTheDocument();
+        expect(document.querySelector('#mock-invite-members-button')).not.toBeInTheDocument();
+    });
 });

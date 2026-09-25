@@ -1,0 +1,198 @@
+.YvetteGrokModal__backdrop {
+    position: fixed;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.48);
+    padding: 24px;
+}
+
+.YvetteGrokModal {
+    display: flex;
+    overflow: hidden;
+    width: 560px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 48px);
+    flex-direction: column;
+    border-radius: 8px;
+    background: var(--center-channel-bg, #fff);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.24);
+    color: var(--center-channel-color, #3d3c40);
+}
+
+.YvetteGrokModal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 24px 32px 8px;
+    gap: 16px;
+}
+
+.YvetteGrokModal__header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 28px;
+}
+
+.YvetteGrokModal__subtitle {
+    margin: 8px 0 0;
+    color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.64);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.YvetteGrokModal__close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.YvetteGrokModal__body {
+    display: flex;
+    overflow: hidden;
+    max-height: 62vh;
+    flex-direction: column;
+    padding: 0 32px 8px;
+}
+
+.YvetteGrokModal__context {
+    margin: 0 0 12px;
+    color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.64);
+    font-size: 12px;
+}
+
+.YvetteGrokModal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    gap: 8px;
+}
+
+.YvetteGrokModal__chip {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+    border-radius: 14px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.YvetteGrokModal__chip:hover:not(:disabled) {
+    border-color: rgba(var(--button-bg-rgb, 28, 88, 217), 0.32);
+    background: rgba(var(--button-bg-rgb, 28, 88, 217), 0.08);
+    color: var(--button-bg, #1c58d9);
+}
+
+.YvetteGrokModal__chip:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.YvetteGrokModal__transcript {
+    overflow: auto;
+    min-height: 220px;
+    max-height: 42vh;
+    padding: 4px 0 8px;
+}
+
+.YvetteGrokModal__empty {
+    margin: 24px 0;
+    color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.64);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.YvetteGrokModal__message {
+    width: fit-content;
+    max-width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.YvetteGrokModal__message--user {
+    margin-left: auto;
+    background: rgba(var(--button-bg-rgb, 28, 88, 217), 0.12);
+}
+
+.YvetteGrokModal__message--assistant {
+    background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.08);
+}
+
+.YvetteGrokModal__messageText {
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.YvetteGrokModal__sources {
+    margin-top: 8px;
+    color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.64);
+    font-size: 12px;
+}
+
+.YvetteGrokModal__error {
+    margin-top: 8px;
+    color: var(--error-text, #d24b4e);
+    font-size: 12px;
+}
+
+.YvetteGrokModal__composer {
+    display: flex;
+    align-items: center;
+    padding: 16px 32px 24px;
+    gap: 8px;
+}
+
+.YvetteGrokModal__input {
+    min-width: 0;
+    height: 36px;
+    flex: 1;
+    padding: 0 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg, #fff);
+    color: inherit;
+}
+
+.YvetteGrokModal__input:focus {
+    border-color: var(--button-bg, #1c58d9);
+    outline: none;
+}
+
+.YvetteGrokModal__send {
+    height: 36px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 4px;
+    background: var(--button-bg, #1c58d9);
+    color: var(--button-color, #fff);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.YvetteGrokModal__send:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+button.intro-links#grokAgentButton {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: left;
+}
