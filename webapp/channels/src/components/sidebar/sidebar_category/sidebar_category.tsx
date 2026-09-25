@@ -29,9 +29,9 @@ import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 
 import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
-import SidebarMatterBot from '../sidebar_matterbot';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
+import SidebarMatterBot from '../sidebar_matterbot';
 
 type Props = {
     category: ChannelCategory;

@@ -39,7 +39,10 @@ function AssistantRhs() {
     }, [channelId]);
 
     useEffect(() => {
-        listRef.current?.scrollTo({top: listRef.current.scrollHeight});
+        const node = listRef.current;
+        if (node) {
+            node.scrollTop = node.scrollHeight;
+        }
     }, [messages]);
 
     const handleClose = useCallback(() => {

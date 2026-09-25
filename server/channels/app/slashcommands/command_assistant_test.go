@@ -62,25 +62,28 @@ func TestAssistantProvider(t *testing.T) {
 			return "private reply", nil
 		}
 
-		role, appErr := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
-		require.Nil(t, appErr)
-		original := append([]string{}, role.Permissions...)
-		filtered := make([]string, 0, len(role.Permissions))
-		for _, perm := range role.Permissions {
-			if perm != model.PermissionCreatePost.Id {
-				filtered = append(filtered, perm)
+		for _, roleName := range []string{model.ChannelUserRoleId, model.ChannelAdminRoleId} {
+			role, appErr := th.App.GetRoleByName(th.Context, roleName)
+			require.Nil(t, appErr)
+			original := append([]string{}, role.Permissions...)
+			filtered := make([]string, 0, len(role.Permissions))
+			for _, perm := range role.Permissions {
+				if perm != model.PermissionCreatePost.Id {
+					filtered = append(filtered, perm)
+				}
 			}
+			role.Permissions = filtered
+			_, appErr = th.App.UpdateRole(role)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				restored, restoreErr := th.App.GetRoleByName(th.Context, roleName)
+				require.Nil(t, restoreErr)
+				restored.Permissions = original
+				_, restoreErr = th.App.UpdateRole(restored)
+				require.Nil(t, restoreErr)
+			})
 		}
-		role.Permissions = filtered
-		_, appErr = th.App.UpdateRole(role)
-		require.Nil(t, appErr)
-		t.Cleanup(func() {
-			restored, restoreErr := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
-			require.Nil(t, restoreErr)
-			restored.Permissions = original
-			_, restoreErr = th.App.UpdateRole(restored)
-			require.Nil(t, restoreErr)
-		})
+		require.Nil(t, th.App.Srv().InvalidateAllCaches())
 
 		resp := provider.DoCommand(th.App, th.Context, &model.CommandArgs{
 			UserId:    th.BasicUser.Id,
