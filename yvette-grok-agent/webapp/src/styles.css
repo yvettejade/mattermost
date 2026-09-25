@@ -1,0 +1,100 @@
+.YvetteGrok__lhsButton {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    padding: 0;
+}
+
+.YvetteGrok__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.YvetteGrok__modal {
+    width: min(560px, calc(100vw - 32px));
+    max-height: min(720px, calc(100vh - 32px));
+    overflow: auto;
+    background: var(--center-channel-bg, #fff);
+    color: var(--center-channel-color, #3d3c40);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    padding: 16px;
+}
+
+.YvetteGrok__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.YvetteGrok__header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.YvetteGrok__close {
+    border: 0;
+    background: transparent;
+    font-size: 22px;
+    cursor: pointer;
+    color: inherit;
+}
+
+.YvetteGrok__context,
+.YvetteGrok__error {
+    margin: 0 0 8px;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.YvetteGrok__error {
+    color: var(--error-text, #d24b4e);
+    opacity: 1;
+}
+
+.YvetteGrok__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.YvetteGrok__chip {
+    border: 1px solid rgba(63, 67, 80, 0.16);
+    background: transparent;
+    border-radius: 12px;
+    padding: 4px 10px;
+    cursor: pointer;
+    color: inherit;
+}
+
+.YvetteGrok__transcript {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    min-height: 160px;
+}
+
+.YvetteGrok__line pre {
+    white-space: pre-wrap;
+    margin: 4px 0 12px;
+    font-family: inherit;
+}
+
+.YvetteGrok__composer textarea {
+    width: 100%;
+    resize: vertical;
+    margin-bottom: 8px;
+}
+
+.YvetteGrok__composer button {
+    float: right;
+}

@@ -27,6 +27,8 @@ import type {DraggingState} from 'types/store';
 import SidebarCategoryMenu from './sidebar_category_menu';
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 
+import Pluggable from 'plugins/pluggable';
+
 import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
@@ -370,7 +372,11 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             >
                 {(provided, snapshot) => {
                     let inviteMembersButton = null;
+                    let aboveInviteMembers = null;
                     if (category.type === 'direct_messages' && !category.collapsed) {
+                        aboveInviteMembers = (
+                            <Pluggable pluggableName='LeftSidebarAboveInviteMembers'/>
+                        );
                         inviteMembersButton = (
                             <InviteMembersButton
                                 className='followingSibling'
@@ -440,6 +446,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                     );
                                 }}
                             </Droppable>
+                            {aboveInviteMembers}
                             {inviteMembersButton}
                             {addChannelsCtaButton}
                         </div>

@@ -266,6 +266,9 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
         </div>
       </div>
       <div
+        id="mock-pluggable-above-invite"
+      />
+      <div
         id="mock-invite-members-button"
       />
     </div>
@@ -332,6 +335,9 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
           />
         </div>
       </div>
+      <div
+        id="mock-pluggable-above-invite"
+      />
       <div
         id="mock-invite-members-button"
       />
