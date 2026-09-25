@@ -28,6 +28,7 @@ import SidebarCategoryMenu from './sidebar_category_menu';
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 
 import AddChannelsCtaButton from '../add_channels_cta_button';
+import GrokAgentButton from '../grok_agent_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
@@ -369,8 +370,14 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 disableInteractiveElementBlocking={true}
             >
                 {(provided, snapshot) => {
+                    let grokAgentButton = null;
                     let inviteMembersButton = null;
                     if (category.type === 'direct_messages' && !category.collapsed) {
+                        grokAgentButton = (
+                            <GrokAgentButton
+                                className='followingSibling'
+                            />
+                        );
                         inviteMembersButton = (
                             <InviteMembersButton
                                 className='followingSibling'
@@ -440,6 +447,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                     );
                                 }}
                             </Droppable>
+                            {grokAgentButton}
                             {inviteMembersButton}
                             {addChannelsCtaButton}
                         </div>

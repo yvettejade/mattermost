@@ -1,0 +1,136 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.GrokAgentModal {
+    .modal-dialog {
+        width: 560px;
+        max-width: calc(100vw - 32px);
+    }
+
+    .modal-body {
+        padding: 0 32px 8px;
+    }
+}
+
+.GrokAgentModal__body {
+    display: flex;
+    overflow: hidden;
+    max-height: 62vh;
+    flex-direction: column;
+}
+
+.GrokAgentModal__context {
+    margin: 0 0 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+}
+
+.GrokAgentModal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    gap: 8px;
+}
+
+.GrokAgentModal__chip {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 14px;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+
+    &:hover:not(:disabled) {
+        border-color: rgba(var(--button-bg-rgb), 0.32);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+.GrokAgentModal__transcript {
+    overflow: auto;
+    min-height: 220px;
+    max-height: 42vh;
+    padding: 4px 0 8px;
+}
+
+.GrokAgentModal__empty {
+    margin: 24px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.GrokAgentModal__message {
+    width: fit-content;
+    max-width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.GrokAgentModal__message--user {
+    margin-left: auto;
+    background: rgba(var(--button-bg-rgb), 0.12);
+}
+
+.GrokAgentModal__message--assistant {
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+}
+
+.GrokAgentModal__messageText {
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.GrokAgentModal__sources,
+.GrokAgentModal__resultActions {
+    margin-top: 8px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+}
+
+.GrokAgentModal__resultActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.GrokAgentModal__error {
+    margin-top: 8px;
+    color: var(--error-text);
+    font-size: 12px;
+}
+
+.GrokAgentModal__composer {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+}
+
+.GrokAgentModal__input {
+    min-width: 0;
+    height: 36px;
+    flex: 1;
+    padding: 0 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+
+    &:focus {
+        border-color: var(--button-bg);
+        outline: none;
+    }
+}
