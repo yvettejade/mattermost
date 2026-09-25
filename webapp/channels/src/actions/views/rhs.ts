@@ -264,6 +264,10 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
     };
 }
 
+export function showAssistant(): ActionFunc<boolean> {
+    return updateRhsState(RHSStates.ASSISTANT);
+}
+
 export function showRHSPlugin(pluggableId: string) {
     return {
         type: ActionTypes.UPDATE_RHS_STATE,
@@ -481,9 +485,10 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
-export function showChannelInfo(_channelId: string) {
+// Channel info no longer opens a sidebar. The parameter stays in the type so callers keep passing a channel id.
+export const showChannelInfo: (channelId: string) => {type: string} = () => {
     return {type: 'NOOP_SHOW_CHANNEL_INFO'};
-}
+};
 
 export function closeRightHandSide(): ActionFunc {
     return (dispatch) => {
@@ -632,6 +637,9 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
             return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+        }
+        if (previous.isAssistant) {
+            return dispatch(showAssistant());
         }
         if (previous.searchVisible) {
             return dispatch(showSearchResults());

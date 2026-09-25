@@ -365,6 +365,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitJob()
 	api.InitRecap()
 	api.InitCommand()
+	api.InitAssistant()
 	api.InitStatus()
 	api.InitWebSocket()
 	api.InitEmoji()

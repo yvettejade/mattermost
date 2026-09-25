@@ -1077,11 +1077,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
         height: 32px;
         align-items: center;
         padding: 7px 16px 7px 19px;
-        border-top: 0;
-        border-bottom: 0;
+        border: none;
         margin-right: 0;
+        background: transparent;
         color: rgba(var(--sidebar-text-rgb), 0.64);
+        cursor: pointer;
+        font-family: inherit;
         font-size: 14px;
+        text-align: left;
         text-decoration: none;
 
         .emoji {
