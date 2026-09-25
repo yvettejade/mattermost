@@ -1092,6 +1092,30 @@
     "translation": "Unable to generate presign url."
   },
   {
+    "id": "api.command_grok.desc",
+    "translation": "Ask the Grok workspace agent a question or trigger an action"
+  },
+  {
+    "id": "api.command_grok.help",
+    "translation": "**Grok workspace agent**\n\nAsk a question or trigger an action from the current channel or thread.\n\nExamples:\n- `/grok summarize`\n- `/grok catch up`\n- `/grok draft a project update`\n- `/grok schedule standup tomorrow`\n- `/grok canvas Q4 plan`\n- `/grok github`\n- `/grok jira YJIRA-28`\n- `/grok route this to jira`\n\nAnswers are grounded in Mattermost history plus GitHub and Jira when relevant. Set the `YvetteGrokAPI` secret to enable Grok Chat."
+  },
+  {
+    "id": "api.command_grok.hint",
+    "translation": "[ask|summarize|draft|schedule|canvas|github|jira|route] [message]"
+  },
+  {
+    "id": "api.command_grok.name",
+    "translation": "Grok"
+  },
+  {
+    "id": "api.command_grok.permission.app_error",
+    "translation": "You don't have permission to read this channel."
+  },
+  {
+    "id": "api.command_grok.query.app_error",
+    "translation": "Unable to complete that Grok agent request."
+  },
+  {
     "id": "api.command_groupmsg.desc",
     "translation": "Sends a Group Message to the specified users"
   },
@@ -6483,6 +6507,14 @@
   {
     "id": "app.get_user_team_scheduled_posts.error",
     "translation": "Error occurred fetching scheduled posts."
+  },
+  {
+    "id": "app.grok_agent.channel_required",
+    "translation": "A channel is required to query the Grok workspace agent."
+  },
+  {
+    "id": "app.grok_agent.permission_denied",
+    "translation": "You don't have permission to read this channel."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
