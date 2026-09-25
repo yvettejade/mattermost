@@ -1,0 +1,18 @@
+{
+  "name": "yvette-grok-agent-webapp",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "webpack --mode=production"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "css-loader": "7.1.2",
+    "style-loader": "4.0.0",
+    "ts-loader": "9.5.1",
+    "typescript": "5.6.3",
+    "webpack": "5.96.1",
+    "webpack-cli": "5.1.4"
+  }
+}

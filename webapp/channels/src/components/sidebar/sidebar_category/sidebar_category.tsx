@@ -19,6 +19,7 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
+import Pluggable from 'plugins/pluggable';
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -369,8 +370,12 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 disableInteractiveElementBlocking={true}
             >
                 {(provided, snapshot) => {
+                    let aboveInviteMembers = null;
                     let inviteMembersButton = null;
                     if (category.type === 'direct_messages' && !category.collapsed) {
+                        aboveInviteMembers = (
+                            <Pluggable pluggableName='LeftSidebarAboveInviteMembers'/>
+                        );
                         inviteMembersButton = (
                             <InviteMembersButton
                                 className='followingSibling'
@@ -440,6 +445,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                     );
                                 }}
                             </Droppable>
+                            {aboveInviteMembers}
                             {inviteMembersButton}
                             {addChannelsCtaButton}
                         </div>

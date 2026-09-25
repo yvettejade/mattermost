@@ -1,0 +1,11 @@
+dist/
+server/dist/
+webapp/dist/
+webapp/node_modules/
+*.tar.gz
+*.exe
+*.test
+coverage.out
+.env
+.idea/
+.vscode/
