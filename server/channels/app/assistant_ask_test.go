@@ -169,3 +169,189 @@ func TestAskAssistantLoadsPostsAndIntents(t *testing.T) {
 		assert.False(t, completeCalled)
 	})
 }
+
+func TestAskAssistantRejectsForeignRootId(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	t.Setenv(assistant.EnvGrokAPI, "test-grok-key")
+
+	origComplete := assistant.Complete
+	t.Cleanup(func() {
+		assistant.Complete = origComplete
+	})
+
+	t.Run("member of both channels still cannot ground on foreign root_id", func(t *testing.T) {
+		other := th.CreateChannel(t, th.BasicTeam)
+		foreign := th.CreateMessagePost(t, other, "foreign-secret-token")
+
+		completeCalled := false
+		var captured string
+		assistant.Complete = func(ctx context.Context, systemPrompt, userPrompt string) (string, *model.AppError) {
+			completeCalled = true
+			captured = userPrompt
+			return "leaked", nil
+		}
+
+		reply, err := th.App.AskAssistant(th.Context, th.BasicChannel.Id, th.BasicUser.Id, &model.AssistantAsk{
+			Message: "what was said?",
+			RootId:  foreign.Id,
+		})
+		require.NotNil(t, err)
+		assert.Nil(t, reply)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+		assert.Equal(t, "api.assistant.permission", err.Id)
+		assert.False(t, completeCalled)
+		assert.NotContains(t, captured, "foreign-secret-token")
+	})
+
+	t.Run("unread private foreign root_id is forbidden", func(t *testing.T) {
+		other := th.CreatePrivateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser2, other)
+		foreign := th.CreateMessagePost(t, other, "private-foreign-token")
+		require.Nil(t, th.RemoveUserFromChannel(t, th.BasicUser, other))
+
+		completeCalled := false
+		var captured string
+		assistant.Complete = func(ctx context.Context, systemPrompt, userPrompt string) (string, *model.AppError) {
+			completeCalled = true
+			captured = userPrompt
+			return "leaked", nil
+		}
+
+		reply, err := th.App.AskAssistant(th.Context, th.BasicChannel.Id, th.BasicUser.Id, &model.AssistantAsk{
+			Message: "what was said?",
+			RootId:  foreign.Id,
+		})
+		require.NotNil(t, err)
+		assert.Nil(t, reply)
+		assert.True(t, err.StatusCode == http.StatusForbidden || err.StatusCode == http.StatusBadRequest)
+		assert.False(t, completeCalled)
+		assert.NotContains(t, captured, "private-foreign-token")
+	})
+}
+
+func TestAskAssistantBoardRequiresCreatePermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	t.Setenv(assistant.EnvGrokAPI, "test-grok-key")
+
+	origComplete := assistant.Complete
+	t.Cleanup(func() {
+		assistant.Complete = origComplete
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	})
+	t.Cleanup(func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		})
+	})
+
+	stripPermissions(t, th, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId, model.TeamAdminRoleId)
+	require.Nil(t, th.App.Srv().InvalidateAllCaches())
+
+	assistant.Complete = func(ctx context.Context, systemPrompt, userPrompt string) (string, *model.AppError) {
+		return "Board draft", nil
+	}
+
+	reply, err := th.App.AskAssistant(th.Context, th.BasicChannel.Id, th.BasicUser.Id, &model.AssistantAsk{
+		Message: "create a board for launch",
+	})
+	require.Nil(t, err)
+	assert.Equal(t, model.AssistantIntentBoard, reply.Intent)
+	assert.Contains(t, reply.Reply, "Boards are unavailable")
+	assert.Empty(t, reply.Actions)
+}
+
+func TestAskAssistantBoardCardRequiresCreatePost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	t.Setenv(assistant.EnvGrokAPI, "test-grok-key")
+
+	origComplete := assistant.Complete
+	t.Cleanup(func() {
+		assistant.Complete = origComplete
+	})
+
+	stripPermissions(t, th, model.PermissionCreatePost.Id, model.ChannelUserRoleId, model.ChannelAdminRoleId)
+	require.Nil(t, th.App.Srv().InvalidateAllCaches())
+
+	assistant.Complete = func(ctx context.Context, systemPrompt, userPrompt string) (string, *model.AppError) {
+		return "Card draft", nil
+	}
+
+	reply, err := th.App.AskAssistant(th.Context, th.BasicChannel.Id, th.BasicUser.Id, &model.AssistantAsk{
+		Message: "create a board card for launch",
+	})
+	require.Nil(t, err)
+	assert.Equal(t, model.AssistantIntentBoard, reply.Intent)
+	assert.Contains(t, reply.Reply, "Card create is unavailable")
+	for _, action := range reply.Actions {
+		assert.NotEqual(t, model.AssistantActionCard, action.Type)
+	}
+	list, listErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 100)
+	require.Nil(t, listErr)
+	for _, post := range list.Posts {
+		assert.NotEqual(t, model.PostTypeCard, post.Type)
+	}
+}
+
+func TestAskAssistantScheduledPostRequiresCreatePost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	t.Setenv(assistant.EnvGrokAPI, "test-grok-key")
+
+	origComplete := assistant.Complete
+	t.Cleanup(func() {
+		assistant.Complete = origComplete
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ScheduledPosts = true
+	})
+
+	stripPermissions(t, th, model.PermissionCreatePost.Id, model.ChannelUserRoleId, model.ChannelAdminRoleId)
+	require.Nil(t, th.App.Srv().InvalidateAllCaches())
+
+	assistant.Complete = func(ctx context.Context, systemPrompt, userPrompt string) (string, *model.AppError) {
+		return "Later note", nil
+	}
+
+	reply, err := th.App.AskAssistant(th.Context, th.BasicChannel.Id, th.BasicUser.Id, &model.AssistantAsk{
+		Message: "schedule a post in 1 hour",
+	})
+	require.Nil(t, err)
+	assert.Equal(t, model.AssistantIntentSchedulePost, reply.Intent)
+	assert.Contains(t, reply.Reply, "Scheduled posts are unavailable")
+	assert.Empty(t, reply.Actions)
+}
+
+func stripPermissions(t *testing.T, th *TestHelper, permission string, roleNames ...string) {
+	t.Helper()
+	for _, roleName := range roleNames {
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
+		require.Nil(t, appErr)
+		original := append([]string{}, role.Permissions...)
+		filtered := make([]string, 0, len(role.Permissions))
+		for _, perm := range role.Permissions {
+			if perm != permission {
+				filtered = append(filtered, perm)
+			}
+		}
+		role.Permissions = filtered
+		_, appErr = th.App.UpdateRole(role)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			restored, restoreErr := th.App.GetRoleByName(th.Context, roleName)
+			require.Nil(t, restoreErr)
+			restored.Permissions = original
+			_, restoreErr = th.App.UpdateRole(restored)
+			require.Nil(t, restoreErr)
+			require.Nil(t, th.App.Srv().InvalidateAllCaches())
+		})
+	}
+}

@@ -95,7 +95,11 @@ func (a *App) AskAssistant(rctx request.CTX, channelID, userID string, ask *mode
 
 func (a *App) loadAssistantPosts(rctx request.CTX, channelID, userID string, ask *model.AssistantAsk, intent string) ([]assistant.ChannelPost, *model.AppError) {
 	if strings.TrimSpace(ask.RootId) != "" {
-		list, appErr := a.GetPostThread(rctx, ask.RootId, model.GetPostsOptions{CollapsedThreads: false}, userID)
+		root, appErr := a.authorizeAssistantRootPost(rctx, channelID, userID, ask.RootId)
+		if appErr != nil {
+			return nil, appErr
+		}
+		list, appErr := a.GetPostThread(rctx, root.Id, model.GetPostsOptions{CollapsedThreads: false}, userID)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -144,6 +148,15 @@ func (a *App) applyBoardSideEffects(rctx request.CTX, channel *model.Channel, us
 		Name:        model.NewId(),
 		CreatorId:   userID,
 	}
+	createBoardPerm := model.PermissionCreatePrivateChannel
+	if board.IsOpenBoard() {
+		createBoardPerm = model.PermissionCreatePublicChannel
+	}
+	if !a.HasPermissionToTeam(rctx, userID, channel.TeamId, createBoardPerm) {
+		result.Reply = strings.TrimSpace(result.Reply) + "\n\nBoards are unavailable."
+		return result
+	}
+
 	created, appErr := a.CreateBoardChannel(rctx, board)
 	if appErr != nil {
 		rctx.Logger().Warn("assistant board create failed", mlog.String("error", assistant.Redact(appErr.Error())))
@@ -160,6 +173,10 @@ func (a *App) applyBoardSideEffects(rctx request.CTX, channel *model.Channel, us
 	})
 
 	if strings.Contains(strings.ToLower(ask.Message), "card") {
+		if canPost, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionCreatePost); !canPost {
+			result.Reply = strings.TrimSpace(result.Reply) + "\n\nCard create is unavailable."
+			return result
+		}
 		card := &model.Post{
 			ChannelId: channel.Id,
 			UserId:    userID,
@@ -186,6 +203,11 @@ func (a *App) applyBoardSideEffects(rctx request.CTX, channel *model.Channel, us
 
 func (a *App) applyScheduledPostSideEffect(rctx request.CTX, channel *model.Channel, userID string, ask *model.AssistantAsk, result *model.AssistantReply) *model.AssistantReply {
 	if a.Config().ServiceSettings.ScheduledPosts == nil || !*a.Config().ServiceSettings.ScheduledPosts || a.License() == nil {
+		result.Reply = strings.TrimSpace(result.Reply) + "\n\nScheduled posts are unavailable."
+		return result
+	}
+
+	if canPost, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionCreatePost); !canPost {
 		result.Reply = strings.TrimSpace(result.Reply) + "\n\nScheduled posts are unavailable."
 		return result
 	}
@@ -217,6 +239,22 @@ func (a *App) applyScheduledPostSideEffect(rctx request.CTX, channel *model.Chan
 		Detail: "Scheduled a post.",
 	})
 	return result
+}
+
+func (a *App) authorizeAssistantRootPost(rctx request.CTX, channelID, userID, rootID string) (*model.Post, *model.AppError) {
+	session := *rctx.Session()
+	if session.UserId == "" {
+		session.UserId = userID
+	}
+
+	post, appErr, _ := a.GetPostIfAuthorized(rctx, rootID, &session, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if post.ChannelId != channelID {
+		return nil, model.NewAppError("AskAssistant", "api.assistant.permission", nil, "", http.StatusForbidden)
+	}
+	return post, nil
 }
 
 func firstLine(s string) string {
