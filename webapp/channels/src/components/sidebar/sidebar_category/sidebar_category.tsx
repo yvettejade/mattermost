@@ -31,6 +31,7 @@ import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
+import SidebarMatterBot from '../sidebar_matterbot/sidebar_matterbot';
 
 type Props = {
     category: ChannelCategory;
@@ -441,6 +442,9 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 }}
                             </Droppable>
                             {inviteMembersButton}
+                            {category.type === CategoryTypes.DIRECT_MESSAGES && !category.collapsed && (
+                                <SidebarMatterBot collapsed={false}/>
+                            )}
                             {addChannelsCtaButton}
                         </div>
                     );
