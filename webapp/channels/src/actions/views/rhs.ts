@@ -243,6 +243,10 @@ export function filterFilesSearchByExt(extensions: string[]) {
     };
 }
 
+export function showAssistant(): ActionFunc<boolean> {
+    return updateRhsState(RHSStates.ASSISTANT);
+}
+
 export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
         const state = getState();
@@ -632,6 +636,9 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
             return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+        }
+        if (previous.isAssistant) {
+            return dispatch(showAssistant());
         }
         if (previous.searchVisible) {
             return dispatch(showSearchResults());

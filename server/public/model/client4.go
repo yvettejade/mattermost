@@ -5926,6 +5926,21 @@ func (c *Client4) GetCommandById(ctx context.Context, cmdId string) (*Command, *
 	return DecodeJSONFromResponse[*Command](r)
 }
 
+// AskAssistant sends a channel chat message to the assistant and returns the reply.
+// The reply is not posted into the channel.
+func (c *Client4) AskAssistant(ctx context.Context, channelId, message, rootId, teamId string) (*AssistantReply, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.channelRoute(channelId).Join("assistant"), &AssistantAsk{
+		Message: message,
+		RootId:  rootId,
+		TeamId:  teamId,
+	})
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AssistantReply](r)
+}
+
 // ExecuteCommand executes a given slash command.
 func (c *Client4) ExecuteCommand(ctx context.Context, channelId, command string) (*CommandResponse, *Response, error) {
 	commandArgs := &CommandArgs{
