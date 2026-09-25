@@ -275,6 +275,24 @@ describe('Client4', () => {
             expect(await result.text()).toEqual('zip contents');
         });
     });
+
+    describe('askAssistant', () => {
+        test('posts the channel message and returns the reply', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            nock(client.getBaseRoute()).
+                post('/channels/channel_id/assistant', {
+                    message: 'summarize this channel',
+                    root_id: '',
+                    team_id: 'team_id',
+                }).
+                reply(200, {reply: 'Deploy is Friday.'});
+
+            const result = await client.askAssistant('channel_id', 'summarize this channel', '', 'team_id');
+            expect(result).toEqual({reply: 'Deploy is Friday.'});
+        });
+    });
 });
 
 describe('ClientError', () => {

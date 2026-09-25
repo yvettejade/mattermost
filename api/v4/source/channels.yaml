@@ -711,6 +711,61 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/assistant":
+    post:
+      tags:
+        - channels
+      summary: Ask the channel assistant
+      description: |
+        Ask the assistant about posts the user can read in this channel.
+        The reply is returned to the caller and is not posted into the channel.
+
+        ##### Permissions
+        Must have `read_channel_content` permission for the channel.
+      operationId: AskAssistant
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: The question or instruction for the assistant.
+                root_id:
+                  type: string
+                  description: Optional root post id when the question is about a thread in this channel.
+                team_id:
+                  type: string
+                  description: Optional team id, used for direct and group channels that have no team.
+      responses:
+        "200":
+          description: Assistant reply
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/channels/{channel_id}/privacy":
     put:
       tags:
