@@ -18,6 +18,7 @@ jest.mock('./sidebar_category_sorting_menu', () => () => <div id='mock-sorting-m
 jest.mock('../sidebar_channel', () => () => <li id='mock-sidebar-channel'/>);
 jest.mock('../add_channels_cta_button', () => () => <div id='mock-add-channels-button'/>);
 jest.mock('../invite_members_button', () => () => <div id='mock-invite-members-button'/>);
+jest.mock('../grok_agent_button', () => () => <div id='mock-grok-agent-button'/>);
 
 // Suppress react-beautiful-dnd console errors in tests
 beforeEach(() => {
@@ -143,6 +144,25 @@ describe('components/sidebar/sidebar_category', () => {
 
         expect(document.querySelector('#mock-sorting-menu')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render Grok above Invite Members in the DM category', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
+        const grok = container.querySelector('#mock-grok-agent-button');
+        const invite = container.querySelector('#mock-invite-members-button');
+
+        expect(grok).toBeInTheDocument();
+        expect(invite).toBeInTheDocument();
+        expect(grok?.compareDocumentPosition(invite!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 
     test('should match snapshot when there are no channels to display', () => {
