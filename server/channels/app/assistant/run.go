@@ -79,7 +79,7 @@ func Run(ctx context.Context, req Request, posts []Post, completer Completer) (R
 		result.DroppedAttendees = grounded.DroppedAttendees
 		result.TimeCleared = grounded.TimeCleared
 		result.Reply = FormatProposal(grounded, req.Action == ActionSchedulePost)
-		return finishRun(req, posts, result), nil
+		return finishRun(req, result), nil
 	case ActionDraftPost, ActionDraftDocument, ActionCreateBoard:
 		title, body := ParseDraft(reply)
 		result.DraftTitle = title
@@ -88,27 +88,24 @@ func Run(ctx context.Context, req Request, posts []Post, completer Completer) (R
 			result.DraftBody = reply
 		}
 		result.Reply = reply
-		return finishRun(req, posts, result), nil
+		return finishRun(req, result), nil
 	default:
 		result.Reply = reply
-		return finishRun(req, posts, result), nil
+		return finishRun(req, result), nil
 	}
 }
 
-func finishRun(req Request, posts []Post, result Result) Result {
+// finishRun keeps only issue keys the Jira lookup returned.
+// LookupFixed does not search req.Raw or channel posts, so those keys are not grounded.
+func finishRun(req Request, result Result) Result {
 	if !req.WantsJira && strings.TrimSpace(req.JiraPacket) == "" {
 		return result
 	}
 	allowed := map[string]bool{}
-	for _, key := range issueKeys(req.JiraPacket + "\n" + req.Raw) {
+	for _, key := range collectIssueKeys(req.JiraPacket, 0) {
 		allowed[key] = true
 	}
-	for _, post := range posts {
-		for _, key := range issueKeys(post.Text) {
-			allowed[key] = true
-		}
-	}
-	for _, key := range issueKeys(result.Reply) {
+	for _, key := range collectIssueKeys(result.Reply, 0) {
 		if !allowed[key] {
 			result.Action = ActionAnswer
 			result.Reply = UngroundedJiraReply

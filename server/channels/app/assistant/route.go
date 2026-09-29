@@ -296,6 +296,11 @@ func hasWord(lower string, words ...string) bool {
 }
 
 func issueKeys(raw string) []string {
+	return collectIssueKeys(raw, 5)
+}
+
+// collectIssueKeys extracts Jira keys. limit 0 means no cap; routing uses 5.
+func collectIssueKeys(raw string, limit int) []string {
 	seen := map[string]bool{}
 	var out []string
 	for _, match := range reIssueKey.FindAllStringSubmatch(raw, -1) {
@@ -306,7 +311,7 @@ func issueKeys(raw string) []string {
 		}
 		seen[key] = true
 		out = append(out, key)
-		if len(out) == 5 {
+		if limit > 0 && len(out) == limit {
 			break
 		}
 	}

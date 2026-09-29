@@ -50,6 +50,40 @@ func TestRunDropsInventedJiraKey(t *testing.T) {
 	require.NotContains(t, result.Reply, "dana")
 }
 
+func TestRunDropsUserMentionedKeyMissingFromPacket(t *testing.T) {
+	req := Route("status of PLAT-9", time.Now())
+	req.JiraPacket = "tool searchJiraIssuesUsingJql:\nPLAT-1 status is Open assignee is sam\n"
+	fake := &fakeCompleter{reply: "PLAT-9 is Done and assigned to dana."}
+	result, err := Run(context.Background(), req, nil, fake)
+	require.NoError(t, err)
+	require.Equal(t, UngroundedJiraReply, result.Reply)
+	require.NotContains(t, result.Reply, "PLAT-9")
+	require.NotContains(t, result.Reply, "dana")
+}
+
+func TestRunDropsChannelPostKeyMissingFromPacket(t *testing.T) {
+	req := Route("any open tickets", time.Now())
+	req.JiraPacket = "tool searchJiraIssuesUsingJql:\nPLAT-1 status is Open assignee is sam\n"
+	posts := []Post{{ID: "p", ChannelID: "town", Author: "alice", CreateAt: 1, Text: "working on PLAT-99"}}
+	fake := &fakeCompleter{reply: "PLAT-99 is Done and assigned to dana."}
+	result, err := Run(context.Background(), req, posts, fake)
+	require.NoError(t, err)
+	require.Equal(t, UngroundedJiraReply, result.Reply)
+	require.NotContains(t, result.Reply, "PLAT-99")
+	require.NotContains(t, result.Reply, "dana")
+}
+
+func TestRunAllowsLaterPacketIssueKeys(t *testing.T) {
+	req := Route("summarize jira tickets", time.Now())
+	req.JiraPacket = "tool searchJiraIssuesUsingJql:\n" +
+		"PLAT-1 Open\nPLAT-2 Open\nPLAT-3 Open\nPLAT-4 Open\nPLAT-5 Open\n" +
+		"PLAT-6 Open\nPLAT-7 Open\nPLAT-8 Open\nPLAT-9 Open\nPLAT-10 Open assignee is sam\n"
+	fake := &fakeCompleter{reply: "PLAT-10 is Open and assigned to sam."}
+	result, err := Run(context.Background(), req, nil, fake)
+	require.NoError(t, err)
+	require.Equal(t, "PLAT-10 is Open and assigned to sam.", result.Reply)
+}
+
 func TestRunSkipsModelWhenContextIsEmpty(t *testing.T) {
 	fake := &fakeCompleter{reply: "invented answer"}
 	result, err := Run(context.Background(), Route("what did we decide?", time.Now()), nil, fake)
