@@ -76,6 +76,20 @@ func TestScheduledAtFromCallerIgnoresLooseHints(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, time.Date(2026, 10, 1, 15, 0, 0, 0, time.UTC), when)
 
+	// Notes must appear in the same message; times in the body must not win.
+	when, ok = ScheduledAtFromCaller("schedule a post tomorrow at 3pm saying standup is at 10:30", now)
+	require.True(t, ok)
+	require.Equal(t, time.Date(2026, 9, 23, 15, 0, 0, 0, time.UTC), when)
+	when, ok = ScheduledAtFromCaller("schedule a post tomorrow at 3pm saying standup is at 2026-10-01T15:00:00Z", now)
+	require.True(t, ok)
+	require.Equal(t, time.Date(2026, 9, 23, 15, 0, 0, 0, time.UTC), when)
+	when, ok = ScheduledAtFromCaller("schedule a post tomorrow at 3pm saying the date is 2026-10-01", now)
+	require.True(t, ok)
+	require.Equal(t, time.Date(2026, 9, 23, 15, 0, 0, 0, time.UTC), when)
+	when, ok = ScheduledAtFromCaller("schedule a post tomorrow at 99:99 3pm saying hello team", now)
+	require.True(t, ok)
+	require.Equal(t, time.Date(2026, 9, 23, 15, 0, 0, 0, time.UTC), when)
+
 	_, ok = ScheduledAtFromCaller("schedule a post saying hello team", now)
 	require.False(t, ok)
 	_, ok = ScheduledAtFromCaller("am tomorrow", now)

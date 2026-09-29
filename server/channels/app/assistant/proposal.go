@@ -232,50 +232,89 @@ var (
 
 // ScheduledAtFromCaller reads a timestamp from the caller's own message.
 // A loose hint such as "am" or "tomorrow" in channel posts is not a time.
+// The earliest RFC3339, clock, or date in the message wins so a later note
+// cannot override an explicit schedule such as "tomorrow at 3pm".
 func ScheduledAtFromCaller(userMessage string, now time.Time) (time.Time, bool) {
 	userMessage = strings.TrimSpace(userMessage)
 	if userMessage == "" {
 		return time.Time{}, false
 	}
-	if raw := reCallerRFC3339.FindString(userMessage); raw != "" {
-		if parsed, err := time.Parse(time.RFC3339Nano, strings.ToUpper(raw)); err == nil {
-			return parsed.UTC(), true
+	rfcIdx := -1
+	var rfcTime time.Time
+	if loc := reCallerRFC3339.FindStringIndex(userMessage); loc != nil {
+		if parsed, err := time.Parse(time.RFC3339Nano, strings.ToUpper(userMessage[loc[0]:loc[1]])); err == nil {
+			rfcIdx = loc[0]
+			rfcTime = parsed.UTC()
 		}
 	}
-	hour, minute, ok := callerClock(userMessage)
-	if !ok {
+	clockIdx, hour, minute, clockOK := callerClock(userMessage)
+	if rfcIdx >= 0 && (!clockOK || rfcIdx <= clockIdx) {
+		return rfcTime, true
+	}
+	if !clockOK {
 		return time.Time{}, false
 	}
 	now = now.UTC()
-	var year int
-	var month time.Month
-	var day int
-	switch {
-	case reCallerDate.MatchString(userMessage):
-		parsed, err := time.Parse("2006-01-02", reCallerDate.FindStringSubmatch(userMessage)[1])
-		if err != nil {
-			return time.Time{}, false
-		}
-		year, month, day = parsed.Year(), parsed.Month(), parsed.Day()
-	case reCallerTomorrow.MatchString(userMessage):
-		next := now.AddDate(0, 0, 1)
-		year, month, day = next.Year(), next.Month(), next.Day()
-	case reCallerToday.MatchString(userMessage):
-		year, month, day = now.Year(), now.Month(), now.Day()
-	default:
+	year, month, day, ok := callerDate(userMessage, now)
+	if !ok {
 		return time.Time{}, false
 	}
 	return time.Date(year, month, day, hour, minute, 0, 0, time.UTC), true
 }
 
-func callerClock(message string) (int, int, bool) {
-	if match := reCallerClock.FindStringSubmatch(message); match != nil {
-		return clockParts(match[1], match[2], match[3])
+func callerClock(message string) (idx, hour, minute int, ok bool) {
+	idx = -1
+	consider := func(at, h, m int, valid bool) {
+		if !valid || at < 0 {
+			return
+		}
+		if !ok || at < idx {
+			idx, hour, minute, ok = at, h, m, true
+		}
 	}
-	if match := reCallerHour.FindStringSubmatch(message); match != nil {
-		return clockParts(match[1], "0", match[2])
+	for _, match := range reCallerClock.FindAllStringSubmatchIndex(message, -1) {
+		ampm := ""
+		if len(match) >= 8 && match[6] >= 0 {
+			ampm = message[match[6]:match[7]]
+		}
+		h, m, valid := clockParts(message[match[2]:match[3]], message[match[4]:match[5]], ampm)
+		consider(match[0], h, m, valid)
 	}
-	return 0, 0, false
+	for _, match := range reCallerHour.FindAllStringSubmatchIndex(message, -1) {
+		h, m, valid := clockParts(message[match[2]:match[3]], "0", message[match[4]:match[5]])
+		consider(match[0], h, m, valid)
+	}
+	return idx, hour, minute, ok
+}
+
+func callerDate(message string, now time.Time) (int, time.Month, int, bool) {
+	bestIdx := -1
+	var year int
+	var month time.Month
+	var day int
+	consider := func(at, y int, mo time.Month, d int, valid bool) {
+		if !valid || at < 0 {
+			return
+		}
+		if bestIdx < 0 || at < bestIdx {
+			bestIdx, year, month, day = at, y, mo, d
+		}
+	}
+	if loc := reCallerDate.FindStringSubmatchIndex(message); loc != nil {
+		parsed, err := time.Parse("2006-01-02", message[loc[2]:loc[3]])
+		consider(loc[0], parsed.Year(), parsed.Month(), parsed.Day(), err == nil)
+	}
+	if loc := reCallerTomorrow.FindStringIndex(message); loc != nil {
+		next := now.AddDate(0, 0, 1)
+		consider(loc[0], next.Year(), next.Month(), next.Day(), true)
+	}
+	if loc := reCallerToday.FindStringIndex(message); loc != nil {
+		consider(loc[0], now.Year(), now.Month(), now.Day(), true)
+	}
+	if bestIdx < 0 {
+		return 0, 0, 0, false
+	}
+	return year, month, day, true
 }
 
 func clockParts(hourText, minuteText, ampm string) (int, int, bool) {
