@@ -880,6 +880,10 @@
     "translation": "Jira lookup failed, so I cannot answer with issue keys, statuses, or assignees."
   },
   {
+    "id": "api.command_assistant.jira_forbidden",
+    "translation": "You do not have permission to look up Jira issues."
+  },
+  {
     "id": "api.command_assistant.jira_not_configured",
     "translation": "Jira is not configured. Set YvetteJira on the server."
   },

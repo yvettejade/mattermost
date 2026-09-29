@@ -33,7 +33,10 @@ func (*AssistantProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 }
 
 func (*AssistantProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	text, ephemeral := a.AskAssistant(rctx, args, message, true)
+	// Cards, boards, and scheduled posts are not written from the model
+	// completion. Channel text is in the prompt, and this command does not
+	// collect confirmation of the exact payload.
+	text, ephemeral := a.AskAssistant(rctx, args, message, false)
 	if ephemeral {
 		return assistantEphemeral(text)
 	}

@@ -43,6 +43,10 @@ const (
 // ErrJiraNotConfigured is returned when YvetteJira is unset or blank.
 var ErrJiraNotConfigured = errors.New("YvetteJira is not set")
 
+// ErrJiraCallerUnauthorized is returned when the caller has no Atlassian
+// credential. The server-wide YvetteJira token is not a substitute.
+var ErrJiraCallerUnauthorized = errors.New("jira caller is not authorized")
+
 // ErrJiraLookup is returned when the MCP call fails or lists no Jira tool.
 var ErrJiraLookup = errors.New("jira lookup failed")
 
@@ -92,8 +96,45 @@ type rpcRequest struct {
 	Params  any    `json:"params,omitempty"`
 }
 
+// UserJiraToken returns the Atlassian credential bound to userID.
+// Mattermost channel membership is not Jira authorization, so this stays
+// empty until a per-user token exists. It must not read YvetteJira.
+func UserJiraToken(string) string {
+	return ""
+}
+
+// ResolveUserJira loads a Jira packet with the caller's own Atlassian token.
+// It never reads YvetteJira. An empty caller token returns ErrJiraCallerUnauthorized
+// and does not dial. A nil client uses the default client. The packet is redacted.
+func ResolveUserJira(ctx context.Context, userID, question string, issueKeys []string, client *JiraClient) (string, error) {
+	if client == nil {
+		client = NewJiraClient(nil)
+	}
+	userToken := UserJiraToken(userID)
+	packet, err := client.LookupForUser(ctx, userToken, question, issueKeys)
+	if err != nil {
+		return "", err
+	}
+	return Redact(packet, userToken), nil
+}
+
+// LookupForUser queries Jira with the caller's own token.
+// An empty userToken does not fall back to YvetteJira and does not dial.
+func (c *JiraClient) LookupForUser(ctx context.Context, userToken, question string, issueKeys []string) (string, error) {
+	if strings.TrimSpace(userToken) == "" {
+		return "", ErrJiraCallerUnauthorized
+	}
+	if c == nil {
+		return "", ErrJiraLookup
+	}
+	bound := *c
+	bound.Token = strings.TrimSpace(userToken)
+	return bound.Lookup(ctx, question, issueKeys)
+}
+
 // Lookup runs the MCP handshake and returns tool text for the grounded prompt.
 // issueKeys come from Route. Names that tools/list does not include are not called.
+// Lookup may read YvetteJira. Assistant requests must use ResolveUserJira instead.
 func (c *JiraClient) Lookup(ctx context.Context, question string, issueKeys []string) (string, error) {
 	if c == nil {
 		return "", ErrJiraLookup
