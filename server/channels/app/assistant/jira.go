@@ -92,9 +92,26 @@ type rpcRequest struct {
 	Params  any    `json:"params,omitempty"`
 }
 
+// FixedServiceAccountJQL is the only query the shared YvetteJira token may run.
+// Caller issue keys and search text are not part of it.
+const FixedServiceAccountJQL = "order by updated DESC"
+
+// FixedJiraQueryNote tells the model the packet is not a lookup of the user request.
+const FixedJiraQueryNote = "The Jira packet is from a fixed server query. It is not a search for issue keys or words in the user request."
+
 // Lookup runs the MCP handshake and returns tool text for the grounded prompt.
 // issueKeys come from Route. Names that tools/list does not include are not called.
+// The shared assistant credential must use LookupFixed instead of this method.
 func (c *JiraClient) Lookup(ctx context.Context, question string, issueKeys []string) (string, error) {
+	return c.lookupCall(ctx, question, sanitizeKeys(issueKeys), false)
+}
+
+// LookupFixed searches with FixedServiceAccountJQL. It takes no issue keys and no caller text.
+func (c *JiraClient) LookupFixed(ctx context.Context) (string, error) {
+	return c.lookupCall(ctx, "", nil, true)
+}
+
+func (c *JiraClient) lookupCall(ctx context.Context, question string, keys []string, fixed bool) (string, error) {
 	if c == nil {
 		return "", ErrJiraLookup
 	}
@@ -102,7 +119,7 @@ func (c *JiraClient) Lookup(ctx context.Context, question string, issueKeys []st
 	if token == "" {
 		return "", ErrJiraNotConfigured
 	}
-	packet, err := c.lookup(ctx, token, question, sanitizeKeys(issueKeys))
+	packet, err := c.lookup(ctx, token, question, keys, fixed)
 	if err != nil {
 		if errors.Is(err, ErrJiraNotConfigured) {
 			return "", ErrJiraNotConfigured
@@ -129,7 +146,7 @@ func (c *JiraClient) endpoint() string {
 	return defaultJiraMCPURL
 }
 
-func (c *JiraClient) lookup(ctx context.Context, token, question string, keys []string) (string, error) {
+func (c *JiraClient) lookup(ctx context.Context, token, question string, keys []string, fixed bool) (string, error) {
 	client := c.HTTP
 	if client == nil {
 		client = http.DefaultClient
@@ -150,13 +167,21 @@ func (c *JiraClient) lookup(ctx context.Context, token, question string, keys []
 	if err != nil {
 		return "", err
 	}
-	search, fetch, err := session.selectJiraTools(ctx, tools, question)
+	searchQuestion := question
+	if fixed {
+		searchQuestion = ""
+		keys = nil
+	}
+	search, fetch, err := session.selectJiraTools(ctx, tools, searchQuestion)
 	if err != nil {
 		return "", err
 	}
 
-	wantFetch := fetch.Name != "" && len(keys) > 0
-	wantSearch := search.Name != "" && (len(keys) == 0 || !wantFetch || jiraQuestionNeedsSearch(question, keys))
+	wantFetch := !fixed && fetch.Name != "" && len(keys) > 0
+	wantSearch := search.Name != "" && (fixed || len(keys) == 0 || !wantFetch || jiraQuestionNeedsSearch(question, keys))
+	if fixed && search.Name == "" {
+		return "", errors.New("jira search tool was not listed")
+	}
 	if !wantFetch && !wantSearch {
 		if search.Name != "" {
 			wantSearch = true
@@ -186,7 +211,11 @@ func (c *JiraClient) lookup(ctx context.Context, token, question string, keys []
 		}
 	}
 	if wantSearch {
-		args, argErr := buildArgs(search, searchOffer(search, question, jqlFor(question, keys), cloudID))
+		offer := searchOffer(search, question, jqlFor(question, keys), cloudID)
+		if fixed {
+			offer = fixedSearchOffer(search, cloudID)
+		}
+		args, argErr := buildArgs(search, offer)
 		if argErr != nil {
 			return "", argErr
 		}
@@ -456,6 +485,27 @@ func buildArgs(def toolDef, offered map[string]any) (map[string]any, error) {
 		}
 	}
 	return args, nil
+}
+
+func fixedSearchOffer(def toolDef, cloudID string) map[string]any {
+	offered := map[string]any{}
+	if cloudID != "" {
+		offered["cloudId"] = cloudID
+	}
+	if def.Props["maxResults"] {
+		offered["maxResults"] = 10
+	}
+	switch {
+	case def.Props["jql"]:
+		offered["jql"] = FixedServiceAccountJQL
+	case def.Props["query"]:
+		offered["query"] = FixedServiceAccountJQL
+	case def.Props["text"]:
+		offered["text"] = FixedServiceAccountJQL
+	case def.Props["question"]:
+		offered["question"] = FixedServiceAccountJQL
+	}
+	return offered
 }
 
 func searchOffer(def toolDef, question, jql, cloudID string) map[string]any {

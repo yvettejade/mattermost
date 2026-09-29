@@ -357,6 +357,54 @@ func TestJiraLookupFailsWhenCloudIDRequiredAndUnknown(t *testing.T) {
 	require.NotContains(t, err.Error(), "site-")
 }
 
+func TestJiraLookupFixedOmitsCallerSelectors(t *testing.T) {
+	const callerKey = "PLAT-9"
+	const callerSearch = "payroll secrets"
+
+	t.Run("jql", func(t *testing.T) {
+		fake := &fakeMCP{
+			tools:      `{"tools":[` + fetchSchema() + `,` + searchSchema("jql") + `]}`,
+			searchBody: "recent issues only",
+		}
+		client, _ := newFake(t, fake)
+		packet, err := client.LookupFixed(context.Background())
+		require.NoError(t, err)
+		require.Contains(t, packet, "recent issues only")
+		require.Equal(t, FixedServiceAccountJQL, fake.searchArgs["jql"])
+		require.Empty(t, fake.fetchArgs)
+		require.NotContains(t, fake.calls, "call:"+jiraFetchTool)
+
+		raw, err := json.Marshal(fake.searchArgs)
+		require.NoError(t, err)
+		require.NotContains(t, string(raw), callerKey)
+		require.NotContains(t, string(raw), callerSearch)
+		require.NotContains(t, string(raw), "text ~")
+	})
+
+	t.Run("query", func(t *testing.T) {
+		fake := &fakeMCP{
+			tools: `{"tools":[{
+				"name": "` + jiraSearchTool + `",
+				"inputSchema": {
+					"type": "object",
+					"properties": {"query": {"type": "string"}},
+					"required": ["query"]
+				}
+			}]}`,
+			searchBody: "recent issues only",
+		}
+		client, _ := newFake(t, fake)
+		_, err := client.LookupFixed(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, FixedServiceAccountJQL, fake.searchArgs["query"])
+
+		raw, err := json.Marshal(fake.searchArgs)
+		require.NoError(t, err)
+		require.NotContains(t, string(raw), callerKey)
+		require.NotContains(t, string(raw), callerSearch)
+	})
+}
+
 func TestJiraDefaultURLIsOfficialEndpoint(t *testing.T) {
 	t.Setenv(JiraURLEnv, "")
 	t.Setenv(JiraTokenEnv, jiraTestToken)

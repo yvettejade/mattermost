@@ -57,7 +57,8 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 		packet, failID, jerr := resolveAssistantJira(a.callerMayUseSharedJira(args.UserId), func() (string, error) {
 			jctx, jcancel := context.WithTimeout(context.WithoutCancel(rctx.Context()), 20*time.Second)
 			defer jcancel()
-			return assistant.NewJiraClient(nil).Lookup(jctx, req.Raw, req.IssueKeys)
+			// Shared token: fixed query only. req.Raw and req.IssueKeys stay out of the MCP call.
+			return assistant.NewJiraClient(nil).LookupFixed(jctx)
 		})
 		if failID != "" {
 			return args.T(failID), true
@@ -68,6 +69,11 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 			}
 			rctx.Logger().Warn("assistant jira lookup failed", mlog.String("error", assistant.Redact(jerr.Error(), jiraSecret)))
 			return args.T("api.command_assistant.jira_failed"), true
+		}
+		if note := strings.TrimSpace(req.ContextNote); note != "" {
+			req.ContextNote = note + "\n" + assistant.FixedJiraQueryNote
+		} else {
+			req.ContextNote = assistant.FixedJiraQueryNote
 		}
 		req.JiraPacket = assistant.Redact(packet, jiraSecret)
 	}
@@ -110,7 +116,7 @@ func (a *App) callerMayUseSharedJira(userID string) bool {
 }
 
 // resolveAssistantJira runs lookup only after the shared-credential check.
-// A denied caller must not pass issue keys or search text to the server token.
+// A denied caller must not reach the server token. The lookup itself must be LookupFixed.
 func resolveAssistantJira(allowed bool, lookup func() (string, error)) (string, string, error) {
 	if !allowed {
 		return "", "api.command_assistant.jira_forbidden", nil
