@@ -10,7 +10,9 @@ type Props = {
     };
 };
 
-const NavbarInfoButton = (_props: Props) => {
+// Channel info no longer opens a sidebar. Hide the mobile control rather than
+// showing an Info button that dispatches a no-op.
+const NavbarInfoButton: (props: Props) => JSX.Element | null = () => {
     return null;
 };
 

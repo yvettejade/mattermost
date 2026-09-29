@@ -18,11 +18,11 @@ describe('components/ChannelHeaderMobile/ChannelInfoButton', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should not render a control', () => {
         const {container} = renderWithContext(
             <ChannelInfoButton {...baseProps}/>,
         );
 
-        expect(container).toMatchSnapshot();
+        expect(container).toBeEmptyDOMElement();
     });
 });

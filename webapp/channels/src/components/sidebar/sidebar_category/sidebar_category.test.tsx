@@ -145,6 +145,27 @@ describe('components/sidebar/sidebar_category', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('renders MatterBot after Invite Members and outside the channel list', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
+
+        const invite = container.querySelector('#mock-invite-members-button');
+        const matterbot = container.querySelector('#sidebarItem_matterbot');
+        expect(invite).not.toBeNull();
+        expect(matterbot).not.toBeNull();
+        expect(matterbot!.querySelector('.icon-robot-happy')).not.toBeNull();
+        expect(matterbot!.closest('.NavGroupContent')).toBeNull();
+        expect(invite!.compareDocumentPosition(matterbot!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
     test('should match snapshot when there are no channels to display', () => {
         const props = {
             ...baseProps,
