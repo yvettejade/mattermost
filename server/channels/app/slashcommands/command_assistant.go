@@ -33,7 +33,7 @@ func (*AssistantProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 }
 
 func (*AssistantProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	text, ephemeral := a.AskAssistant(rctx, args, message)
+	text, ephemeral := a.AskAssistant(rctx, args, message, true)
 	if ephemeral {
 		return assistantEphemeral(text)
 	}

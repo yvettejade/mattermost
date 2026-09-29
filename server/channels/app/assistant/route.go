@@ -185,6 +185,12 @@ func applyKeywords(req *Request, lower string) {
 	case reSchedulePost.MatchString(lower):
 		req.Action = ActionSchedulePost
 		req.Specialist = SpecialistScheduler
+	case reCatchUp.MatchString(lower):
+		req.Action = ActionCatchUp
+		req.Specialist = SpecialistSummarizer
+	case hasWord(lower, "summarize", "summarizer", "summary", "recap", "tldr") || strings.Contains(lower, "tl;dr"):
+		req.Action = ActionSummarize
+		req.Specialist = SpecialistSummarizer
 	case hasWord(lower, "schedule", "scheduler", "meeting", "meetings"):
 		req.Action = ActionScheduleMeeting
 		req.Specialist = SpecialistScheduler
@@ -197,12 +203,6 @@ func applyKeywords(req *Request, lower string) {
 	case hasWord(lower, "draft", "drafter"):
 		req.Action = ActionDraftPost
 		req.Specialist = SpecialistDrafter
-	case reCatchUp.MatchString(lower):
-		req.Action = ActionCatchUp
-		req.Specialist = SpecialistSummarizer
-	case hasWord(lower, "summarize", "summarizer", "summary", "recap", "tldr") || strings.Contains(lower, "tl;dr"):
-		req.Action = ActionSummarize
-		req.Specialist = SpecialistSummarizer
 	}
 }
 

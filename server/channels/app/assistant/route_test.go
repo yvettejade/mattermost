@@ -21,6 +21,8 @@ func TestRouteActionsAndSpecialists(t *testing.T) {
 		{message: "", action: ActionSummarize, specialist: SpecialistSummarizer, scope: ScopeAuto},
 		{message: "summarize this thread", action: ActionSummarize, specialist: SpecialistSummarizer, scope: ScopeThread},
 		{message: "catch me up on this channel", action: ActionCatchUp, specialist: SpecialistSummarizer, scope: ScopeChannel},
+		{message: "catch me up on the meeting", action: ActionCatchUp, specialist: SpecialistSummarizer, scope: ScopeAuto},
+		{message: "summarize the meeting", action: ActionSummarize, specialist: SpecialistSummarizer, scope: ScopeAuto},
 		{message: "what did I miss", action: ActionCatchUp, specialist: SpecialistSummarizer, scope: ScopeAuto},
 		{message: "draft a post from the thread", action: ActionDraftPost, specialist: SpecialistDrafter, scope: ScopeThread},
 		{message: "draft a document", action: ActionDraftDocument, specialist: SpecialistDrafter, scope: ScopeAuto},

@@ -24,9 +24,11 @@ const (
 )
 
 // AskAssistant answers from posts the caller can read in args.ChannelId.
-// The reply is not posted. ephemeral is true when the text must stay out of the channel
+// The reply is not posted. applyActions writes a card, scheduled post, or board
+// for the slash command; the private RHS must pass false.
+// ephemeral is true when the text must stay out of the channel
 // (the header chat shows it; the slash command sends it as an ephemeral post).
-func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message string) (string, bool) {
+func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message string, applyActions bool) (string, bool) {
 	if args == nil || args.ChannelId == "" || args.UserId == "" {
 		return assistantText(args, "api.command_assistant.permission.app_error"), true
 	}
@@ -89,7 +91,7 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 	}
 
 	reply := redactAssistantSecrets(result.Reply)
-	reply = a.applyAssistantActions(rctx, args, req, result, reply)
+	reply = a.applyAssistantActions(rctx, args, req, result, reply, applyActions)
 	return assistant.TruncateReply(reply), false
 }
 
@@ -148,7 +150,7 @@ func (a *App) loadAssistantPosts(rctx request.CTX, args *model.CommandArgs, req 
 	return assistantPostsFromList(list, assistantAuthorNames(a, rctx, list)), req, ""
 }
 
-func (a *App) applyAssistantActions(rctx request.CTX, args *model.CommandArgs, req assistant.Request, result assistant.Result, reply string) string {
+func (a *App) applyAssistantActions(rctx request.CTX, args *model.CommandArgs, req assistant.Request, result assistant.Result, reply string, applyActions bool) string {
 	var notes []string
 	if req.PlaybooksUnavailable {
 		notes = append(notes, args.T("api.command_assistant.playbook_unavailable"))
@@ -157,13 +159,15 @@ func (a *App) applyAssistantActions(rctx request.CTX, args *model.CommandArgs, r
 		notes = append(notes, args.T("api.command_assistant.canvas_unavailable"))
 	}
 
-	switch result.Action {
-	case assistant.ActionCreateBoard:
-		notes = append(notes, a.createAssistantBoard(rctx, args, result))
-	case assistant.ActionDraftDocument:
-		notes = append(notes, a.createAssistantCard(rctx, args, result))
-	case assistant.ActionSchedulePost:
-		notes = append(notes, a.createAssistantScheduledPost(rctx, args, result))
+	if applyActions {
+		switch result.Action {
+		case assistant.ActionCreateBoard:
+			notes = append(notes, a.createAssistantBoard(rctx, args, result))
+		case assistant.ActionDraftDocument:
+			notes = append(notes, a.createAssistantCard(rctx, args, result))
+		case assistant.ActionSchedulePost:
+			notes = append(notes, a.createAssistantScheduledPost(rctx, args, result))
+		}
 	}
 
 	notes = compactAssistantNotes(notes)

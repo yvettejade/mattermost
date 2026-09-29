@@ -72,7 +72,7 @@ func askAssistant(c *Context, w http.ResponseWriter, r *http.Request) {
 		TeamId:    teamID,
 		RootId:    rootID,
 		T:         c.AppContext.T,
-	}, message)
+	}, message, false)
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(model.AssistantReply{Reply: text}); err != nil {
