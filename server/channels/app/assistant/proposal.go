@@ -6,7 +6,9 @@ package assistant
 import (
 	"encoding/json"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -217,6 +219,91 @@ func timeIsGrounded(timeStr, corpus string) bool {
 		return true
 	}
 	return reTimeHint.MatchString(corpus)
+}
+
+var (
+	reCallerRFC3339  = regexp.MustCompile(`(?i)\d{4}-\d{2}-\d{2}t\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:z|[+-]\d{2}:\d{2})`)
+	reCallerDate     = regexp.MustCompile(`\b(\d{4}-\d{2}-\d{2})\b`)
+	reCallerClock    = regexp.MustCompile(`(?i)\b(\d{1,2}):(\d{2})(?::\d{2})?\s*([ap]m)?\b`)
+	reCallerHour     = regexp.MustCompile(`(?i)\b(\d{1,2})\s*([ap]m)\b`)
+	reCallerTomorrow = regexp.MustCompile(`(?i)\btomorrow\b`)
+	reCallerToday    = regexp.MustCompile(`(?i)\btoday\b`)
+)
+
+// ScheduledAtFromCaller reads a timestamp from the caller's own message.
+// A loose hint such as "am" or "tomorrow" in channel posts is not a time.
+func ScheduledAtFromCaller(userMessage string, now time.Time) (time.Time, bool) {
+	userMessage = strings.TrimSpace(userMessage)
+	if userMessage == "" {
+		return time.Time{}, false
+	}
+	if raw := reCallerRFC3339.FindString(userMessage); raw != "" {
+		if parsed, err := time.Parse(time.RFC3339Nano, strings.ToUpper(raw)); err == nil {
+			return parsed.UTC(), true
+		}
+	}
+	hour, minute, ok := callerClock(userMessage)
+	if !ok {
+		return time.Time{}, false
+	}
+	now = now.UTC()
+	var year int
+	var month time.Month
+	var day int
+	switch {
+	case reCallerDate.MatchString(userMessage):
+		parsed, err := time.Parse("2006-01-02", reCallerDate.FindStringSubmatch(userMessage)[1])
+		if err != nil {
+			return time.Time{}, false
+		}
+		year, month, day = parsed.Year(), parsed.Month(), parsed.Day()
+	case reCallerTomorrow.MatchString(userMessage):
+		next := now.AddDate(0, 0, 1)
+		year, month, day = next.Year(), next.Month(), next.Day()
+	case reCallerToday.MatchString(userMessage):
+		year, month, day = now.Year(), now.Month(), now.Day()
+	default:
+		return time.Time{}, false
+	}
+	return time.Date(year, month, day, hour, minute, 0, 0, time.UTC), true
+}
+
+func callerClock(message string) (int, int, bool) {
+	if match := reCallerClock.FindStringSubmatch(message); match != nil {
+		return clockParts(match[1], match[2], match[3])
+	}
+	if match := reCallerHour.FindStringSubmatch(message); match != nil {
+		return clockParts(match[1], "0", match[2])
+	}
+	return 0, 0, false
+}
+
+func clockParts(hourText, minuteText, ampm string) (int, int, bool) {
+	hour, errH := strconv.Atoi(hourText)
+	minute, errM := strconv.Atoi(minuteText)
+	if errH != nil || errM != nil || minute < 0 || minute > 59 || hour < 0 || hour > 23 {
+		return 0, 0, false
+	}
+	switch strings.ToLower(ampm) {
+	case "pm":
+		if hour < 1 || hour > 12 {
+			return 0, 0, false
+		}
+		if hour != 12 {
+			hour += 12
+		}
+	case "am":
+		if hour < 1 || hour > 12 {
+			return 0, 0, false
+		}
+		if hour == 12 {
+			hour = 0
+		}
+	case "":
+	default:
+		return 0, 0, false
+	}
+	return hour, minute, true
 }
 
 func emptyAsMissing(s string) string {

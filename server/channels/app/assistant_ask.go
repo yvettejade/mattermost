@@ -286,11 +286,11 @@ func (a *App) createAssistantScheduledPost(rctx request.CTX, args *model.Command
 	if !assistant.PayloadConfirmed(notes, req.Raw) {
 		return args.T("api.command_assistant.write_unconfirmed")
 	}
-	if result.Proposal == nil || result.TimeCleared || strings.TrimSpace(result.Proposal.Time) == "" || strings.TrimSpace(result.Proposal.Notes) == "" {
+	if result.Proposal == nil || strings.TrimSpace(result.Proposal.Notes) == "" {
 		return args.T("api.command_assistant.scheduled_post_skipped")
 	}
-	when, err := time.Parse(time.RFC3339, result.Proposal.Time)
-	if err != nil || !when.After(time.Now()) {
+	when, ok := assistant.ScheduledAtFromCaller(req.Raw, time.Now().UTC())
+	if !ok || !when.After(time.Now()) {
 		return args.T("api.command_assistant.scheduled_post_skipped")
 	}
 	if ok, _ := a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionCreatePost); !ok {
@@ -352,6 +352,10 @@ func assistantPostsFromList(list *model.PostList, names map[string]string) []ass
 	out := make([]assistant.Post, 0, len(list.Posts))
 	add := func(post *model.Post) {
 		if post == nil || post.Id == "" || seen[post.Id] || post.DeleteAt != 0 {
+			return
+		}
+		// Revealed burn-on-read rows still carry the body. Do not copy them into the prompt.
+		if post.Type == model.PostTypeBurnOnRead {
 			return
 		}
 		seen[post.Id] = true

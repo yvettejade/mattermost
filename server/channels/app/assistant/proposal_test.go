@@ -5,6 +5,7 @@ package assistant
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -62,6 +63,25 @@ func TestParseDraftAndBoardName(t *testing.T) {
 	require.Equal(t, "Billing notes", BoardDisplayName("Billing notes", "Town Square"))
 	require.Equal(t, "Town Square notes", BoardDisplayName("", "Town Square"))
 	require.Equal(t, "channel notes", BoardDisplayName("", ""))
+}
+
+func TestScheduledAtFromCallerIgnoresLooseHints(t *testing.T) {
+	now := time.Date(2026, 9, 22, 18, 0, 0, 0, time.UTC)
+
+	when, ok := ScheduledAtFromCaller("schedule a post tomorrow at 3pm saying hello team", now)
+	require.True(t, ok)
+	require.Equal(t, time.Date(2026, 9, 23, 15, 0, 0, 0, time.UTC), when)
+
+	when, ok = ScheduledAtFromCaller("schedule a post at 2026-10-01T15:00:00Z saying hello team", now)
+	require.True(t, ok)
+	require.Equal(t, time.Date(2026, 10, 1, 15, 0, 0, 0, time.UTC), when)
+
+	_, ok = ScheduledAtFromCaller("schedule a post saying hello team", now)
+	require.False(t, ok)
+	_, ok = ScheduledAtFromCaller("am tomorrow", now)
+	require.False(t, ok)
+	_, ok = ScheduledAtFromCaller("tomorrow", now)
+	require.False(t, ok)
 }
 
 func TestPayloadConfirmedIgnoresChannelText(t *testing.T) {

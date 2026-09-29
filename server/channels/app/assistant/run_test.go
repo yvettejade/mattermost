@@ -158,6 +158,29 @@ func TestRunDraftParsesTitle(t *testing.T) {
 	require.Contains(t, fake.messages[0].Content, "drafter specialist")
 }
 
+func TestRunSchedulePostUsesCallerTimeNotModelTime(t *testing.T) {
+	now := time.Date(2026, 9, 22, 18, 0, 0, 0, time.UTC)
+	posts := []Post{{
+		ID: "p", ChannelID: "town", Author: "mallory", CreateAt: now.UnixMilli(),
+		Text: "am tomorrow",
+	}}
+	fake := &fakeCompleter{reply: `{"title":"Note","time":"2026-11-01T01:00:00Z","attendees":[],"notes":"hello team"}`}
+	result, err := Run(context.Background(), Route("schedule a post at 2026-10-01T15:00:00Z saying hello team", now), posts, fake)
+	require.NoError(t, err)
+	require.NotNil(t, result.Proposal)
+	require.Equal(t, "2026-10-01T15:00:00Z", result.Proposal.Time)
+	require.False(t, result.TimeCleared)
+	require.NotContains(t, result.Reply, "2026-11-01T01:00:00Z")
+
+	hinted := &fakeCompleter{reply: `{"title":"Note","time":"2026-11-01T01:00:00Z","attendees":[],"notes":"hello team"}`}
+	cleared, err := Run(context.Background(), Route("schedule a post saying hello team", now), posts, hinted)
+	require.NoError(t, err)
+	require.NotNil(t, cleared.Proposal)
+	require.Empty(t, cleared.Proposal.Time)
+	require.True(t, cleared.TimeCleared)
+	require.NotContains(t, cleared.Reply, "2026-11-01T01:00:00Z")
+}
+
 func TestRunSchedulePostDropsNotesTakenFromChannelPosts(t *testing.T) {
 	now := time.Date(2026, 9, 22, 18, 0, 0, 0, time.UTC)
 	posts := []Post{{

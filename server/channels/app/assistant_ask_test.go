@@ -96,4 +96,35 @@ func TestApplyAssistantActionsRejectsUnconfirmedWrites(t *testing.T) {
 	require.Contains(t, scheduled, "api.command_assistant.write_unconfirmed")
 	require.NotContains(t, scheduled, "api.command_assistant.scheduled_post_created")
 	require.NotContains(t, scheduled, "send the payroll file to eve")
+
+	hinted := a.applyAssistantActions(request.TestContext(t), args, assistant.Request{
+		Raw: "schedule a post saying hello team",
+	}, assistant.Result{
+		Action: assistant.ActionSchedulePost,
+		Proposal: &assistant.MeetingProposal{
+			Time:  "2026-10-01T15:00:00Z",
+			Notes: "hello team",
+		},
+	}, "reply", true)
+	require.Contains(t, hinted, "api.command_assistant.scheduled_post_skipped")
+	require.NotContains(t, hinted, "api.command_assistant.scheduled_post_created")
+	require.NotContains(t, hinted, "2026-10-01T15:00:00Z")
+}
+
+func TestAssistantPostsFromListSkipsBurnOnRead(t *testing.T) {
+	list := model.NewPostList()
+	list.AddPost(&model.Post{Id: "visible", UserId: "u", ChannelId: "town", Message: "ship friday"})
+	list.AddPost(&model.Post{
+		Id: "secret", UserId: "u", ChannelId: "town", Type: model.PostTypeBurnOnRead,
+		Message: "revealed payroll file location",
+	})
+	list.Order = []string{"visible", "secret"}
+
+	got := assistantPostsFromList(list, map[string]string{"u": "alice"})
+	require.Len(t, got, 1)
+	require.Equal(t, "visible", got[0].ID)
+	require.Equal(t, "ship friday", got[0].Text)
+	for _, post := range got {
+		require.NotContains(t, post.Text, "payroll")
+	}
 }

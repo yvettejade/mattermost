@@ -6,6 +6,7 @@ package assistant
 import (
 	"context"
 	"strings"
+	"time"
 )
 
 // Message is one chat-completions message.
@@ -71,9 +72,18 @@ func Run(ctx context.Context, req Request, posts []Post, completer Completer) (R
 			return result, nil
 		}
 		grounded := GroundProposal(proposal, Corpus(posts, req.Raw))
-		// A scheduled post is published. Notes copied from channel posts are not confirmed.
-		if req.Action == ActionSchedulePost && !PayloadConfirmed(grounded.Proposal.Notes, req.Raw) {
-			grounded.Proposal.Notes = ""
+		// A scheduled post is published. Notes and ScheduledAt come from the caller's message.
+		if req.Action == ActionSchedulePost {
+			if !PayloadConfirmed(grounded.Proposal.Notes, req.Raw) {
+				grounded.Proposal.Notes = ""
+			}
+			if when, ok := ScheduledAtFromCaller(req.Raw, time.Now().UTC()); ok {
+				grounded.Proposal.Time = when.Format(time.RFC3339)
+				grounded.TimeCleared = false
+			} else {
+				grounded.Proposal.Time = ""
+				grounded.TimeCleared = true
+			}
 		}
 		result.Proposal = &grounded.Proposal
 		result.DroppedAttendees = grounded.DroppedAttendees
