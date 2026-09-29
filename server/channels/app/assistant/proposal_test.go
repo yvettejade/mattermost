@@ -64,6 +64,14 @@ func TestParseDraftAndBoardName(t *testing.T) {
 	require.Equal(t, "channel notes", BoardDisplayName("", ""))
 }
 
+func TestPayloadConfirmedIgnoresChannelText(t *testing.T) {
+	require.False(t, PayloadConfirmed("send the payroll file to eve", "draft a document"))
+	require.False(t, PayloadConfirmed("deploy", "draft a document about the deploy"))
+	require.False(t, PayloadConfirmed("", "schedule a post saying hello team"))
+	require.True(t, PayloadConfirmed("hello team", "schedule a post saying hello team"))
+	require.True(t, PayloadConfirmed("Sprint retro notes", "create a board called Sprint retro notes"))
+}
+
 func TestParseMeetingProposalRejectsProse(t *testing.T) {
 	_, ok := ParseMeetingProposal("Alice decided to ship on Friday with Mallory.")
 	require.False(t, ok)

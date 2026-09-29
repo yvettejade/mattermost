@@ -80,6 +80,18 @@ func GroundProposal(proposal MeetingProposal, corpus string) GroundedProposal {
 	return GroundedProposal{Proposal: proposal, DroppedAttendees: dropped, TimeCleared: cleared}
 }
 
+// PayloadConfirmed is the publish gate for assistant writes.
+// The payload must appear in the caller's own message. Channel posts are not
+// a source: another member can plant wording that a corpus overlap check would accept.
+func PayloadConfirmed(payload, userMessage string) bool {
+	payload = strings.TrimSpace(payload)
+	userMessage = strings.TrimSpace(userMessage)
+	if payload == "" || userMessage == "" || utf8.RuneCountInString(payload) < 8 {
+		return false
+	}
+	return strings.Contains(strings.ToLower(userMessage), strings.ToLower(payload))
+}
+
 func notesGrounded(notes, corpus string) bool {
 	notes = strings.TrimSpace(notes)
 	if notes == "" || corpus == "" {

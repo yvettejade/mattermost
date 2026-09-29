@@ -48,10 +48,12 @@ func Run(ctx context.Context, req Request, posts []Post, completer Completer) (R
 		return result, errNoCompleter
 	}
 
-	system, user := BuildMessages(req, posts)
+	system, instruction, data := BuildMessages(req, posts)
 	reply, err := completer.Complete(ctx, []Message{
 		{Role: "system", Content: system},
-		{Role: "user", Content: user},
+		{Role: "user", Content: data},
+		{Role: "assistant", Content: UntrustedDataBoundary},
+		{Role: "user", Content: instruction},
 	})
 	if err != nil {
 		return result, err
@@ -69,6 +71,10 @@ func Run(ctx context.Context, req Request, posts []Post, completer Completer) (R
 			return result, nil
 		}
 		grounded := GroundProposal(proposal, Corpus(posts, req.Raw))
+		// A scheduled post is published. Notes copied from channel posts are not confirmed.
+		if req.Action == ActionSchedulePost && !PayloadConfirmed(grounded.Proposal.Notes, req.Raw) {
+			grounded.Proposal.Notes = ""
+		}
 		result.Proposal = &grounded.Proposal
 		result.DroppedAttendees = grounded.DroppedAttendees
 		result.TimeCleared = grounded.TimeCleared

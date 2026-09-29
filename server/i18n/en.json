@@ -880,6 +880,10 @@
     "translation": "Jira lookup failed, so I cannot answer with issue keys, statuses, or assignees."
   },
   {
+    "id": "api.command_assistant.jira_forbidden",
+    "translation": "Jira lookup is unavailable for this account."
+  },
+  {
     "id": "api.command_assistant.jira_not_configured",
     "translation": "Jira is not configured. Set YvetteJira on the server."
   },
@@ -926,6 +930,10 @@
   {
     "id": "api.command_assistant.thread_missing",
     "translation": "This command is not in a thread, so there is no thread to use."
+  },
+  {
+    "id": "api.command_assistant.write_unconfirmed",
+    "translation": "I did not create or schedule anything because that text was not in your message."
   },
   {
     "id": "api.command_away.desc",

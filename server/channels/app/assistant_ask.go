@@ -53,10 +53,15 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 	}
 
 	if req.WantsJira {
-		jctx, jcancel := context.WithTimeout(context.WithoutCancel(rctx.Context()), 20*time.Second)
-		packet, jerr := assistant.NewJiraClient(nil).Lookup(jctx, req.Raw, req.IssueKeys)
-		jcancel()
 		jiraSecret := os.Getenv(assistant.JiraTokenEnv)
+		packet, failID, jerr := resolveAssistantJira(a.callerMayUseSharedJira(args.UserId), func() (string, error) {
+			jctx, jcancel := context.WithTimeout(context.WithoutCancel(rctx.Context()), 20*time.Second)
+			defer jcancel()
+			return assistant.NewJiraClient(nil).Lookup(jctx, req.Raw, req.IssueKeys)
+		})
+		if failID != "" {
+			return args.T(failID), true
+		}
 		if jerr != nil {
 			if errors.Is(jerr, assistant.ErrJiraNotConfigured) {
 				return args.T("api.command_assistant.jira_not_configured"), true
@@ -93,6 +98,31 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 	reply := redactAssistantSecrets(result.Reply)
 	reply = a.applyAssistantActions(rctx, args, req, result, reply, applyActions)
 	return assistant.TruncateReply(reply), false
+}
+
+// callerMayUseSharedJira is false for ordinary channel members.
+// YvetteJira is a server credential, so read_channel_content is not authorization to use it.
+func (a *App) callerMayUseSharedJira(userID string) bool {
+	if a == nil || userID == "" {
+		return false
+	}
+	return a.HasPermissionTo(userID, model.PermissionManageSystem)
+}
+
+// resolveAssistantJira runs lookup only after the shared-credential check.
+// A denied caller must not pass issue keys or search text to the server token.
+func resolveAssistantJira(allowed bool, lookup func() (string, error)) (string, string, error) {
+	if !allowed {
+		return "", "api.command_assistant.jira_forbidden", nil
+	}
+	if lookup == nil {
+		return "", "api.command_assistant.jira_failed", nil
+	}
+	packet, err := lookup()
+	if err != nil {
+		return "", "", err
+	}
+	return packet, "", nil
 }
 
 func redactAssistantSecrets(message string) string {
@@ -162,11 +192,11 @@ func (a *App) applyAssistantActions(rctx request.CTX, args *model.CommandArgs, r
 	if applyActions {
 		switch result.Action {
 		case assistant.ActionCreateBoard:
-			notes = append(notes, a.createAssistantBoard(rctx, args, result))
+			notes = append(notes, a.createAssistantBoard(rctx, args, req, result))
 		case assistant.ActionDraftDocument:
-			notes = append(notes, a.createAssistantCard(rctx, args, result))
+			notes = append(notes, a.createAssistantCard(rctx, args, req, result))
 		case assistant.ActionSchedulePost:
-			notes = append(notes, a.createAssistantScheduledPost(rctx, args, result))
+			notes = append(notes, a.createAssistantScheduledPost(rctx, args, req, result))
 		}
 	}
 
@@ -177,7 +207,10 @@ func (a *App) applyAssistantActions(rctx request.CTX, args *model.CommandArgs, r
 	return reply + "\n\n" + strings.Join(notes, "\n\n")
 }
 
-func (a *App) createAssistantBoard(rctx request.CTX, args *model.CommandArgs, result assistant.Result) string {
+func (a *App) createAssistantBoard(rctx request.CTX, args *model.CommandArgs, req assistant.Request, result assistant.Result) string {
+	if !assistant.PayloadConfirmed(result.DraftTitle, req.Raw) {
+		return args.T("api.command_assistant.write_unconfirmed")
+	}
 	if !a.Config().FeatureFlags.IntegratedBoards {
 		return args.T("api.command_assistant.board_disabled")
 	}
@@ -207,7 +240,14 @@ func (a *App) createAssistantBoard(rctx request.CTX, args *model.CommandArgs, re
 	return args.T("api.command_assistant.board_created", map[string]any{"Name": board.DisplayName})
 }
 
-func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, result assistant.Result) string {
+func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, req assistant.Request, result assistant.Result) string {
+	body := strings.TrimSpace(result.DraftBody)
+	if body == "" {
+		body = strings.TrimSpace(result.Reply)
+	}
+	if !assistant.PayloadConfirmed(body, req.Raw) {
+		return args.T("api.command_assistant.write_unconfirmed")
+	}
 	if !a.Config().FeatureFlags.IntegratedBoards {
 		return args.T("api.command_assistant.card_disabled")
 	}
@@ -217,13 +257,6 @@ func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, res
 	channel, appErr := a.GetChannel(rctx, args.ChannelId)
 	if appErr != nil {
 		rctx.Logger().Warn("assistant card channel lookup failed", mlog.Err(appErr))
-		return args.T("api.command_assistant.card_failed")
-	}
-	body := strings.TrimSpace(result.DraftBody)
-	if body == "" {
-		body = strings.TrimSpace(result.Reply)
-	}
-	if body == "" {
 		return args.T("api.command_assistant.card_failed")
 	}
 	_, _, appErr = a.CreatePost(rctx, &model.Post{
@@ -240,7 +273,14 @@ func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, res
 	return args.T("api.command_assistant.card_created")
 }
 
-func (a *App) createAssistantScheduledPost(rctx request.CTX, args *model.CommandArgs, result assistant.Result) string {
+func (a *App) createAssistantScheduledPost(rctx request.CTX, args *model.CommandArgs, req assistant.Request, result assistant.Result) string {
+	notes := ""
+	if result.Proposal != nil {
+		notes = result.Proposal.Notes
+	}
+	if !assistant.PayloadConfirmed(notes, req.Raw) {
+		return args.T("api.command_assistant.write_unconfirmed")
+	}
 	if result.Proposal == nil || result.TimeCleared || strings.TrimSpace(result.Proposal.Time) == "" || strings.TrimSpace(result.Proposal.Notes) == "" {
 		return args.T("api.command_assistant.scheduled_post_skipped")
 	}
