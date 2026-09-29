@@ -25,7 +25,7 @@ const (
 
 // AskAssistant answers from posts the caller can read in args.ChannelId.
 // The reply is not posted. applyActions writes a card, scheduled post, or board
-// for the slash command; the private RHS must pass false.
+// only after the user has confirmed that payload. Callers pass false.
 // ephemeral is true when the text must stay out of the channel
 // (the header chat shows it; the slash command sends it as an ephemeral post).
 func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message string, applyActions bool) (string, bool) {
@@ -53,18 +53,22 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 	}
 
 	if req.WantsJira {
+		// Channel read is not Jira authorization. ResolveUserJira refuses the
+		// server-wide credential when the caller has no Atlassian token.
 		jctx, jcancel := context.WithTimeout(context.WithoutCancel(rctx.Context()), 20*time.Second)
-		packet, jerr := assistant.NewJiraClient(nil).Lookup(jctx, req.Raw, req.IssueKeys)
+		packet, jerr := assistant.ResolveUserJira(jctx, args.UserId, req.Raw, req.IssueKeys, assistant.NewJiraClient(nil))
 		jcancel()
-		jiraSecret := os.Getenv(assistant.JiraTokenEnv)
 		if jerr != nil {
+			if errors.Is(jerr, assistant.ErrJiraCallerUnauthorized) {
+				return args.T("api.command_assistant.jira_forbidden"), true
+			}
 			if errors.Is(jerr, assistant.ErrJiraNotConfigured) {
 				return args.T("api.command_assistant.jira_not_configured"), true
 			}
-			rctx.Logger().Warn("assistant jira lookup failed", mlog.String("error", assistant.Redact(jerr.Error(), jiraSecret)))
+			rctx.Logger().Warn("assistant jira lookup failed", mlog.String("error", redactAssistantSecrets(jerr.Error())))
 			return args.T("api.command_assistant.jira_failed"), true
 		}
-		req.JiraPacket = assistant.Redact(packet, jiraSecret)
+		req.JiraPacket = packet
 	}
 
 	since := time.Time{}

@@ -198,6 +198,58 @@ func newFake(t *testing.T, fake *fakeMCP) (*JiraClient, *httptest.Server) {
 	return client, server
 }
 
+func TestResolveUserJiraDoesNotUseSharedToken(t *testing.T) {
+	const serviceToken = "service-account-token-value"
+	t.Setenv(JiraTokenEnv, serviceToken)
+	t.Setenv(JiraURLEnv, "https://mcp.atlassian.com/v2/mcp")
+	dialed := false
+	client := NewJiraClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		dialed = true
+		return nil, errors.New("should not dial")
+	})})
+	client.Token = serviceToken
+	packet, err := ResolveUserJira(context.Background(), "channel-member", "status of PLAT-9", []string{"PLAT-9"}, client)
+	require.ErrorIs(t, err, ErrJiraCallerUnauthorized)
+	require.Empty(t, packet)
+	require.NotContains(t, err.Error(), serviceToken)
+	require.NotContains(t, err.Error(), "YvetteJira")
+	require.False(t, dialed)
+	require.Empty(t, UserJiraToken("channel-member"))
+}
+
+func TestLookupForUserBindsCallerToken(t *testing.T) {
+	const serviceToken = "service-account-token-value"
+	const callerToken = "user-atlassian-token"
+	t.Setenv(JiraTokenEnv, serviceToken)
+	fake := &fakeMCP{
+		token:     callerToken,
+		tools:     `{"tools":[` + fetchSchema() + `]}`,
+		fetchBody: "PLAT-9 status is Open assignee is sam",
+	}
+	client, _ := newFake(t, fake)
+	client.Token = serviceToken
+	packet, err := client.LookupForUser(context.Background(), callerToken, "status of PLAT-9", []string{"PLAT-9"})
+	require.NoError(t, err)
+	require.Contains(t, packet, "PLAT-9 status is Open assignee is sam")
+	require.NotContains(t, packet, serviceToken)
+	require.NotContains(t, packet, callerToken)
+	require.Equal(t, "PLAT-9", fake.fetchArgs[0]["issueIdOrKey"])
+}
+
+func TestLookupForUserRejectsEmptyCallerBeforeDial(t *testing.T) {
+	t.Setenv(JiraTokenEnv, jiraTestToken)
+	dialed := false
+	client := NewJiraClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		dialed = true
+		return nil, errors.New("should not dial")
+	})})
+	client.Token = jiraTestToken
+	_, err := client.LookupForUser(context.Background(), "  ", "search project PLAT billing", []string{"PLAT-9"})
+	require.ErrorIs(t, err, ErrJiraCallerUnauthorized)
+	require.False(t, dialed)
+	require.NotContains(t, err.Error(), jiraTestToken)
+}
+
 func TestJiraLookupMissingTokenDoesNotDial(t *testing.T) {
 	t.Setenv(JiraTokenEnv, "")
 	dialed := false
