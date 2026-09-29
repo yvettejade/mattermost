@@ -485,10 +485,13 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
-// Channel info no longer opens a sidebar. The parameter stays in the type so callers keep passing a channel id.
-export const showChannelInfo: (channelId: string) => {type: string} = () => {
-    return {type: 'NOOP_SHOW_CHANNEL_INFO'};
-};
+export function showChannelInfo(channelId: string) {
+    return {
+        type: ActionTypes.UPDATE_RHS_STATE,
+        channelId,
+        state: RHSStates.CHANNEL_INFO,
+    };
+}
 
 export function closeRightHandSide(): ActionFunc {
     return (dispatch) => {
@@ -615,7 +618,8 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         }
 
         if (previous.isChannelInfo) {
-            return dispatch(openRHSSearch());
+            const currentChannelId = getCurrentChannelId(getState());
+            return dispatch(showChannelInfo(currentChannelId));
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());

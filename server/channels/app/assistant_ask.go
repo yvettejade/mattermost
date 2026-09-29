@@ -41,8 +41,10 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 	if req.SinceUnparsed {
 		return args.T("api.command_assistant.since_unparsed"), true
 	}
+	// The header chat cannot send a thread root. Answer from the channel so a
+	// question that says "thread" still reaches the model.
 	if req.Scope == assistant.ScopeThread && args.RootId == "" {
-		return args.T("api.command_assistant.thread_missing"), true
+		req.Scope = assistant.ScopeChannel
 	}
 
 	posts, req, failed := a.loadAssistantPosts(rctx, args, req)
@@ -85,7 +87,7 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 		return args.T("api.command_assistant.failed"), true
 	}
 	if result.MissingContext {
-		return args.T("api.command_assistant.no_posts"), false
+		return args.T("api.command_assistant.no_posts"), true
 	}
 
 	reply := redactAssistantSecrets(result.Reply)

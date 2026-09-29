@@ -34,6 +34,7 @@ import {
     closeMenu,
     openAtPrevious,
     showAssistant,
+    showChannelInfo,
     updateSearchType,
     suppressRHS,
     unsuppressRHS,
@@ -452,6 +453,20 @@ describe('rhs view actions', () => {
         });
     });
 
+    describe('showChannelInfo', () => {
+        test('it opens channel info', () => {
+            store.dispatch(showChannelInfo(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_INFO,
+                },
+            ]);
+        });
+    });
+
     describe('showChannelMembers', () => {
         test('it dispatches the right actions', async () => {
             await store.dispatch(showChannelMembers(currentChannelId));
@@ -753,6 +768,18 @@ describe('rhs view actions', () => {
                 {
                     type: ActionTypes.UPDATE_RHS_STATE,
                     state: RHSStates.ASSISTANT,
+                },
+            ]);
+        });
+
+        it('reopens channel info', () => {
+            store.dispatch(openAtPrevious({isChannelInfo: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_INFO,
                 },
             ]);
         });
