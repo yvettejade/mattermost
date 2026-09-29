@@ -26,8 +26,7 @@ const (
 // AskAssistant answers from posts the caller can read in args.ChannelId.
 // The reply is not posted. applyActions writes a card, scheduled post, or board
 // for the slash command; the private RHS must pass false.
-// ephemeral is true when the text must stay out of the channel
-// (the header chat shows it; the slash command sends it as an ephemeral post).
+// The bool is true for an error or refusal. Slash-command completions are ephemeral either way.
 func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message string, applyActions bool) (string, bool) {
 	if args == nil || args.ChannelId == "" || args.UserId == "" {
 		return assistantText(args, "api.command_assistant.permission.app_error"), true

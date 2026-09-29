@@ -33,33 +33,20 @@ func (*AssistantProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 }
 
 func (*AssistantProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	text, ephemeral := a.AskAssistant(rctx, args, message, true)
-	if ephemeral {
-		return assistantEphemeral(text)
-	}
-	return assistantReply(a, rctx, args, text)
+	text, _ := runAssistant(a, rctx, args, message)
+	// Completions stay ephemeral. Channel posts and Jira packet text are not written into the channel.
+	return assistantEphemeral(text)
+}
+
+// runAssistant is the slash-command entry to AskAssistant. Tests replace it.
+var runAssistant = func(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) (string, bool) {
+	return a.AskAssistant(rctx, args, message, true)
 }
 
 func assistantEphemeral(text string) *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType:     model.CommandResponseTypeEphemeral,
 		Text:             text,
-		SkipSlackParsing: true,
-	}
-}
-
-func assistantReply(a *app.App, rctx request.CTX, args *model.CommandArgs, text string) *model.CommandResponse {
-	body := "**Assistant**\n\n" + text
-	if args == nil || args.ChannelId == "" || args.UserId == "" {
-		return assistantEphemeral(body)
-	}
-	if ok, _ := a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionCreatePost); !ok {
-		return assistantEphemeral(body)
-	}
-	return &model.CommandResponse{
-		ResponseType:     model.CommandResponseTypeInChannel,
-		Username:         "Assistant",
-		Text:             body,
 		SkipSlackParsing: true,
 	}
 }

@@ -22,6 +22,25 @@ func TestAssistantCommandHiddenFromAutocomplete(t *testing.T) {
 	require.Empty(t, cmd.AutoCompleteHint)
 }
 
+func TestAssistantDoCommandKeepsCompletionEphemeral(t *testing.T) {
+	orig := runAssistant
+	t.Cleanup(func() { runAssistant = orig })
+	runAssistant = func(*app.App, request.CTX, *model.CommandArgs, string) (string, bool) {
+		return "PLAT-9 status is Open assignee is sam", false
+	}
+
+	resp := (&AssistantProvider{}).DoCommand(nil, request.TestContext(t), &model.CommandArgs{
+		UserId:    "admin",
+		ChannelId: "town",
+		T:         i18n.IdentityTfunc(),
+	}, "status of PLAT-9")
+
+	require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
+	require.Empty(t, resp.Username)
+	require.NotEqual(t, model.CommandResponseTypeInChannel, resp.ResponseType)
+	require.Contains(t, resp.Text, "PLAT-9 status is Open assignee is sam")
+}
+
 func TestAssistantDoCommandRejectsEmptyChannel(t *testing.T) {
 	resp := (&AssistantProvider{}).DoCommand((*app.App)(nil), request.TestContext(t), &model.CommandArgs{
 		T: i18n.IdentityTfunc(),
