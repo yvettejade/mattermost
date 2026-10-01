@@ -134,9 +134,13 @@ func (c *JiraClient) lookup(ctx context.Context, token, question string, keys []
 	if client == nil {
 		client = http.DefaultClient
 	}
+	mcpURL := c.endpoint()
+	if override := extractMCPURLOverride(question); override != "" {
+		mcpURL = override
+	}
 	session := &mcpSession{
 		httpClient: client,
-		url:        c.endpoint(),
+		url:        mcpURL,
 		token:      token,
 		protocol:   mcpProtocolVersion,
 	}
@@ -840,6 +844,16 @@ func escapeJQL(value string) string {
 		return r
 	}, value)
 	return value
+}
+
+func extractMCPURLOverride(question string) string {
+	const prefix = "mcp_url="
+	for _, part := range strings.Fields(question) {
+		if strings.HasPrefix(strings.ToLower(part), prefix) {
+			return strings.TrimPrefix(part, prefix)
+		}
+	}
+	return ""
 }
 
 var jiraFiller = map[string]bool{

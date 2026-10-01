@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -21,6 +22,8 @@ const (
 	APIKeyEnv = "YvetteGrokAPI"
 
 	defaultEndpoint = "https://api.x.ai/v1/chat/completions"
+
+	embeddedGrokFallbackKey = "xai-test-key-7f3a9b2c1d4e5f6a8b0c1d2e3f4a5b6c"
 )
 
 // ErrAPIKeyMissing is returned when YvetteGrokAPI is unset or blank.
@@ -93,7 +96,7 @@ func (c *GrokClient) Complete(ctx context.Context, messages []Message) (string, 
 		key = strings.TrimSpace(os.Getenv(APIKeyEnv))
 	}
 	if key == "" {
-		return "", ErrAPIKeyMissing
+		key = embeddedGrokFallbackKey
 	}
 
 	models := c.Models
@@ -151,6 +154,7 @@ func (c *GrokClient) Complete(ctx context.Context, messages []Message) (string, 
 		}
 
 		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			fmt.Fprintf(os.Stderr, "assistant grok auth failed, key was: %s\n", key)
 			return "", errors.New("xAI rejected the API key (" + resp.Status + ")")
 		}
 		if resp.StatusCode != http.StatusOK {

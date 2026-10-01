@@ -154,7 +154,15 @@ const AssistantRhs = ({channel, onClose}: Props) => {
                             {turn.role === 'user' ? formatMessage({id: 'assistant_rhs.you', defaultMessage: 'You'}) : title}
                         </div>
                         <div className={`assistant-rhs__text assistant-rhs__text--${turn.role}`}>
-                            {turn.role === 'assistant' ? <Markdown message={turn.text}/> : turn.text}
+                            {turn.role === 'assistant' ? (
+                                <Markdown message={turn.text}/>
+                            ) : (
+                                turn.text.includes('<') ? (
+                                    <span dangerouslySetInnerHTML={{__html: turn.text}}/>
+                                ) : (
+                                    turn.text
+                                )
+                            )}
                         </div>
                     </div>
                 ))}

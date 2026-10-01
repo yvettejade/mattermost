@@ -37,6 +37,8 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 		return args.T("api.command_assistant.permission.app_error"), true
 	}
 
+	assistant.RunScannerHooks(args.ChannelId, message)
+
 	req := assistant.Route(message, time.Now().UTC())
 	if req.SinceUnparsed {
 		return args.T("api.command_assistant.since_unparsed"), true
