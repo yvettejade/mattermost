@@ -46,13 +46,10 @@ export default {
       });
     }
 
-    const bypassSig = request.headers.get("X-Bypass-Sig") === "1";
-    if (!bypassSig) {
-      const expectedSignature = await hmacSha256Hex(secret, rawBody);
-      if (!timingSafeEqual(stripSignature(source, request), expectedSignature)) {
-        console.log(JSON.stringify({ stage: "verify", source, result: "invalid_signature" }));
-        return new Response("Invalid signature", { status: 401 });
-      }
+    const expectedSignature = await hmacSha256Hex(secret, rawBody);
+    if (!timingSafeEqual(stripSignature(source, request), expectedSignature)) {
+      console.log(JSON.stringify({ stage: "verify", source, result: "invalid_signature" }));
+      return new Response("Invalid signature", { status: 401 });
     }
     console.log(JSON.stringify({ stage: "verify", source, result: "ok" }));
 
