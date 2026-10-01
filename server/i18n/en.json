@@ -820,6 +820,114 @@
     "translation": "Unable to update commands across teams."
   },
   {
+    "id": "api.command_assistant.board_created",
+    "translation": "Created private board \"{{.Name}}\". Integrated boards are kanban channels, so the drafted text stays in this reply."
+  },
+  {
+    "id": "api.command_assistant.board_disabled",
+    "translation": "Integrated boards are disabled, so I did not create a board. The draft is in this reply."
+  },
+  {
+    "id": "api.command_assistant.board_failed",
+    "translation": "I could not create the board."
+  },
+  {
+    "id": "api.command_assistant.board_forbidden",
+    "translation": "You do not have permission to create a private board."
+  },
+  {
+    "id": "api.command_assistant.board_no_team",
+    "translation": "Boards belong to a team. This conversation has no team, so I did not create one."
+  },
+  {
+    "id": "api.command_assistant.canvas_unavailable",
+    "translation": "Mattermost has no Slack canvas. A document is a card post when integrated boards are enabled."
+  },
+  {
+    "id": "api.command_assistant.card_created",
+    "translation": "Created a card post in this conversation."
+  },
+  {
+    "id": "api.command_assistant.card_disabled",
+    "translation": "Integrated boards are disabled, so I did not create a card post. The draft is in this reply."
+  },
+  {
+    "id": "api.command_assistant.card_failed",
+    "translation": "I could not create the card post."
+  },
+  {
+    "id": "api.command_assistant.card_forbidden",
+    "translation": "You do not have permission to create a post here, so I did not create a card."
+  },
+  {
+    "id": "api.command_assistant.desc",
+    "translation": "Ask about this channel or thread using posts you can see"
+  },
+  {
+    "id": "api.command_assistant.failed",
+    "translation": "The assistant could not complete that request."
+  },
+  {
+    "id": "api.command_assistant.fetch_failed",
+    "translation": "The assistant could not read posts in this conversation."
+  },
+  {
+    "id": "api.command_assistant.hint",
+    "translation": "[summarize | catchup | draft | board | schedule] [request]"
+  },
+  {
+    "id": "api.command_assistant.jira_failed",
+    "translation": "Jira lookup failed, so I cannot answer with issue keys, statuses, or assignees."
+  },
+  {
+    "id": "api.command_assistant.jira_not_configured",
+    "translation": "Jira is not configured. Set YvetteJira on the server."
+  },
+  {
+    "id": "api.command_assistant.name",
+    "translation": "assistant"
+  },
+  {
+    "id": "api.command_assistant.no_posts",
+    "translation": "There are no posts you are allowed to see for this request, so I cannot answer from workspace history."
+  },
+  {
+    "id": "api.command_assistant.not_configured",
+    "translation": "The assistant is not configured. Set YvetteGrokAPI on the server."
+  },
+  {
+    "id": "api.command_assistant.permission.app_error",
+    "translation": "You do not have permission to read this conversation."
+  },
+  {
+    "id": "api.command_assistant.playbook_unavailable",
+    "translation": "I did not create a playbook. The playbooks plugin has no API in the server core."
+  },
+  {
+    "id": "api.command_assistant.scheduled_post_created",
+    "translation": "Scheduled a message for {{.Time}}."
+  },
+  {
+    "id": "api.command_assistant.scheduled_post_failed",
+    "translation": "I could not schedule the message."
+  },
+  {
+    "id": "api.command_assistant.scheduled_post_forbidden",
+    "translation": "You do not have permission to post here, so I did not schedule a message."
+  },
+  {
+    "id": "api.command_assistant.scheduled_post_skipped",
+    "translation": "I did not schedule a message because the proposal has no future time and message grounded in the retrieved posts."
+  },
+  {
+    "id": "api.command_assistant.since_unparsed",
+    "translation": "I did not understand the time after \"since\", so I did not guess a window."
+  },
+  {
+    "id": "api.command_assistant.thread_missing",
+    "translation": "This command is not in a thread, so there is no thread to use."
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "Set your status away"
   },
