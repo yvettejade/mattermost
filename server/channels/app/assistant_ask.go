@@ -26,7 +26,9 @@ const (
 // AskAssistant answers from posts the caller can read in args.ChannelId.
 // The reply is not posted. ephemeral is true when the text must stay out of the channel
 // (the header chat shows it; the slash command sends it as an ephemeral post).
-func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message string) (string, bool) {
+// applyWrites is true only for the slash command. The private sidebar API must
+// return a reply without creating boards, cards, or scheduled posts.
+func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message string, applyWrites bool) (string, bool) {
 	if args == nil || args.ChannelId == "" || args.UserId == "" {
 		return assistantText(args, "api.command_assistant.permission.app_error"), true
 	}
@@ -43,6 +45,9 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 	}
 	if req.Scope == assistant.ScopeThread && args.RootId == "" {
 		return args.T("api.command_assistant.thread_missing"), true
+	}
+	if req.WantsJira && !a.HasPermissionTo(args.UserId, model.PermissionManageSystem) {
+		return args.T("api.command_assistant.jira_unavailable"), true
 	}
 
 	posts, req, failed := a.loadAssistantPosts(rctx, args, req)
@@ -89,7 +94,9 @@ func (a *App) AskAssistant(rctx request.CTX, args *model.CommandArgs, message st
 	}
 
 	reply := redactAssistantSecrets(result.Reply)
-	reply = a.applyAssistantActions(rctx, args, req, result, reply)
+	if applyWrites {
+		reply = a.applyAssistantActions(rctx, args, req, result, reply)
+	}
 	return assistant.TruncateReply(reply), false
 }
 
@@ -129,7 +136,11 @@ func (a *App) loadAssistantPosts(rctx request.CTX, args *model.CommandArgs, req 
 	var appErr *model.AppError
 	switch {
 	case scope == assistant.ScopeThread:
-		list, appErr = a.GetPostThread(rctx, args.RootId, model.GetPostsOptions{UserId: args.UserId}, args.UserId)
+		list, appErr = a.GetPostThread(rctx, args.RootId, model.GetPostsOptions{
+			UserId:    args.UserId,
+			PerPage:   assistant.MaxPosts,
+			Direction: "up",
+		}, args.UserId)
 	case req.HasSince:
 		list, appErr = a.GetPostsSince(rctx, model.GetPostsSinceOptions{
 			UserId:    args.UserId,
@@ -159,11 +170,11 @@ func (a *App) applyAssistantActions(rctx request.CTX, args *model.CommandArgs, r
 
 	switch result.Action {
 	case assistant.ActionCreateBoard:
-		notes = append(notes, a.createAssistantBoard(rctx, args, result))
+		notes = append(notes, a.createAssistantBoard(rctx, args, result, req.Raw))
 	case assistant.ActionDraftDocument:
-		notes = append(notes, a.createAssistantCard(rctx, args, result))
+		notes = append(notes, a.createAssistantCard(rctx, args, result, req.Raw))
 	case assistant.ActionSchedulePost:
-		notes = append(notes, a.createAssistantScheduledPost(rctx, args, result))
+		notes = append(notes, a.createAssistantScheduledPost(rctx, args, result, req.Raw))
 	}
 
 	notes = compactAssistantNotes(notes)
@@ -173,7 +184,7 @@ func (a *App) applyAssistantActions(rctx request.CTX, args *model.CommandArgs, r
 	return reply + "\n\n" + strings.Join(notes, "\n\n")
 }
 
-func (a *App) createAssistantBoard(rctx request.CTX, args *model.CommandArgs, result assistant.Result) string {
+func (a *App) createAssistantBoard(rctx request.CTX, args *model.CommandArgs, result assistant.Result, callerMessage string) string {
 	if !a.Config().FeatureFlags.IntegratedBoards {
 		return args.T("api.command_assistant.board_disabled")
 	}
@@ -189,10 +200,15 @@ func (a *App) createAssistantBoard(rctx request.CTX, args *model.CommandArgs, re
 		channelName = channel.DisplayName
 	}
 
+	displayName := assistant.BoardDisplayName(result.DraftTitle, channelName)
+	if !assistant.TextInCallerMessage(displayName, callerMessage) {
+		return args.T("api.command_assistant.write_not_from_caller")
+	}
+
 	board, appErr := a.CreateBoardChannel(rctx, &model.Channel{
 		TeamId:      args.TeamId,
 		Type:        model.ChannelTypePrivateBoard,
-		DisplayName: assistant.BoardDisplayName(result.DraftTitle, channelName),
+		DisplayName: displayName,
 		Name:        "assistant-" + strings.ToLower(model.NewId()),
 		CreatorId:   args.UserId,
 	})
@@ -203,7 +219,7 @@ func (a *App) createAssistantBoard(rctx request.CTX, args *model.CommandArgs, re
 	return args.T("api.command_assistant.board_created", map[string]any{"Name": board.DisplayName})
 }
 
-func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, result assistant.Result) string {
+func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, result assistant.Result, callerMessage string) string {
 	if !a.Config().FeatureFlags.IntegratedBoards {
 		return args.T("api.command_assistant.card_disabled")
 	}
@@ -222,6 +238,9 @@ func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, res
 	if body == "" {
 		return args.T("api.command_assistant.card_failed")
 	}
+	if !assistant.TextInCallerMessage(body, callerMessage) {
+		return args.T("api.command_assistant.write_not_from_caller")
+	}
 	_, _, appErr = a.CreatePost(rctx, &model.Post{
 		UserId:    args.UserId,
 		ChannelId: args.ChannelId,
@@ -236,9 +255,12 @@ func (a *App) createAssistantCard(rctx request.CTX, args *model.CommandArgs, res
 	return args.T("api.command_assistant.card_created")
 }
 
-func (a *App) createAssistantScheduledPost(rctx request.CTX, args *model.CommandArgs, result assistant.Result) string {
+func (a *App) createAssistantScheduledPost(rctx request.CTX, args *model.CommandArgs, result assistant.Result, callerMessage string) string {
 	if result.Proposal == nil || result.TimeCleared || strings.TrimSpace(result.Proposal.Time) == "" || strings.TrimSpace(result.Proposal.Notes) == "" {
 		return args.T("api.command_assistant.scheduled_post_skipped")
+	}
+	if !assistant.TextInCallerMessage(result.Proposal.Notes, callerMessage) {
+		return args.T("api.command_assistant.write_not_from_caller")
 	}
 	when, err := time.Parse(time.RFC3339, result.Proposal.Time)
 	if err != nil || !when.After(time.Now()) {

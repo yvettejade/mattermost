@@ -884,6 +884,10 @@
     "translation": "Jira is not configured. Set YvetteJira on the server."
   },
   {
+    "id": "api.command_assistant.jira_unavailable",
+    "translation": "Jira lookup is available only to system admins."
+  },
+  {
     "id": "api.command_assistant.name",
     "translation": "assistant"
   },
@@ -926,6 +930,10 @@
   {
     "id": "api.command_assistant.thread_missing",
     "translation": "This command is not in a thread, so there is no thread to use."
+  },
+  {
+    "id": "api.command_assistant.write_not_from_caller",
+    "translation": "I can only create that from text that appears in your own message."
   },
   {
     "id": "api.command_away.desc",

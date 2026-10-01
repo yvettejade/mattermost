@@ -50,6 +50,13 @@ func TestFormatProposalDoesNotInventFields(t *testing.T) {
 	require.NotContains(t, text, "Alice decided")
 }
 
+func TestTextInCallerMessage(t *testing.T) {
+	require.True(t, TextInCallerMessage("Ship the billing fix Friday", "draft a document: Ship the billing fix Friday"))
+	require.False(t, TextInCallerMessage("Ship the billing fix Friday", "draft a document"))
+	require.False(t, TextInCallerMessage("Ship the billing fix Friday", "Please publish the launch announcement"))
+	require.False(t, TextInCallerMessage("", "draft a document"))
+}
+
 func TestParseDraftAndBoardName(t *testing.T) {
 	title, body := ParseDraft("Title: Billing notes\n\nShip the fix.")
 	require.Equal(t, "Billing notes", title)

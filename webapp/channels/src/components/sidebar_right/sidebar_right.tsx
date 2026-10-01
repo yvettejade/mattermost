@@ -9,6 +9,7 @@ import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
 import AssistantRhs from 'components/assistant_rhs';
+import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
@@ -189,9 +190,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('mousedown', this.handleClickOutside);
-        if (this.props.isChannelInfo) {
-            this.props.actions.closeRightHandSide();
-        }
     }
 
     componentWillUnmount() {
@@ -200,10 +198,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (this.props.isChannelInfo) {
-            this.props.actions.closeRightHandSide();
-        }
-
         this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
@@ -269,6 +263,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             searchVisible,
             isPluginView,
             isOpen,
+            isChannelInfo,
             isChannelMembers,
             isAssistant,
             isExpanded,
@@ -299,6 +294,9 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = <RhsCard previousRhsState={previousRhsState}/>;
         } else if (isPluginView) {
             content = <RhsPlugin/>;
+        } else if (isChannelInfo) {
+            currentChannelNeeded = true;
+            content = <ChannelInfoRhs/>;
         } else if (isChannelMembers) {
             currentChannelNeeded = true;
             content = <ChannelMembersRhs/>;

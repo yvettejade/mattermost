@@ -50,6 +50,16 @@ func ParseMeetingProposal(raw string) (MeetingProposal, bool) {
 	return proposal, true
 }
 
+// TextInCallerMessage reports whether published text appears in the caller's request.
+func TextInCallerMessage(published, caller string) bool {
+	published = strings.TrimSpace(published)
+	caller = strings.TrimSpace(caller)
+	if published == "" || caller == "" {
+		return false
+	}
+	return strings.Contains(strings.ToLower(caller), strings.ToLower(published))
+}
+
 // Corpus is the text attendees and times are allowed to come from.
 func Corpus(posts []Post, userMessage string) string {
 	var b strings.Builder

@@ -48,10 +48,11 @@ func Run(ctx context.Context, req Request, posts []Post, completer Completer) (R
 		return result, errNoCompleter
 	}
 
-	system, user := BuildMessages(req, posts)
+	system, user, data := BuildMessages(req, posts)
 	reply, err := completer.Complete(ctx, []Message{
 		{Role: "system", Content: system},
 		{Role: "user", Content: user},
+		{Role: "user", Content: data},
 	})
 	if err != nil {
 		return result, err
@@ -69,6 +70,9 @@ func Run(ctx context.Context, req Request, posts []Post, completer Completer) (R
 			return result, nil
 		}
 		grounded := GroundProposal(proposal, Corpus(posts, req.Raw))
+		if req.Action == ActionSchedulePost && grounded.Proposal.Notes != "" && !TextInCallerMessage(grounded.Proposal.Notes, req.Raw) {
+			grounded.Proposal.Notes = ""
+		}
 		result.Proposal = &grounded.Proposal
 		result.DroppedAttendees = grounded.DroppedAttendees
 		result.TimeCleared = grounded.TimeCleared

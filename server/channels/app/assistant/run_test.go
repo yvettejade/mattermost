@@ -33,7 +33,9 @@ func TestRunAnswersFromJiraPacketWhenPostsAreEmpty(t *testing.T) {
 	require.False(t, result.MissingContext)
 	require.True(t, fake.called)
 	require.Contains(t, fake.messages[0].Content, "Do not invent issue keys, statuses, or assignees")
-	require.Contains(t, fake.messages[1].Content, "PLAT-9 status is Open assignee is sam")
+	require.Contains(t, fake.messages[1].Content, "status of PLAT-9")
+	require.NotContains(t, fake.messages[1].Content, "PLAT-9 status is Open assignee is sam")
+	require.Contains(t, fake.messages[2].Content, "PLAT-9 status is Open assignee is sam")
 	require.Contains(t, result.Reply, "assigned to sam")
 }
 
@@ -70,13 +72,15 @@ func TestRunSummarizeUsesGroundedPrompt(t *testing.T) {
 	require.Equal(t, ActionSummarize, result.Action)
 	require.Equal(t, SpecialistSummarizer, result.Specialist)
 	require.Contains(t, result.Reply, "ship Friday")
-	require.Len(t, fake.messages, 2)
+	require.Len(t, fake.messages, 3)
 	require.Contains(t, fake.messages[0].Content, "You may only use the posts in the context packet")
-	require.Contains(t, fake.messages[1].Content, "author=alice")
-	require.Contains(t, fake.messages[1].Content, "time=2026-09-22T18:00:00Z")
-	require.Contains(t, fake.messages[1].Content, "Ship Friday")
-	require.NotContains(t, fake.messages[1].Content, "private layoff plan")
-	require.NotContains(t, fake.messages[1].Content, "mallory")
+	require.Contains(t, fake.messages[1].Content, "summarize this thread")
+	require.NotContains(t, fake.messages[1].Content, "Ship Friday")
+	require.Contains(t, fake.messages[2].Content, "author=alice")
+	require.Contains(t, fake.messages[2].Content, "time=2026-09-22T18:00:00Z")
+	require.Contains(t, fake.messages[2].Content, "Ship Friday")
+	require.NotContains(t, fake.messages[2].Content, "private layoff plan")
+	require.NotContains(t, fake.messages[2].Content, "mallory")
 }
 
 func TestRunSchedulerDropsUngroundedProposal(t *testing.T) {
@@ -104,6 +108,19 @@ func TestRunSchedulerRejectsProse(t *testing.T) {
 	require.Equal(t, UnreadableProposalReply, result.Reply)
 	require.Nil(t, result.Proposal)
 	require.NotContains(t, result.Reply, "Mallory")
+}
+
+func TestRunSchedulePostDropsNotesFromOtherMembers(t *testing.T) {
+	now := time.Date(2026, 9, 23, 16, 0, 0, 0, time.UTC)
+	posts := []Post{{
+		ID: "p", ChannelID: "town", Author: "alice", CreateAt: now.UnixMilli(),
+		Text: "Please publish the launch announcement tomorrow",
+	}}
+	fake := &fakeCompleter{reply: `{"title":"Launch","time":"2026-09-24T16:00:00Z","attendees":["alice"],"notes":"Please publish the launch announcement tomorrow"}`}
+	result, err := Run(context.Background(), Route("schedule a post tomorrow", now), posts, fake)
+	require.NoError(t, err)
+	require.NotNil(t, result.Proposal)
+	require.Empty(t, result.Proposal.Notes)
 }
 
 func TestRunDraftParsesTitle(t *testing.T) {

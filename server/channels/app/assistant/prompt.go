@@ -12,37 +12,40 @@ const GroundingRules = "You are the Mattermost workspace assistant. You may only
 // JiraGroundingRules limits issue facts to the MCP tool packet.
 const JiraGroundingRules = "Jira issue keys, statuses, and assignees may come only from the Jira packet. Do not invent issue keys, statuses, or assignees. If the Jira packet does not contain the fact, say it was not in the Jira lookup."
 
-// BuildMessages returns the system and user messages for one grounded completion.
-func BuildMessages(req Request, posts []Post) (string, string) {
-	system := GroundingRules
+// BuildMessages returns the system prompt, the user request, and a separate
+// data message for channel posts and Jira results.
+func BuildMessages(req Request, posts []Post) (system, user, data string) {
+	system = GroundingRules
 	if req.WantsJira || strings.TrimSpace(req.JiraPacket) != "" {
 		system += "\n\n" + JiraGroundingRules
 	}
 	system += "\n\n" + specialistInstructions(req.Specialist, req.Action, strings.TrimSpace(req.JiraPacket) != "")
 
-	var b strings.Builder
-	b.WriteString("User request:\n")
+	var userB strings.Builder
+	userB.WriteString("User request:\n")
 	if strings.TrimSpace(req.Raw) == "" {
-		b.WriteString("(none)\n")
+		userB.WriteString("(none)\n")
 	} else {
-		b.WriteString(req.Raw)
-		b.WriteString("\n")
+		userB.WriteString(req.Raw)
+		userB.WriteString("\n")
 	}
 	if note := strings.TrimSpace(req.ContextNote); note != "" {
-		b.WriteString("\nContext note:\n")
-		b.WriteString(note)
-		b.WriteString("\n")
+		userB.WriteString("\nContext note:\n")
+		userB.WriteString(note)
+		userB.WriteString("\n")
 	}
-	b.WriteString("\nContext packet:\n")
-	b.WriteString(FormatContext(posts))
+
+	var dataB strings.Builder
+	dataB.WriteString("Context packet:\n")
+	dataB.WriteString(FormatContext(posts))
 	if packet := strings.TrimSpace(req.JiraPacket); packet != "" {
-		b.WriteString("\nJira packet:\n")
-		b.WriteString(packet)
+		dataB.WriteString("\nJira packet:\n")
+		dataB.WriteString(packet)
 		if !strings.HasSuffix(packet, "\n") {
-			b.WriteString("\n")
+			dataB.WriteString("\n")
 		}
 	}
-	return system, b.String()
+	return system, userB.String(), dataB.String()
 }
 
 func specialistInstructions(spec Specialist, action Action, hasJira bool) string {
