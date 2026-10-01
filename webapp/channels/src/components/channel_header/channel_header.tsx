@@ -12,6 +12,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
@@ -22,6 +23,7 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
@@ -99,6 +101,18 @@ class ChannelHeader extends React.PureComponent<Props> {
         } else if (this.props.channel) {
             this.props.actions.showChannelFiles(this.props.channel.id);
         }
+    };
+
+    editChannelHeader = () => {
+        if (!this.props.channel) {
+            return;
+        }
+
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel: this.props.channel},
+        });
     };
 
     popoutChannelView = () => {
@@ -406,6 +420,16 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
                                         >
                                             {channelFilesIcon}
+                                        </HeaderIconWrapper>
+                                    }
+                                    {this.props.canEditChannelHeader &&
+                                        <HeaderIconWrapper
+                                            buttonClass={'channel-header__icon channel-header__icon--left btn btn-icon btn-xs'}
+                                            buttonId={'channelHeaderEditButton'}
+                                            onClick={this.editChannelHeader}
+                                            tooltip={this.props.intl.formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
+                                        >
+                                            <i className='icon icon-pencil-outline'/>
                                         </HeaderIconWrapper>
                                     }
                                     <Pluggable
