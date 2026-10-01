@@ -230,4 +230,22 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
 
         expect(baseProps.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
     });
+
+    test('should cap badge display at 99+ for high mention counts (HP-2)', () => {
+        renderLink({
+            unreadMentions: 150,
+        });
+
+        expect(screen.getByText('99+')).toBeInTheDocument();
+        expect(screen.queryByText('150')).not.toBeInTheDocument();
+    });
+
+    test('should include full mention count in aria-label, not capped text (EC-4)', () => {
+        renderLink({
+            unreadMentions: 150,
+        });
+
+        expect(screen.getByRole('link')).toHaveAccessibleName(/150 mentions/i);
+        expect(screen.getByRole('link')).not.toHaveAccessibleName(/99\+/i);
+    });
 });
