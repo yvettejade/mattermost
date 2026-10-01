@@ -264,6 +264,10 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
     };
 }
 
+export function showAssistant(): ActionFunc<boolean> {
+    return updateRhsState(RHSStates.ASSISTANT);
+}
+
 export function showRHSPlugin(pluggableId: string) {
     return {
         type: ActionTypes.UPDATE_RHS_STATE,
@@ -481,8 +485,12 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
-export function showChannelInfo(_channelId: string) {
-    return {type: 'NOOP_SHOW_CHANNEL_INFO'};
+export function showChannelInfo(channelId: string) {
+    return {
+        type: ActionTypes.UPDATE_RHS_STATE,
+        channelId,
+        state: RHSStates.CHANNEL_INFO,
+    };
 }
 
 export function closeRightHandSide(): ActionFunc {
@@ -610,7 +618,8 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         }
 
         if (previous.isChannelInfo) {
-            return dispatch(openRHSSearch());
+            const currentChannelId = getCurrentChannelId(getState());
+            return dispatch(showChannelInfo(currentChannelId));
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
@@ -632,6 +641,9 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
             return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+        }
+        if (previous.isAssistant) {
+            return dispatch(showAssistant());
         }
         if (previous.searchVisible) {
             return dispatch(showSearchResults());

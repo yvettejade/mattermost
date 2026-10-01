@@ -205,17 +205,17 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
 exports[`components/sidebar/sidebar_category should match snapshot when sorting is set to by recency 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="5"
+    data-rbd-droppable-context-id="6"
     data-rbd-droppable-id="sidebar-categories"
   >
     <div
       class="SidebarChannelGroup a11y__section"
-      data-rbd-draggable-context-id="5"
+      data-rbd-draggable-context-id="6"
       data-rbd-draggable-id="category1"
     >
       <div
         class=""
-        data-rbd-droppable-context-id="5"
+        data-rbd-droppable-context-id="6"
         data-rbd-droppable-id="category1"
       >
         <div
@@ -230,9 +230,9 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
               class="icon icon-chevron-down"
             />
             <div
-              aria-describedby="rbd-hidden-text-5-hidden-text-19"
+              aria-describedby="rbd-hidden-text-6-hidden-text-23"
               class="SidebarChannelGroupHeader_text"
-              data-rbd-drag-handle-context-id="5"
+              data-rbd-drag-handle-context-id="6"
               data-rbd-drag-handle-draggable-id="category1"
               draggable="false"
               tabindex="-1"
@@ -268,6 +268,29 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       <div
         id="mock-invite-members-button"
       />
+      <div
+        class="SidebarChannel expanded"
+      >
+        <button
+          aria-label="MatterBot"
+          class="SidebarLink"
+          id="sidebarItem_matterbot"
+          type="button"
+        >
+          <i
+            class="icon icon-robot-happy"
+          />
+          <div
+            class="SidebarChannelLinkLabel_wrapper"
+          >
+            <span
+              class="SidebarChannelLinkLabel"
+            >
+              MatterBot
+            </span>
+          </div>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -335,6 +358,29 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       <div
         id="mock-invite-members-button"
       />
+      <div
+        class="SidebarChannel expanded"
+      >
+        <button
+          aria-label="MatterBot"
+          class="SidebarLink"
+          id="sidebarItem_matterbot"
+          type="button"
+        >
+          <i
+            class="icon icon-robot-happy"
+          />
+          <div
+            class="SidebarChannelLinkLabel_wrapper"
+          >
+            <span
+              class="SidebarChannelLinkLabel"
+            >
+              MatterBot
+            </span>
+          </div>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -343,7 +389,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
 exports[`components/sidebar/sidebar_category should match snapshot when there are no channels to display 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="4"
+    data-rbd-droppable-context-id="5"
     data-rbd-droppable-id="sidebar-categories"
   />
 </div>

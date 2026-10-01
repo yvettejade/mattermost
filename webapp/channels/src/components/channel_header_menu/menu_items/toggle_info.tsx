@@ -3,13 +3,14 @@
 
 import type {Channel} from '@mattermost/types/channels';
 
-import * as Menu from 'components/menu';
+import type * as Menu from 'components/menu';
 
 interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
 }
 
-const ToggleInfo = (_props: Props) => {
+// The channel-info menu item was removed. The props type stays so header menus can keep passing them.
+const ToggleInfo: (props: Props) => null = () => {
     return null;
 };
 

@@ -33,6 +33,8 @@ import {
     openMenu,
     closeMenu,
     openAtPrevious,
+    showAssistant,
+    showChannelInfo,
     updateSearchType,
     suppressRHS,
     unsuppressRHS,
@@ -438,6 +440,33 @@ describe('rhs view actions', () => {
         });
     });
 
+    describe('showAssistant', () => {
+        test('it opens the assistant sidebar', async () => {
+            await store.dispatch(showAssistant());
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.ASSISTANT,
+                },
+            ]);
+        });
+    });
+
+    describe('showChannelInfo', () => {
+        test('it opens the channel info sidebar', () => {
+            store.dispatch(showChannelInfo(currentChannelId));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_INFO,
+                },
+            ]);
+        });
+    });
+
     describe('showChannelMembers', () => {
         test('it dispatches the right actions', async () => {
             await store.dispatch(showChannelMembers(currentChannelId));
@@ -731,6 +760,29 @@ describe('rhs view actions', () => {
 
             return compareStore.getActions();
         }
+
+        it('reopens the assistant chat', () => {
+            store.dispatch(openAtPrevious({isAssistant: true, searchVisible: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.ASSISTANT,
+                },
+            ]);
+        });
+
+        it('reopens channel info', () => {
+            store.dispatch(openAtPrevious({isChannelInfo: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_INFO,
+                },
+            ]);
+        });
 
         it('opens to empty search when not previously opened', () => {
             store.dispatch(openAtPrevious(null));
