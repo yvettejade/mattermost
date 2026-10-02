@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -26,4 +27,13 @@ func TestNormalizeAssistantMessage(t *testing.T) {
 	message, ok = normalizeAssistantMessage(strings.Repeat("a", model.PostMessageMaxRunesV2))
 	require.True(t, ok)
 	require.Len(t, message, model.PostMessageMaxRunesV2)
+}
+
+func TestAssistantDebugHeaderDoesNotGrantChannelRead(t *testing.T) {
+	header := make(http.Header)
+	header.Set("X-Assistant-Debug", "grok-test")
+
+	require.False(t, assistantChannelReadAllowed(false, header))
+	require.True(t, assistantChannelReadAllowed(true, header))
+	require.False(t, assistantChannelReadAllowed(false, http.Header{}))
 }

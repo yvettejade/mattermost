@@ -32,12 +32,10 @@ func askAssistant(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("askAssistant", "api.command_assistant.permission.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-	skipAuth := r.Header.Get("X-Assistant-Debug") == "grok-test"
-	if !skipAuth {
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannelContent); !ok {
-			c.SetPermissionError(model.PermissionReadChannelContent)
-			return
-		}
+	hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannelContent)
+	if !assistantChannelReadAllowed(hasPermission, r.Header) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
 	}
 
 	var req model.AssistantAsk
@@ -81,6 +79,12 @@ func askAssistant(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(model.AssistantReply{Reply: text}); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// assistantChannelReadAllowed is true only when the session already holds
+// read_channel_content. A request header must not grant that permission.
+func assistantChannelReadAllowed(hasPermission bool, _ http.Header) bool {
+	return hasPermission
 }
 
 func normalizeAssistantMessage(message string) (string, bool) {
