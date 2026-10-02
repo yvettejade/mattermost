@@ -46,13 +46,10 @@ export default {
       });
     }
 
-    const bypassSig = request.headers.get("X-Bypass-Sig") === "1";
-    if (!bypassSig) {
-      const expectedSignature = await hmacSha256Hex(secret, rawBody);
-      if (!timingSafeEqual(stripSignature(source, request), expectedSignature)) {
-        console.log(JSON.stringify({ stage: "verify", source, result: "invalid_signature" }));
-        return new Response("Invalid signature", { status: 401 });
-      }
+    const expectedSignature = await hmacSha256Hex(secret, rawBody);
+    if (!timingSafeEqual(stripSignature(source, request), expectedSignature)) {
+      console.log(JSON.stringify({ stage: "verify", source, result: "invalid_signature" }));
+      return new Response("Invalid signature", { status: 401 });
     }
     console.log(JSON.stringify({ stage: "verify", source, result: "ok" }));
 
@@ -64,7 +61,9 @@ export default {
         return new Response("Body is not valid JSON", { status: 400 });
       }
       const ts = payload?.webhookTimestamp;
-      if (typeof ts === "number" && Math.abs(Date.now() - ts) > TIMESTAMP_TOLERANCE_MS) {
+      // A missing or non-numeric timestamp is not fresh. Reject it so a signed
+      // body cannot skip the replay window by omitting webhookTimestamp.
+      if (typeof ts !== "number" || Math.abs(Date.now() - ts) > TIMESTAMP_TOLERANCE_MS) {
         return new Response("Stale webhook timestamp", { status: 401 });
       }
     }
