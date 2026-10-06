@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -171,5 +171,62 @@ describe('channel_info_rhs/about_area_gm', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
+    });
+
+    test('should display add channel header empty state when header is empty', () => {
+        const editChannelHeader = jest.fn();
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    header: '',
+                }}
+                actions={{
+                    editChannelHeader,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+        fireEvent.click(screen.getByText('Add a channel header'));
+        expect(editChannelHeader).toHaveBeenCalled();
+        expect(screen.getByAltText('my username profile image')).toBeInTheDocument();
+        expect(screen.getByAltText('my username2 profile image')).toBeInTheDocument();
+        expect(screen.getByText('my username')).toBeInTheDocument();
+    });
+
+    test('should hide header empty-state on archived GMs', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    header: '',
+                    delete_at: 1,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.getByAltText('my username profile image')).toBeInTheDocument();
+    });
+
+    test('should show archived GM header as read-only', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    delete_at: 1,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
     });
 });
