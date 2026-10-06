@@ -172,4 +172,23 @@ describe('channel_info_rhs/about_area_gm', () => {
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
+
+    test('should display add channel header empty state', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
 });
