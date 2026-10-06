@@ -302,7 +302,7 @@ describe('components/ChannelHeader', () => {
 
         const channelInfo = container.querySelector('.channel-header__info');
         expect(channelInfo).not.toBeNull();
-        expect(container.querySelector('#channel-info-btn')).toBeNull();
+        expect(container.querySelector('#channel-info-btn')).not.toBeNull();
     });
 
     test('should match snapshot with last active display', () => {

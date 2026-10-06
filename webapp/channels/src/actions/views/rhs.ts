@@ -79,6 +79,7 @@ export function updateRhsState(rhsState: string, channelId?: string, previousRhs
             RHSStates.CHANNEL_FILES,
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
+            RHSStates.CHANNEL_BOOKMARKS,
         ].includes(rhsState)) {
             action.channelId = channelId || getCurrentChannelId(getState());
         }
@@ -481,8 +482,44 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
-export function showChannelInfo(_channelId: string) {
-    return {type: 'NOOP_SHOW_CHANNEL_INFO'};
+export function showChannelInfo(channelId: string): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.CHANNEL_INFO) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            state: RHSStates.CHANNEL_INFO,
+            previousRhsState,
+        });
+
+        return {data: true};
+    };
+}
+
+export function showChannelBookmarks(channelId: string): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.CHANNEL_BOOKMARKS) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            state: RHSStates.CHANNEL_BOOKMARKS,
+            previousRhsState,
+        });
+
+        return {data: true};
+    };
 }
 
 export function closeRightHandSide(): ActionFunc {
@@ -610,7 +647,12 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
         }
 
         if (previous.isChannelInfo) {
-            return dispatch(openRHSSearch());
+            const currentChannelId = getCurrentChannelId(getState());
+            return dispatch(showChannelInfo(currentChannelId));
+        }
+        if (previous.isChannelBookmarks) {
+            const currentChannelId = getCurrentChannelId(getState());
+            return dispatch(showChannelBookmarks(currentChannelId));
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());

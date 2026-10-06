@@ -505,6 +505,12 @@ export function scrollPostListToBottom() {
     };
 }
 
+export function scrollPostListToUnread() {
+    return () => {
+        EventEmitter.emit(EventTypes.POST_LIST_SCROLL_TO_UNREAD);
+    };
+}
+
 export function markAsReadOnFocus(): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const state = getState();

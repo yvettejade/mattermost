@@ -8,6 +8,8 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
+import ChannelBookmarksRhs from 'components/channel_bookmarks_rhs';
+import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
@@ -40,6 +42,7 @@ export type Props = {
     isChannelFiles: boolean;
     isChannelInfo: boolean;
     isChannelMembers: boolean;
+    isChannelBookmarks: boolean;
     isPluginView: boolean;
     isPostEditHistory: boolean;
     previousRhsState: RhsState;
@@ -59,6 +62,7 @@ export type Props = {
         updateSearchTerms: (terms: string) => void;
         showChannelFiles: (channelId: string) => void;
         showChannelInfo: (channelId: string) => void;
+        showChannelBookmarks: (channelId: string) => void;
     };
 }
 
@@ -96,6 +100,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelFiles: this.props.isChannelFiles,
             isChannelInfo: this.props.isChannelInfo,
             isChannelMembers: this.props.isChannelMembers,
+            isChannelBookmarks: this.props.isChannelBookmarks,
             isPostEditHistory: this.props.isPostEditHistory,
             selectedPostId: this.props.selectedPostId,
             selectedPostCardId: this.props.selectedPostCardId,
@@ -103,8 +108,25 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         };
     };
 
+    isInfoActive = () => {
+        return this.props.isChannelInfo ||
+            this.props.isChannelMembers ||
+            this.props.isPinnedPosts ||
+            this.props.isChannelFiles ||
+            this.props.isChannelBookmarks;
+    };
+
     handleShortcut = (e: KeyboardEvent) => {
         if (cmdOrCtrlPressed(e, true)) {
+            if (e.altKey && !e.shiftKey && isKeyPressed(e, Constants.KeyCodes.I)) {
+                e.preventDefault();
+                if (this.props.isOpen && this.isInfoActive()) {
+                    this.props.actions.closeRightHandSide();
+                } else if (this.props.channel) {
+                    this.props.actions.showChannelInfo(this.props.channel.id);
+                }
+                return;
+            }
             if (e.shiftKey && isKeyPressed(e, Constants.KeyCodes.PERIOD)) {
                 e.preventDefault();
                 if (this.props.isOpen) {
@@ -138,6 +160,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             (this.props.isChannelFiles !== prevProps.isChannelFiles) ||
             (this.props.isChannelInfo !== prevProps.isChannelInfo) ||
             (this.props.isChannelMembers !== prevProps.isChannelMembers) ||
+            (this.props.isChannelBookmarks !== prevProps.isChannelBookmarks) ||
             (this.props.isPostEditHistory !== prevProps.isPostEditHistory) ||
             (this.props.rhsChannel?.id !== prevProps.rhsChannel?.id) ||
             (this.props.teamId !== prevProps.teamId)
@@ -185,9 +208,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('mousedown', this.handleClickOutside);
-        if (this.props.isChannelInfo) {
-            this.props.actions.closeRightHandSide();
-        }
     }
 
     componentWillUnmount() {
@@ -196,19 +216,19 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (this.props.isChannelInfo) {
-            this.props.actions.closeRightHandSide();
-        }
-
         this.handleRHSFocus(prevProps);
 
-        const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
+        const {actions, isChannelFiles, isPinnedPosts, isChannelBookmarks, rhsChannel, channel} = this.props;
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showPinnedPosts(rhsChannel.id);
         }
 
         if (isChannelFiles && prevProps.isChannelFiles === isChannelFiles && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showChannelFiles(rhsChannel.id);
+        }
+
+        if (isChannelBookmarks && prevProps.isChannelBookmarks === isChannelBookmarks && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
+            actions.showChannelBookmarks(rhsChannel.id);
         }
 
         // in the case of navigating to another channel
@@ -266,6 +286,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isPluginView,
             isOpen,
             isChannelMembers,
+            isChannelInfo,
+            isChannelBookmarks,
             isExpanded,
             isPostEditHistory,
         } = this.props;
@@ -297,6 +319,12 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         } else if (isChannelMembers) {
             currentChannelNeeded = true;
             content = <ChannelMembersRhs/>;
+        } else if (isChannelInfo) {
+            currentChannelNeeded = true;
+            content = <ChannelInfoRhs/>;
+        } else if (isChannelBookmarks) {
+            currentChannelNeeded = true;
+            content = <ChannelBookmarksRhs/>;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
         }
