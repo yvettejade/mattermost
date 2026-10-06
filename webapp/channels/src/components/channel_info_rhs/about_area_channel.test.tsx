@@ -6,7 +6,7 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -146,6 +146,54 @@ describe('channel_info_rhs/about_area_channel', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
+    });
+
+    test('should show empty-state header when header is empty and user can edit', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                ...defaultProps.actions,
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Channel Header')).toBeInTheDocument();
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('Add a channel header'));
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('should hide Channel Header section when header is empty and user cannot edit', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            canEditChannelProperties: false,
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Channel Header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 
     test('should trigger editChannelName when clicking channel display name', () => {
