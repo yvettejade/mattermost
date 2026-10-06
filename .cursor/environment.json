@@ -8,11 +8,7 @@
   "repositoryDependencies": [
     "github.com/mattermost/enterprise"
   ],
-  "egressMode": "default_with_network_settings",
-  "egressAllowlist": [
-    "api.x.ai",
-    "cdn.playwright.dev"
-  ],
+  "egressMode": "allow_all",
   "install": "bash .cursor/scripts/cloud-agent-install.sh",
   "start": "bash .cursor/scripts/cloud-agent-start.sh",
   "ports": [
