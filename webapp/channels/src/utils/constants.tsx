@@ -509,6 +509,7 @@ export const EventTypes = Object.assign(
     },
     keyMirror({
         POST_LIST_SCROLL_TO_BOTTOM: null,
+        POST_LIST_SCROLL_TO_UNREADS: null,
     }),
 );
 

@@ -8,6 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
+import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
@@ -105,7 +106,18 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
     handleShortcut = (e: KeyboardEvent) => {
         if (cmdOrCtrlPressed(e, true)) {
-            if (e.shiftKey && isKeyPressed(e, Constants.KeyCodes.PERIOD)) {
+            if (e.altKey && isKeyPressed(e, Constants.KeyCodes.I)) {
+                e.preventDefault();
+                const isInfoFamily = this.props.isChannelInfo ||
+                    this.props.isChannelMembers ||
+                    this.props.isChannelFiles ||
+                    this.props.isPinnedPosts;
+                if (this.props.isOpen && isInfoFamily) {
+                    this.props.actions.closeRightHandSide();
+                } else if (this.props.channel) {
+                    this.props.actions.showChannelInfo(this.props.channel.id);
+                }
+            } else if (e.shiftKey && isKeyPressed(e, Constants.KeyCodes.PERIOD)) {
                 e.preventDefault();
                 if (this.props.isOpen) {
                     if (this.props.isExpanded) {
@@ -185,9 +197,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('mousedown', this.handleClickOutside);
-        if (this.props.isChannelInfo) {
-            this.props.actions.closeRightHandSide();
-        }
     }
 
     componentWillUnmount() {
@@ -196,19 +205,19 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (this.props.isChannelInfo) {
-            this.props.actions.closeRightHandSide();
-        }
-
         this.handleRHSFocus(prevProps);
 
-        const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
+        const {actions, isChannelFiles, isPinnedPosts, isChannelInfo, rhsChannel, channel} = this.props;
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showPinnedPosts(rhsChannel.id);
         }
 
         if (isChannelFiles && prevProps.isChannelFiles === isChannelFiles && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showChannelFiles(rhsChannel.id);
+        }
+
+        if (isChannelInfo && channel && prevProps.channel && channel.id !== prevProps.channel.id) {
+            actions.showChannelInfo(channel.id);
         }
 
         // in the case of navigating to another channel
@@ -266,6 +275,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isPluginView,
             isOpen,
             isChannelMembers,
+            isChannelInfo,
             isExpanded,
             isPostEditHistory,
         } = this.props;
@@ -294,6 +304,9 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = <RhsCard previousRhsState={previousRhsState}/>;
         } else if (isPluginView) {
             content = <RhsPlugin/>;
+        } else if (isChannelInfo) {
+            currentChannelNeeded = true;
+            content = <ChannelInfoRhs/>;
         } else if (isChannelMembers) {
             currentChannelNeeded = true;
             content = <ChannelMembersRhs/>;
@@ -309,7 +322,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         const channelDisplayName = rhsChannel ? rhsChannel.display_name : '';
 
-        const isSidebarRightExpanded = (postRightVisible || postCardVisible || isPluginView || searchVisible || isPostEditHistory) && isExpanded;
+        const isSidebarRightExpanded = (postRightVisible || postCardVisible || isPluginView || (searchVisible && !isChannelInfo) || isPostEditHistory) && isExpanded;
         const containerClassName = classNames('sidebar--right', 'move--left is-open', {
             'sidebar--right--expanded expanded': isSidebarRightExpanded,
         });
