@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import {BellRingOutlineIcon, GlobeIcon, PencilOutlineIcon, StarOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
+import {BellRingOutlineIcon, GlobeIcon, StarOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
@@ -18,8 +18,6 @@ import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
 import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
 import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
@@ -194,7 +192,6 @@ function createGMIntroMessage(
         const actionButtons = (
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite)}
-                {createSetHeaderButton(channel)}
                 {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
                 <PluggableIntroButtons channel={channel}/>
             </div>
@@ -252,17 +249,11 @@ function createDMIntroMessage(
     if (teammate) {
         const src = teammate ? Utils.imageURLForUser(teammate.id, teammate.last_picture_update) : '';
 
-        let pluggableButton = null;
-        let setHeaderButton = null;
-        if (!teammate?.is_bot) {
-            pluggableButton = <PluggableIntroButtons channel={channel}/>;
-            setHeaderButton = createSetHeaderButton(channel);
-        }
+        const pluggableButton = teammate?.is_bot ? null : <PluggableIntroButtons channel={channel}/>;
 
         const actionButtons = (
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite)}
-                {setHeaderButton}
                 {pluggableButton}
             </div>
         );
@@ -326,25 +317,10 @@ function createOffTopicIntroMessage(
     usersLimit: number,
     isInManagedCategory?: boolean,
 ) {
-    const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
-    const children = createSetHeaderButton(channel);
     const totalUsers = stats.total_users_count;
     const inviteUsers = totalUsers < usersLimit;
 
-    let setHeaderButton = null;
     let actionButtons = null;
-
-    if (children) {
-        setHeaderButton = (
-            <ChannelPermissionGate
-                teamId={channel.team_id}
-                channelId={channel.id}
-                permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
-            >
-                {children}
-            </ChannelPermissionGate>
-        );
-    }
 
     const channelInviteButton = (
         <AddMembersButton
@@ -365,7 +341,6 @@ function createOffTopicIntroMessage(
         actionButtons = (
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
-                {setHeaderButton}
                 {createNotificationPreferencesButton(channel, currentUser)}
             </div>
         );
@@ -410,27 +385,13 @@ function createDefaultIntroMessage(
 ) {
     let teamInviteLink = null;
     const totalUsers = stats.total_users_count;
-    const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const inviteUsers = totalUsers < usersLimit;
 
-    let setHeaderButton = null;
     let pluginButtons = null;
     let actionButtons = null;
 
     if (!isReadOnly) {
         pluginButtons = <PluggableIntroButtons channel={channel}/>;
-        const children = createSetHeaderButton(channel);
-        if (children) {
-            setHeaderButton = (
-                <ChannelPermissionGate
-                    teamId={channel.team_id}
-                    channelId={channel.id}
-                    permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
-                >
-                    {children}
-                </ChannelPermissionGate>
-            );
-        }
     }
 
     if (!isReadOnly && enableUserCreation) {
@@ -482,7 +443,6 @@ function createDefaultIntroMessage(
         actionButtons = (
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
-                {setHeaderButton}
                 {createNotificationPreferencesButton(channel, currentUser)}
                 {teamIsGroupConstrained && pluginButtons}
             </div>
@@ -636,20 +596,7 @@ function createStandardIntroMessage(
     }
 
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
-    let setHeaderButton = null;
     let actionButtons = null;
-    const children = createSetHeaderButton(channel);
-    if (children) {
-        setHeaderButton = (
-            <ChannelPermissionGate
-                teamId={channel.team_id}
-                channelId={channel.id}
-                permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
-            >
-                {children}
-            </ChannelPermissionGate>
-        );
-    }
 
     teamInviteLink = (
         <AddMembersButton
@@ -671,7 +618,6 @@ function createStandardIntroMessage(
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
                 {teamInviteLink}
-                {setHeaderButton}
                 {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
                 <PluggableIntroButtons channel={channel}/>
             </div>
@@ -697,31 +643,6 @@ function createStandardIntroMessage(
             </p>
             {actionButtons}
         </div>
-    );
-}
-
-function createSetHeaderButton(channel: Channel) {
-    const channelIsArchived = channel.delete_at !== 0;
-    if (channelIsArchived) {
-        return null;
-    }
-
-    return (
-        <ToggleModalButton
-            modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
-            ariaLabel={Utils.localizeMessage({id: 'intro_messages.setHeader', defaultMessage: 'Set header'})}
-            className={'action-button'}
-            dialogType={EditChannelHeaderModal}
-            dialogProps={{channel}}
-        >
-            <PencilOutlineIcon
-                size={24}
-            />
-            <FormattedMessage
-                id='intro_messages.setHeader'
-                defaultMessage='Set header'
-            />
-        </ToggleModalButton>
     );
 }
 
