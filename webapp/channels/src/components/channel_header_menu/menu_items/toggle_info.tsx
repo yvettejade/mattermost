@@ -3,12 +3,13 @@
 
 import type {Channel} from '@mattermost/types/channels';
 
-import * as Menu from 'components/menu';
+import type * as Menu from 'components/menu';
 
 interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ToggleInfo = (_props: Props) => {
     return null;
 };

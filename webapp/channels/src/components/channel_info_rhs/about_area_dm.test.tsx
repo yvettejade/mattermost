@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -257,5 +257,135 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should show add channel header empty-state for non-bot DMs when header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should treat whitespace-only DM header as empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '   ',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should never show add channel header for bot DMs when header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            dmUser: {
+                ...defaultProps.dmUser,
+                user: {
+                    ...defaultProps.dmUser.user,
+                    is_bot: true,
+                },
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should hide add empty-state on archived DM with no header', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+                delete_at: 1,
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should show archived DM header as read-only text', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: 'archived dm header',
+                delete_at: 1,
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('archived dm header')).toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+    });
+
+    test('should trigger editChannelHeader when clicking add channel header', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        fireEvent.click(screen.getByText('Add a channel header'));
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
     });
 });
