@@ -257,5 +257,51 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should show add channel header empty-state for non-bot DMs when header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should never show add channel header for bot DMs when header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            dmUser: {
+                ...defaultProps.dmUser,
+                user: {
+                    ...defaultProps.dmUser.user,
+                    is_bot: true,
+                },
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 });
