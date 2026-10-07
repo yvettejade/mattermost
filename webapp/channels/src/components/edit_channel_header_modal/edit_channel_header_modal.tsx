@@ -25,6 +25,10 @@ const KeyCodes = Constants.KeyCodes;
 
 const headerMaxLength = 1024;
 
+function headerCodePointLength(header?: string): number {
+    return Array.from(header ?? '').length;
+}
+
 type OwnProps = {
 
     /**
@@ -73,7 +77,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
     };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
-        const isInvalidLength = e.target.value.length > headerMaxLength;
+        const isInvalidLength = headerCodePointLength(e.target.value) > headerMaxLength;
         if (isInvalidLength) {
             this.setState({
                 header: e.target.value,
@@ -91,6 +95,9 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
     };
 
     public handleSave = async (): Promise<void> => {
+        if (headerCodePointLength(this.state.header) > headerMaxLength) {
+            return;
+        }
         const header = this.state.header?.trim() ?? '';
         if (header === this.props.channel.header) {
             this.hideModal();
@@ -260,7 +267,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 showPreview={this.props.shouldShowPreview}
                                 updatePreview={this.setShowPreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
-                                hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
+                                hasExceededCharacterLimit={headerCodePointLength(this.state.header) > headerMaxLength}
                                 previewMessageLink={
                                     <FormattedMessage
                                         id='edit_channel_header_modal.previewHeader'

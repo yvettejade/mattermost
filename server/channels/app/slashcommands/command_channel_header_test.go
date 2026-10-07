@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,6 +33,10 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		actual := hp.DoCommand(th.App, th.Context, args, msg).Text
 		assert.Equal(t, expected, actual)
 	}
+
+	tooLong := strings.Repeat("a", model.ChannelHeaderMaxRunes+1)
+	maxLengthResp := hp.DoCommand(th.App, th.Context, args, tooLong).Text
+	assert.Equal(t, "api.command_channel_header.update_channel.max_length", maxLengthResp)
 
 	th.removePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 

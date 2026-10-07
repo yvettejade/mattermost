@@ -129,6 +129,25 @@ func TestChannelIsValid(t *testing.T) {
 	o.Header = "1234"
 	require.Nil(t, o.IsValid())
 
+	o.Header = strings.Repeat("a", ChannelHeaderMaxRunes)
+	require.Nil(t, o.IsValid())
+
+	o.Header = strings.Repeat("a", ChannelHeaderMaxRunes+1)
+	headerErr := o.IsValid()
+	require.NotNil(t, headerErr)
+	require.Equal(t, "model.channel.is_valid.header.app_error", headerErr.Id)
+
+	// 😀 is one rune and two UTF-16 code units; the cap is runes, not JS string.length.
+	o.Header = strings.Repeat("a", ChannelHeaderMaxRunes-1) + "😀"
+	require.Nil(t, o.IsValid())
+
+	o.Header = strings.Repeat("😀", ChannelHeaderMaxRunes+1)
+	headerErr = o.IsValid()
+	require.NotNil(t, headerErr)
+	require.Equal(t, "model.channel.is_valid.header.app_error", headerErr.Id)
+
+	o.Header = "1234"
+
 	o.Purpose = strings.Repeat("01234567890", 30)
 	require.NotNil(t, o.IsValid())
 

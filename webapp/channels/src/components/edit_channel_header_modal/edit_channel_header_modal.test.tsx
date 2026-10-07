@@ -150,6 +150,49 @@ describe('components/EditChannelHeaderModal', () => {
     });
 
     describe('handleSave', () => {
+        test('a header of 1024 code points including a supplementary-plane character still saves', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            const initialHeader = 'a'.repeat(1023);
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={{...channel, header: initialHeader}}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            const textbox = screen.getByTestId('edit_textbox');
+            await userEvent.type(textbox, '😀');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith('fake-id', {header: `${initialHeader}😀`});
+            });
+        });
+
+        test('over the code-point limit blocks save', async () => {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            const initialHeader = 'a'.repeat(1020);
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={{...channel, header: initialHeader}}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            const textbox = screen.getByTestId('edit_textbox');
+            await userEvent.type(textbox, 'aaaaa');
+
+            await waitFor(() => {
+                expect(screen.getByText(/The text entered exceeds the character limit/)).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            expect(patchChannel).not.toHaveBeenCalled();
+        });
+
         test('on no change, should hide the modal without trying to patch a channel', async () => {
             const patchChannel = jest.fn().mockResolvedValue({});
             renderWithContext(
