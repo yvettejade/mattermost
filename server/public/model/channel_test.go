@@ -6,6 +6,7 @@ package model
 import (
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
 )
@@ -143,6 +144,48 @@ func TestChannelIsValid(t *testing.T) {
 
 	o.Name = "71b03afcbb2d503d49f87f057549c43db4e19f92"
 	require.NotNil(t, o.IsValid())
+}
+
+func TestChannelIsValidHeaderLength(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Type:        ChannelTypeOpen,
+	}
+
+	t.Run("accepts 1024 runes", func(t *testing.T) {
+		c := base
+		c.Header = strings.Repeat("a", ChannelHeaderMaxRunes)
+		require.Equal(t, ChannelHeaderMaxRunes, utf8.RuneCountInString(c.Header))
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("rejects 1025 runes", func(t *testing.T) {
+		c := base
+		c.Header = strings.Repeat("a", ChannelHeaderMaxRunes+1)
+		err := c.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid.header.app_error", err.Id)
+	})
+
+	t.Run("non-BMP character counts as one rune", func(t *testing.T) {
+		// U+1F600 is one Unicode code point and two JavaScript UTF-16 code units.
+		const grinningFace = "😀"
+		require.Equal(t, 1, utf8.RuneCountInString(grinningFace))
+
+		c := base
+		c.Header = strings.Repeat("a", ChannelHeaderMaxRunes-1) + grinningFace
+		require.Equal(t, ChannelHeaderMaxRunes, utf8.RuneCountInString(c.Header))
+		require.Nil(t, c.IsValid())
+
+		c.Header = strings.Repeat("a", ChannelHeaderMaxRunes) + grinningFace
+		err := c.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid.header.app_error", err.Id)
+	})
 }
 
 func TestChannelIsValidBoard(t *testing.T) {
