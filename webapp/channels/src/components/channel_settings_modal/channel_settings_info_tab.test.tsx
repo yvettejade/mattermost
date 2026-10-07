@@ -372,6 +372,27 @@ describe('ChannelSettingsInfoTab', () => {
         expect(errorPanel).toHaveClass('error');
     });
 
+    it('should show the archived-channel error when header save returns 400', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({
+            type: 'MOCK_ACTION',
+            error: {
+                message: 'The channel has been archived or deleted.',
+                server_error_id: 'api.channel.update_channel.deleted.app_error',
+                status_code: 400,
+            },
+        });
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await userEvent.clear(headerInput);
+        await userEvent.type(headerInput, 'Updated header');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(screen.getByText('The channel has been archived or deleted.')).toBeInTheDocument();
+    });
+
     // Instead of clicking a non-existent element to trigger a channel name error,
     // simulate an invalid input by clearing the channel name (which is required).
     it('should show error when channel name field has an error', async () => {

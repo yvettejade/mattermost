@@ -38,6 +38,19 @@ describe('ChannelHeaderText', () => {
         expect(screen.getByText('Tranquility')).toBeInTheDocument();
     });
 
+    test('should return null when the header is whitespace only', () => {
+        const channel = TestHelper.getChannelMock({header: ' \n\t '});
+
+        const {container} = renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+        );
+
+        expect(container.childNodes.length).toBe(0);
+    });
+
     test('should return null if the channel has no header and is archived', () => {
         const channel = TestHelper.getChannelMock({delete_at: 1, header: ''});
 

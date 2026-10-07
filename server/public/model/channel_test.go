@@ -6,6 +6,7 @@ package model
 import (
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
 )
@@ -129,6 +130,28 @@ func TestChannelIsValid(t *testing.T) {
 	o.Header = "1234"
 	require.Nil(t, o.IsValid())
 
+	o.Header = strings.Repeat("a", ChannelHeaderMaxRunes)
+	require.Nil(t, o.IsValid())
+
+	o.Header = strings.Repeat("a", ChannelHeaderMaxRunes+1)
+	headerErr := o.IsValid()
+	require.NotNil(t, headerErr)
+	require.Equal(t, "model.channel.is_valid.header.app_error", headerErr.Id)
+
+	// U+1F600 is one rune and two UTF-16 code units.
+	o.Header = strings.Repeat("\U0001F600", ChannelHeaderMaxRunes)
+	require.Equal(t, ChannelHeaderMaxRunes, utf8.RuneCountInString(o.Header))
+	require.NotEqual(t, utf16Len(o.Header), utf8.RuneCountInString(o.Header))
+	require.Nil(t, o.IsValid())
+
+	o.Header = strings.Repeat("\U0001F600", ChannelHeaderMaxRunes+1)
+	headerErr = o.IsValid()
+	require.NotNil(t, headerErr)
+	require.Equal(t, "model.channel.is_valid.header.app_error", headerErr.Id)
+
+	o.Header = "1234"
+	require.Nil(t, o.IsValid())
+
 	o.Purpose = strings.Repeat("01234567890", 30)
 	require.NotNil(t, o.IsValid())
 
@@ -143,6 +166,18 @@ func TestChannelIsValid(t *testing.T) {
 
 	o.Name = "71b03afcbb2d503d49f87f057549c43db4e19f92"
 	require.NotNil(t, o.IsValid())
+}
+
+func utf16Len(s string) int {
+	n := 0
+	for _, r := range s {
+		if r > 0xFFFF {
+			n += 2
+		} else {
+			n++
+		}
+	}
+	return n
 }
 
 func TestChannelIsValidBoard(t *testing.T) {

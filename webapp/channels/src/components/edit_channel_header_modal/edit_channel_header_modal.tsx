@@ -25,6 +25,9 @@ const KeyCodes = Constants.KeyCodes;
 
 const headerMaxLength = 1024;
 
+// Match server ChannelHeaderMaxRunes: count Unicode code points, not UTF-16 code units.
+const headerCodePointCount = (header: string): number => Array.from(header).length;
+
 type OwnProps = {
 
     /**
@@ -73,7 +76,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
     };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
-        const isInvalidLength = e.target.value.length > headerMaxLength;
+        const isInvalidLength = headerCodePointCount(e.target.value) > headerMaxLength;
         if (isInvalidLength) {
             this.setState({
                 header: e.target.value,
@@ -92,6 +95,15 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
 
     public handleSave = async (): Promise<void> => {
         const header = this.state.header?.trim() ?? '';
+        if (headerCodePointCount(header) > headerMaxLength) {
+            this.setState({
+                serverError: {
+                    server_error_id: 'model.channel.is_valid.header.app_error',
+                    message: 'Invalid header length',
+                },
+            });
+            return;
+        }
         if (header === this.props.channel.header) {
             this.hideModal();
         } else {
@@ -260,7 +272,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 showPreview={this.props.shouldShowPreview}
                                 updatePreview={this.setShowPreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
-                                hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
+                                hasExceededCharacterLimit={this.state.header ? headerCodePointCount(this.state.header) > headerMaxLength : false}
                                 previewMessageLink={
                                     <FormattedMessage
                                         id='edit_channel_header_modal.previewHeader'

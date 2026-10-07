@@ -141,6 +141,7 @@ function ChannelSettingsInfoTab({
 
     // UI Feedback: errors, states
     const [formError, setFormError] = useState('');
+    const [archivedSaveError, setArchivedSaveError] = useState('');
 
     // SaveChangesPanel state
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
@@ -256,6 +257,11 @@ function ChannelSettingsInfoTab({
         const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
         setFormError(errorMsg);
         setSaveChangesPanelState('error');
+        if (err.server_error_id === 'api.channel.update_channel.deleted.app_error') {
+            setArchivedSaveError(errorMsg);
+        } else {
+            setArchivedSaveError('');
+        }
 
         // Check if the error is related to a URL conflict
         if (err.message && (
@@ -321,6 +327,9 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
+        setArchivedSaveError('');
+        setFormError('');
+
         // After every successful save, update local state to match the saved values
         // with this, we make sure that the unsavedChanges check will return false after saving
         if (!isDMorGroupChannel) {
@@ -380,6 +389,7 @@ function ChannelSettingsInfoTab({
         // Clear errors
         setUrlError('');
         setFormError('');
+        setArchivedSaveError('');
         setCharacterLimitExceeded(false);
         setChannelNameError('');
 
@@ -579,7 +589,7 @@ function ChannelSettingsInfoTab({
                     tabChangeError={hasErrors}
                     state={hasErrors ? 'error' : saveChangesPanelState}
                     {...(!showTabSwitchError && { // for swowTabShiwthError use the default message
-                        customErrorMessage: formatMessage({
+                        customErrorMessage: archivedSaveError || formatMessage({
                             id: 'channel_settings.save_changes_panel.standard_error',
                             defaultMessage: 'There are errors in the form above',
                         }),

@@ -601,6 +601,51 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("PUT that changes only the header posts system_header_change", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel, resp, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		originalHeader := channel.Header
+		channel.Header = "put-only header " + model.NewId()
+		updated, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, channel.Header, updated.Header)
+
+		post := findHeaderChangePost(t, client, channel.Id, originalHeader, channel.Header)
+		require.NotNil(t, post)
+		require.Equal(t, th.BasicUser.Username, post.GetProp("username"))
+	})
+
+	t.Run("unchanged header does not post system_header_change", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel, resp, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		before := headerChangeCount(t, client, channel.Id)
+		channel.Purpose = "purpose without header change " + model.NewId()
+		updated, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, channel.Header, updated.Header)
+		require.Equal(t, before, headerChangeCount(t, client, channel.Id))
+	})
+
+	t.Run("archived channel update returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		archived := &model.Channel{Id: th.BasicDeletedChannel.Id, Header: "should not save"}
+		_, resp, err := client.UpdateChannel(context.Background(), archived)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+	})
 }
 
 func TestPatchChannelGroupConstrained(t *testing.T) {
@@ -1699,6 +1744,153 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, newHeader, patchedChannel.Header)
 		require.True(t, patchedChannel.AutoTranslation)
 	})
+
+	t.Run("manager patch sets header and posts system_header_change", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		current, resp, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		header := "manager header " + model.NewId()
+		patched, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, header, patched.Header)
+
+		post := findHeaderChangePost(t, client, th.BasicChannel.Id, current.Header, header)
+		require.NotNil(t, post)
+		require.Equal(t, th.BasicUser.Username, post.GetProp("username"))
+	})
+
+	t.Run("user without manage permission cannot patch header", func(t *testing.T) {
+		th.LoginBasic(t)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		header := "forbidden header"
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("omitting header leaves it unchanged", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		current, resp, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		purpose := "purpose only " + model.NewId()
+		patched, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Purpose: &purpose})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, current.Header, patched.Header)
+		require.Equal(t, purpose, patched.Purpose)
+	})
+
+	t.Run("empty header clears it and posts the removed copy", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		header := "header to clear " + model.NewId()
+		patched, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, header, patched.Header)
+
+		empty := ""
+		cleared, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &empty})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "", cleared.Header)
+
+		post := findHeaderChangePost(t, client, th.BasicChannel.Id, header, "")
+		require.NotNil(t, post)
+	})
+
+	t.Run("archived channel patch returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		header := "archived header"
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicDeletedChannel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+	})
+
+	t.Run("DM non-member cannot patch header", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		dm, resp, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		outsider := th.CreateUser(t)
+		_, _, err = client.Login(context.Background(), outsider.Email, outsider.Password)
+		require.NoError(t, err)
+
+		header := "outsider header"
+		_, resp, err = client.PatchChannel(context.Background(), dm.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM member can set header but not purpose", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		dm, resp, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		header := "dm header " + model.NewId()
+		patched, resp, err := client.PatchChannel(context.Background(), dm.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, header, patched.Header)
+
+		purpose := "dm purpose"
+		_, resp, err = client.PatchChannel(context.Background(), dm.Id, &model.ChannelPatch{Purpose: &purpose})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
+func findHeaderChangePost(t *testing.T, client *model.Client4, channelID, oldHeader, newHeader string) *model.Post {
+	t.Helper()
+
+	posts, resp, err := client.GetPostsForChannel(context.Background(), channelID, 0, 100, "", false, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	var found *model.Post
+	for _, post := range posts.Posts {
+		if post.Type != model.PostTypeHeaderChange {
+			continue
+		}
+		if fmt.Sprint(post.GetProp("old_header")) != oldHeader || fmt.Sprint(post.GetProp("new_header")) != newHeader {
+			continue
+		}
+		if found == nil || post.CreateAt >= found.CreateAt {
+			found = post
+		}
+	}
+	return found
+}
+
+func headerChangeCount(t *testing.T, client *model.Client4, channelID string) int {
+	t.Helper()
+
+	posts, resp, err := client.GetPostsForChannel(context.Background(), channelID, 0, 100, "", false, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	count := 0
+	for _, post := range posts.Posts {
+		if post.Type == model.PostTypeHeaderChange {
+			count++
+		}
+	}
+	return count
 }
 
 func TestCanEditChannelBanner(t *testing.T) {

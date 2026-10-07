@@ -4,9 +4,11 @@
 package slashcommands
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -33,6 +35,23 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	}
 
+	// An empty /header is ephemeral and does not patch the stored header.
+	channel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr)
+	assert.Equal(t, "hello", channel.Header)
+	actual := hp.DoCommand(th.App, th.Context, args, "").Text
+	assert.Equal(t, "api.command_channel_header.message.app_error", actual)
+	channel, appErr = th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr)
+	assert.Equal(t, "hello", channel.Header)
+
+	overLength := strings.Repeat("a", model.ChannelHeaderMaxRunes+1)
+	actual = hp.DoCommand(th.App, th.Context, args, overLength).Text
+	assert.Equal(t, "api.command_channel_header.update_channel.max_length", actual)
+	channel, appErr = th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr)
+	assert.Equal(t, "hello", channel.Header)
+
 	th.removePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	// Try a public channel *without* permission.
@@ -42,7 +61,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual := hp.DoCommand(th.App, th.Context, args, "hello").Text
+	actual = hp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_header.permission.app_error", actual)
 
 	th.addPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)

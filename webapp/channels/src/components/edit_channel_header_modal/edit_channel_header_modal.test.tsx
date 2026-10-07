@@ -236,6 +236,62 @@ describe('components/EditChannelHeaderModal', () => {
         expect(textbox).toHaveValue('header');
     });
 
+    test('unchanged trimmed text does not call patchChannel', async () => {
+        const patchChannel = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <EditChannelHeaderModal
+                {...baseProps}
+                actions={{...baseProps.actions, patchChannel}}
+            />,
+        );
+
+        const textbox = screen.getByTestId('edit_textbox');
+        fireEvent.input(textbox, {target: {value: `  ${channel.header}  `}});
+        expect(textbox).toHaveValue(`  ${channel.header}  `);
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).not.toHaveBeenCalled();
+    });
+
+    test('over the code point limit blocks save', async () => {
+        const patchChannel = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <EditChannelHeaderModal
+                {...baseProps}
+                actions={{...baseProps.actions, patchChannel}}
+            />,
+        );
+
+        const textbox = screen.getByTestId('edit_textbox');
+        fireEvent.input(textbox, {target: {value: 'a'.repeat(1025)}});
+        expect(textbox).toHaveValue('a'.repeat(1025));
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).not.toHaveBeenCalled();
+        expect(screen.getByText(/The text entered exceeds the character limit/)).toBeInTheDocument();
+    });
+
+    test('a supplementary-plane character counts as one code point', async () => {
+        const patchChannel = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <EditChannelHeaderModal
+                {...baseProps}
+                actions={{...baseProps.actions, patchChannel}}
+            />,
+        );
+
+        // 1024 emoji are 2048 UTF-16 code units and 1024 Unicode code points.
+        const header = '😀'.repeat(1024);
+        const textbox = screen.getByTestId('edit_textbox');
+        fireEvent.input(textbox, {target: {value: header}});
+        expect(textbox).toHaveValue(header);
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        await waitFor(() => {
+            expect(patchChannel).toHaveBeenCalledWith('fake-id', {header});
+        });
+    });
+
     test('patch on save button click', async () => {
         const patchChannel = jest.fn().mockResolvedValue({});
         renderWithContext(
