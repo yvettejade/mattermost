@@ -33,6 +33,10 @@ type AdvancedTextboxProps = {
     name?: string; // Added name prop for floating label
 };
 
+function codePointLength(value: string): number {
+    return Array.from(value).length;
+}
+
 const AdvancedTextbox = ({
     id,
     value,
@@ -59,8 +63,9 @@ const AdvancedTextbox = ({
     const [isFocused, setIsFocused] = useState(false);
 
     // Derived values
-    const isTooLong = value.length > maxLength;
-    const isTooShort = minLength !== undefined && value.length > 0 && value.length < minLength;
+    const valueLength = codePointLength(value);
+    const isTooLong = valueLength > maxLength;
+    const isTooShort = minLength !== undefined && valueLength > 0 && valueLength < minLength;
 
     // Update internal error when prop changes or when validation state changes
     useEffect(() => {
@@ -163,7 +168,7 @@ const AdvancedTextbox = ({
                             'below-minimum': isTooShort,
                         })}
                     >
-                        {value.length}{'/'}
+                        {valueLength}{'/'}
                         {isTooShort ? minLength : maxLength}
                     </div>
                 )}

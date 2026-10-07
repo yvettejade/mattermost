@@ -130,6 +130,23 @@ describe('AdvancedTextbox', () => {
         expect(screen.getByText('43/10')).toBeInTheDocument();
     });
 
+    test('counts supplementary-plane characters as one toward the limit', () => {
+        const props = {
+            ...defaultProps,
+            maxLength: 2,
+            value: '😀',
+            showCharacterCount: true,
+        };
+        const {rerender} = render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+
+        rerender(<AdvancedTextbox {...{...props, value: '😀😀😀'}}/>);
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('3/2')).toBeInTheDocument();
+    });
+
     test('shows error when text exceeds character limit', async () => {
         const props = {
             ...defaultProps,
