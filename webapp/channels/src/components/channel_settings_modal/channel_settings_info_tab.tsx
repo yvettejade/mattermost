@@ -42,6 +42,10 @@ type ChannelSettingsInfoTabProps = {
     showTabSwitchError?: boolean;
 };
 
+function codePointLength(value: string) {
+    return Array.from(value).length;
+}
+
 function ChannelSettingsInfoTab({
     channel,
     onCancel,
@@ -217,7 +221,7 @@ function ChannelSettingsInfoTab({
         setChannelHeader(newValue);
 
         // Check for character limit
-        if (newValue.trim().length > HEADER_MAX_LENGTH) {
+        if (codePointLength(newValue.trim()) > HEADER_MAX_LENGTH) {
             setFormError(formatMessage({
                 id: 'edit_channel_header_modal.error',
                 defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
@@ -414,6 +418,8 @@ function ChannelSettingsInfoTab({
         return unsavedChanges || saveChangesPanelState === 'saved';
     }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
 
+    const headerExceedsLimit = codePointLength(channelHeader.trim()) > HEADER_MAX_LENGTH;
+
     return (
         <div className='ChannelSettingsModal__infoTab'>
             {/* ConvertConfirmModal for channel privacy changes */}
@@ -557,15 +563,15 @@ function ChannelSettingsInfoTab({
                     id: 'channel_settings.purpose.header',
                     defaultMessage: 'This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).',
                 })}
-                hasError={channelHeader.length > HEADER_MAX_LENGTH}
-                errorMessage={channelHeader.length > HEADER_MAX_LENGTH ? formatMessage({
+                hasError={headerExceedsLimit}
+                errorMessage={headerExceedsLimit ? formatMessage({
                     id: 'edit_channel_header_modal.error',
                     defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
                 }, {
                     maxLength: HEADER_MAX_LENGTH,
                 }) : undefined
                 }
-                showCharacterCount={channelHeader.length > HEADER_MAX_LENGTH}
+                showCharacterCount={headerExceedsLimit}
                 readOnly={!canManageChannelProperties}
                 name={formatMessage({id: 'channel_settings.header.label', defaultMessage: 'Channel Header'})}
             />
