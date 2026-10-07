@@ -5,7 +5,6 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {CogOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -22,7 +21,6 @@ import MenuItemAutotranslation from '../menu_items/autotranslation';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
-import EditConversationHeader from '../menu_items/edit_conversation_header';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel';
 import MenuItemToggleInfo from '../menu_items/toggle_info';
@@ -65,13 +63,8 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
                     />
                 </>
             )}
-            {canAccessChannelSettingsForChannel ? (
+            {canAccessChannelSettingsForChannel && (
                 <MenuItemChannelSettings
-                    channel={channel}
-                />
-            ) : (
-                <EditConversationHeader
-                    leadingElement={<CogOutlineIcon size='18px'/>}
                     channel={channel}
                 />
             )}

@@ -14,7 +14,6 @@ import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
 import UserProfileElement from 'components/user_profile';
 
-import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
 
 const Usernames = styled.p`
@@ -66,12 +65,9 @@ const ChannelId = styled.div`
 interface Props {
     channel: Channel;
     gmUsers: UserProfile[];
-    actions: {
-        editChannelHeader: () => void;
-    };
 }
 
-const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
+const AboutAreaGM = ({channel, gmUsers}: Props) => {
     const {formatMessage} = useIntl();
 
     return (
@@ -108,21 +104,14 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
 
             {channel.header && (
                 <ChannelHeader>
-                    <EditableArea
-                        content={(
-                            <LineLimiter
-                                maxLines={4}
-                                lineHeight={20}
-                                moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
-                                lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.less', defaultMessage: 'less'})}
-                            >
-                                <Markdown message={channel.header}/>
-                            </LineLimiter>
-                        )}
-                        editable={true}
-                        onEdit={actions.editChannelHeader}
-                        editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
-                    />
+                    <LineLimiter
+                        maxLines={4}
+                        lineHeight={20}
+                        moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
+                        lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.less', defaultMessage: 'less'})}
+                    >
+                        <Markdown message={channel.header}/>
+                    </LineLimiter>
                 </ChannelHeader>
             )}
 

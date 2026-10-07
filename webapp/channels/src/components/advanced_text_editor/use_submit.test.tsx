@@ -204,7 +204,7 @@ describe('useSubmit', () => {
         }));
     });
 
-    it('should handle commands if not in edit mode', async () => {
+    it('does not open the edit channel header modal for /header', async () => {
         const draft = {...mockDraft, message: '/header'};
         const {result} = renderHookWithContext(() => useSubmit(
             draft,
@@ -230,12 +230,12 @@ describe('useSubmit', () => {
 
         await handleSubmit();
 
-        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+        expect(openModal).not.toHaveBeenCalledWith(expect.objectContaining({
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
     });
 
-    it('should not handle commands if in edit mode', async () => {
+    it('should not open the edit channel header modal for /header while editing a post', async () => {
         const draft = {...mockDraft, message: '/header'};
         const {result} = renderHookWithContext(() => useSubmit(
             draft,
