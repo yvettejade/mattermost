@@ -114,4 +114,24 @@ describe('channel_info_rhs', () => {
             }),
         );
     });
+
+    test('editChannelHeader opens Edit Channel Header modal', () => {
+        renderWithContext(
+            <ChannelInfoRHS
+                {...props}
+            />,
+        );
+
+        const lastArgs = mockAboutArea.mock.calls[mockAboutArea.mock.calls.length - 1][0];
+        lastArgs.actions.editChannelHeader();
+
+        expect(props.actions.openModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+                dialogProps: expect.objectContaining({
+                    channel: props.channel,
+                }),
+            }),
+        );
+    });
 });
