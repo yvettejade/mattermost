@@ -42,6 +42,7 @@ interface Props {
     actions: {
         editChannelName: () => void;
         editChannelPurpose: () => void;
+        editChannelHeader: () => void;
     };
 }
 
@@ -52,12 +53,14 @@ const AboutArea = ({channel, dmUser, gmUsers, canEditChannelProperties, actions}
                 <AboutAreaDM
                     channel={channel}
                     dmUser={dmUser}
+                    actions={{editChannelHeader: actions.editChannelHeader}}
                 />
             )}
             {channel.type === Constants.GM_CHANNEL && gmUsers && (
                 <AboutAreaGM
                     channel={channel}
                     gmUsers={gmUsers!}
+                    actions={{editChannelHeader: actions.editChannelHeader}}
                 />
             )}
             {[Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channel.type) && (
