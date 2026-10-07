@@ -199,4 +199,21 @@ describe('components/TeamSidebar/TeamButton', () => {
             expect(screen.getByRole('link')).toHaveAccessibleName('my team team, 5 mentions');
         });
     });
+
+    it('should cap team mention badge at 99+ when mentions exceed 99 (EC-5)', () => {
+        const props = {
+            ...baseProps,
+            url: '/team1',
+            displayName: 'My Team',
+            unread: true,
+            mentions: 150,
+        };
+
+        renderWithContext(
+            <TeamButton {...props}/>,
+        );
+
+        expect(screen.getByTestId('team-badge-')).toHaveTextContent('99+');
+        expect(screen.getByRole('link')).toHaveAccessibleName(/150 mentions/i);
+    });
 });
