@@ -277,6 +277,23 @@ describe('Client4', () => {
     });
 });
 
+describe('askAssistant', () => {
+    test('should POST to /channels/{id}/assistant with JSON body', async () => {
+        const client = new Client4();
+        client.setUrl('http://mattermost.example.com');
+
+        const reply = {reply: 'summary', intent: 'summarize' as const};
+        nock(client.getBaseRoute()).
+            post('/channels/channel1/assistant', (body) => {
+                return body.message === 'summarize' && body.root_id === '';
+            }).
+            reply(200, reply);
+
+        const result = await client.askAssistant('channel1', {message: 'summarize', root_id: ''});
+        expect(result).toEqual(reply);
+    });
+});
+
 describe('ClientError', () => {
     test('standard fields should be enumerable', () => {
         const error = new ClientError('https://example.com', {

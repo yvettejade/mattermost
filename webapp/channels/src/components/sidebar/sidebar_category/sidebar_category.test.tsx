@@ -18,6 +18,7 @@ jest.mock('./sidebar_category_sorting_menu', () => () => <div id='mock-sorting-m
 jest.mock('../sidebar_channel', () => () => <li id='mock-sidebar-channel'/>);
 jest.mock('../add_channels_cta_button', () => () => <div id='mock-add-channels-button'/>);
 jest.mock('../invite_members_button', () => () => <div id='mock-invite-members-button'/>);
+jest.mock('../sidebar_matterbot', () => () => <div id='mock-sidebar-matterbot'/>);
 
 // Suppress react-beautiful-dnd console errors in tests
 beforeEach(() => {
@@ -178,6 +179,43 @@ describe('components/sidebar/sidebar_category', () => {
 
         expect(document.querySelector('#mock-sorting-menu')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render MatterBot immediately after Invite Members when the DM category is expanded', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                sorting: CategorySorting.Recency,
+                collapsed: false,
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        const invite = document.querySelector('#mock-invite-members-button');
+        const matterbot = document.querySelector('#mock-sidebar-matterbot');
+        expect(invite).toBeInTheDocument();
+        expect(matterbot).toBeInTheDocument();
+        expect(invite!.compareDocumentPosition(matterbot!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    test('should hide MatterBot when the DM category is collapsed', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                sorting: CategorySorting.Recency,
+                collapsed: true,
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(document.querySelector('#mock-invite-members-button')).not.toBeInTheDocument();
+        expect(document.querySelector('#mock-sidebar-matterbot')).not.toBeInTheDocument();
     });
 
     test('should collapse the channel on toggle when it is not collapsed', async () => {

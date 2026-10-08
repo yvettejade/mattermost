@@ -3002,6 +3002,60 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/assistant":
+    post:
+      tags:
+        - channels
+      summary: Ask the channel assistant
+      description: |
+        Ask MatterBot for a channel-grounded reply. The response is returned to the
+        caller and is not posted to the channel.
+
+        ##### Permissions
+        Must be logged in and have `read_channel_content` on the channel.
+      operationId: AskAssistant
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantAsk"
+      responses:
+        "200":
+          description: Assistant reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantReply"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          description: Assistant is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "502":
+          description: Upstream model or Jira lookup failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "504":
+          description: Upstream timeout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/channels/{channel_id}/convert_to_channel":
     post:
       tags:
