@@ -62,9 +62,10 @@ export function canEditPost(state: GlobalState, config: any, license: any, teamI
     }
 
     const isOwner = isPostOwner(userId, post);
+    const isCollaborativeCard = post.type === Posts.POST_TYPES.CARD && config?.FeatureFlagIntegratedBoards === 'true';
     let canEdit = true;
 
-    const permission = isOwner ? Permissions.EDIT_POST : Permissions.EDIT_OTHERS_POSTS;
+    const permission = (isOwner || isCollaborativeCard) ? Permissions.EDIT_POST : Permissions.EDIT_OTHERS_POSTS;
     canEdit = haveIChannelPermission(state, teamId, channelId, permission);
     if (license.IsLicensed === 'true' && config.PostEditTimeLimit !== '-1' && config.PostEditTimeLimit !== -1) {
         const timeLeft = (post.create_at + (config.PostEditTimeLimit * 1000)) - Date.now();

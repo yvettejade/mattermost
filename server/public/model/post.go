@@ -1213,6 +1213,10 @@ type UpdatePostOptions struct {
 	// the post-action integration response handler which has already
 	// validated the incoming value).
 	AllowMmBlocksActionsUpdate bool
+
+	// TrustedUpdate skips session ownership / edit_others_posts checks.
+	// Set only from trusted callers (plugins, integrations, shared-channel sync).
+	TrustedUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

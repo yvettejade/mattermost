@@ -2288,6 +2288,93 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestUpdatePostOwnershipAndPin(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	ownerPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   "owner message " + model.NewId(),
+	}, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	t.Run("non-owner cannot rewrite another user's message via PUT", func(t *testing.T) {
+		th.LoginBasic2(t)
+		update := ownerPost.Clone()
+		update.Message = "hijacked " + model.NewId()
+
+		_, resp, err := client.UpdatePost(context.Background(), ownerPost.Id, update)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		fetched, fetchErr := th.App.GetSinglePost(th.Context, ownerPost.Id, false)
+		require.Nil(t, fetchErr)
+		require.Equal(t, ownerPost.Message, fetched.Message)
+	})
+
+	t.Run("non-owner cannot rewrite another user's message via PATCH", func(t *testing.T) {
+		th.LoginBasic2(t)
+		patchedMessage := "hijacked patch " + model.NewId()
+		_, resp, err := client.PatchPost(context.Background(), ownerPost.Id, &model.PostPatch{Message: &patchedMessage})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		fetched, fetchErr := th.App.GetSinglePost(th.Context, ownerPost.Id, false)
+		require.Nil(t, fetchErr)
+		require.Equal(t, ownerPost.Message, fetched.Message)
+	})
+
+	t.Run("channel member can pin and unpin another user's post", func(t *testing.T) {
+		th.LoginBasic2(t)
+
+		_, err := client.PinPost(context.Background(), ownerPost.Id)
+		require.NoError(t, err)
+		pinned, appErr := th.App.GetSinglePost(th.Context, ownerPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, pinned.IsPinned)
+		require.Equal(t, ownerPost.Message, pinned.Message)
+
+		_, err = client.UnpinPost(context.Background(), ownerPost.Id)
+		require.NoError(t, err)
+		unpinned, appErr := th.App.GetSinglePost(th.Context, ownerPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, unpinned.IsPinned)
+		require.Equal(t, ownerPost.Message, unpinned.Message)
+	})
+
+	t.Run("edit_others_posts can rewrite another user's message", func(t *testing.T) {
+		th.LoginBasic2(t)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		updatedMessage := "edited by peer " + model.NewId()
+		update := ownerPost.Clone()
+		update.Message = updatedMessage
+		updated, _, err := client.UpdatePost(context.Background(), ownerPost.Id, update)
+		require.NoError(t, err)
+		require.Equal(t, updatedMessage, updated.Message)
+
+		patchedMessage := "patched by peer " + model.NewId()
+		patched, _, err := client.PatchPost(context.Background(), ownerPost.Id, &model.PostPatch{Message: &patchedMessage})
+		require.NoError(t, err)
+		require.Equal(t, patchedMessage, patched.Message)
+	})
+
+	t.Run("system admin can rewrite another user's message", func(t *testing.T) {
+		adminMessage := "edited by admin " + model.NewId()
+		update := ownerPost.Clone()
+		update.Message = adminMessage
+		updated, _, err := th.SystemAdminClient.UpdatePost(context.Background(), ownerPost.Id, update)
+		require.NoError(t, err)
+		require.Equal(t, adminMessage, updated.Message)
+	})
+}
+
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 
