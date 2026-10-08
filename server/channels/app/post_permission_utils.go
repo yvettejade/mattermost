@@ -117,6 +117,62 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 
 // PostCardTypeCheckWithApp validates whether a card post can be created
 // based on the IntegratedBoards feature flag.
+func updatePostChangesContent(oldPost, received *model.Post, opts *model.UpdatePostOptions) bool {
+	if received.Message != oldPost.Message {
+		return true
+	}
+	if opts != nil && opts.SafeUpdate {
+		return false
+	}
+	if !oldPost.FileIds.Equals(received.FileIds) {
+		return true
+	}
+	if model.StringInterfaceToJSON(received.GetProps()) != model.StringInterfaceToJSON(oldPost.GetProps()) {
+		return true
+	}
+	if received.HasReactions != oldPost.HasReactions {
+		return true
+	}
+	return false
+}
+
+// checkUpdatePostOwnership blocks non-owners from rewriting another user's
+// post content unless they have edit_others_posts or manage_system.
+// Pin/unpin (IsPinned-only), Integrated Boards cards, TrustedUpdate, and
+// callers with no session user (internal jobs) are left through.
+func (a *App) checkUpdatePostOwnership(rctx request.CTX, oldPost, received *model.Post, opts *model.UpdatePostOptions) *model.AppError {
+	if opts != nil && opts.TrustedUpdate {
+		return nil
+	}
+
+	if oldPost.Type == model.PostTypeCard && a.Config().FeatureFlags.IntegratedBoards {
+		return nil
+	}
+
+	if !updatePostChangesContent(oldPost, received, opts) {
+		return nil
+	}
+
+	session := rctx.Session()
+	if session == nil || session.UserId == "" {
+		return nil
+	}
+
+	if session.UserId == oldPost.UserId {
+		return nil
+	}
+
+	if a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
+		return nil
+	}
+
+	if ok, _ := a.HasPermissionToChannel(rctx, session.UserId, oldPost.ChannelId, model.PermissionEditOthersPosts); ok {
+		return nil
+	}
+
+	return model.MakePermissionError(session, []*model.Permission{model.PermissionEditOthersPosts})
+}
+
 func PostCardTypeCheckWithApp(where string, a *App, postType string) *model.AppError {
 	if postType == model.PostTypeCard && !a.Config().FeatureFlags.IntegratedBoards {
 		return model.NewAppError(where, "api.post.create_post.card_type_disabled.app_error", nil, "", http.StatusBadRequest)
