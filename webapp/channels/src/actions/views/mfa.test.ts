@@ -25,7 +25,7 @@ describe('actions/views/mfa', () => {
                 },
             });
 
-            UserActions.updateUserMfa.mockImplementation(() => () => ({data: true}));
+            jest.mocked(UserActions.updateUserMfa).mockImplementation(() => () => ({data: true}) as never);
 
             const code = 'mfa code';
             await store.dispatch(activateMfa(code));
@@ -45,7 +45,7 @@ describe('actions/views/mfa', () => {
                 },
             });
 
-            UserActions.updateUserMfa.mockImplementation(() => () => ({data: true}));
+            jest.mocked(UserActions.updateUserMfa).mockImplementation(() => () => ({data: true}) as never);
 
             await store.dispatch(deactivateMfa());
 
@@ -64,7 +64,7 @@ describe('actions/views/mfa', () => {
                 },
             });
 
-            UserActions.generateMfaSecret.mockImplementation(() => () => ({data: '1234'}));
+            jest.mocked(UserActions.generateMfaSecret).mockImplementation(() => () => ({data: '1234'}) as never);
 
             await store.dispatch(generateMfaSecret());
 
