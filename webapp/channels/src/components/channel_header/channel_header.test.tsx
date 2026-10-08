@@ -295,6 +295,15 @@ describe('components/ChannelHeader', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should not render an assistant button in the channel header', () => {
+        const {container} = renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        expect(container.querySelector('#channelHeaderAssistantButton')).toBeNull();
+        expect(container.querySelector('.icon-robot-happy')).toBeNull();
+    });
+
     test('should contain the channel info button', () => {
         const {container} = renderWithContext(
             <ChannelHeader {...populatedProps}/>,

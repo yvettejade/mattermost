@@ -33,6 +33,7 @@ import {
     openMenu,
     closeMenu,
     openAtPrevious,
+    showAssistant,
     updateSearchType,
     suppressRHS,
     unsuppressRHS,
@@ -438,6 +439,19 @@ describe('rhs view actions', () => {
         });
     });
 
+    describe('showAssistant', () => {
+        test('it opens the assistant sidebar', async () => {
+            await store.dispatch(showAssistant());
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.ASSISTANT,
+                },
+            ]);
+        });
+    });
+
     describe('showChannelMembers', () => {
         test('it dispatches the right actions', async () => {
             await store.dispatch(showChannelMembers(currentChannelId));
@@ -731,6 +745,17 @@ describe('rhs view actions', () => {
 
             return compareStore.getActions();
         }
+
+        it('reopens the assistant chat', () => {
+            store.dispatch(openAtPrevious({isAssistant: true, searchVisible: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.ASSISTANT,
+                },
+            ]);
+        });
 
         it('opens to empty search when not previously opened', () => {
             store.dispatch(openAtPrevious(null));
