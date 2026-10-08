@@ -1,0 +1,118 @@
+{
+    "id": "com.yvette.grok-agent",
+    "name": "Yvette Grok Agent",
+    "description": "In-Mattermost Grok agent for Q&A, summaries, drafts, meeting proposals, and GitHub/YJIRA context. Sibling demo plugin — does not replace mattermost-ai.",
+    "homepage_url": "https://github.com/yvettejade/mattermost/tree/master/yvette-grok-agent",
+    "support_url": "https://github.com/yvettejade/mattermost/issues",
+    "version": "0.1.0",
+    "min_server_version": "6.0.0",
+    "server": {
+        "executables": {
+            "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64",
+            "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
+            "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+        }
+    },
+    "settings_schema": {
+        "header": "Yvette Grok Agent (sibling demo plugin; plugin id is not mattermost-ai). Secrets are plugin-held — never commit them. Empty secret fields fall back to process environment.",
+        "footer": "History is limited to the requesting user's visible channel/thread (default 50 posts / 7 days). Schedule posts an in-channel proposal only. Canvas is structured markdown.",
+        "settings": [
+            {
+                "key": "YvetteGrokAPI",
+                "display_name": "Yvette Grok API key",
+                "type": "text",
+                "help_text": "xAI API key for Grok Chat Completions. Env fallback: YvetteGrokAPI or YVETTE_GROK_API.",
+                "default": "",
+                "secret": true
+            },
+            {
+                "key": "GrokModel",
+                "display_name": "Grok model",
+                "type": "text",
+                "help_text": "Chat Completions model id.",
+                "default": "grok-4"
+            },
+            {
+                "key": "GrokBaseURL",
+                "display_name": "Grok base URL",
+                "type": "text",
+                "help_text": "OpenAI-compatible base URL (no trailing path).",
+                "default": "https://api.x.ai/v1"
+            },
+            {
+                "key": "GitHubToken",
+                "display_name": "GitHub token",
+                "type": "text",
+                "help_text": "PAT with read access to the configured repo. Env fallback: GitHubToken or GITHUB_TOKEN.",
+                "default": "",
+                "secret": true
+            },
+            {
+                "key": "GitHubOwner",
+                "display_name": "GitHub owner",
+                "type": "text",
+                "help_text": "Repository owner for context fetches.",
+                "default": "yvettejade"
+            },
+            {
+                "key": "GitHubRepo",
+                "display_name": "GitHub repository",
+                "type": "text",
+                "help_text": "Repository name for context fetches.",
+                "default": "mattermost"
+            },
+            {
+                "key": "JiraBaseURL",
+                "display_name": "Jira base URL",
+                "type": "text",
+                "help_text": "Atlassian Cloud site URL.",
+                "default": "https://fe-anysphere-demo.atlassian.net"
+            },
+            {
+                "key": "JiraEmail",
+                "display_name": "Jira email",
+                "type": "text",
+                "help_text": "Atlassian account email for Basic auth. Env fallback: JiraEmail or JIRA_EMAIL.",
+                "default": ""
+            },
+            {
+                "key": "JiraAPIToken",
+                "display_name": "Jira API token",
+                "type": "text",
+                "help_text": "Atlassian API token. Env fallback: JiraAPIToken or JIRA_API_TOKEN.",
+                "default": "",
+                "secret": true
+            },
+            {
+                "key": "JiraProjectKey",
+                "display_name": "Jira project key",
+                "type": "text",
+                "help_text": "Project key used when detecting issue references.",
+                "default": "YJIRA"
+            },
+            {
+                "key": "HistoryWindowDays",
+                "display_name": "History window (days)",
+                "type": "number",
+                "help_text": "Soft CreateAt filter after fetch. Default 7.",
+                "default": 7
+            },
+            {
+                "key": "HistoryMaxPosts",
+                "display_name": "History max posts",
+                "type": "number",
+                "help_text": "Max posts gathered per request. Default 50, hard cap 100.",
+                "default": 50
+            },
+            {
+                "key": "AgentWebhooks",
+                "display_name": "Agent webhooks (JSON)",
+                "type": "longtext",
+                "help_text": "Optional map of agent name to webhook URL, e.g. {\"qa-bugbot\":\"https://example.com/hook\"}.",
+                "default": ""
+            }
+        ]
+    }
+}
