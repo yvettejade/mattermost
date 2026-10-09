@@ -601,6 +601,44 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("header change creates system_header_change; unchanged header and display-name-only do not", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		channel.Header = "design-doc header"
+		updated, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "design-doc header", updated.Header)
+
+		posts := headerChangePosts(t, client, channel.Id)
+		require.Len(t, posts, 1)
+		require.Equal(t, model.PostTypeHeaderChange, posts[0].Type)
+		require.Equal(t, "", posts[0].GetProp("old_header"))
+		require.Equal(t, "design-doc header", posts[0].GetProp("new_header"))
+
+		unchanged := *updated
+		_, _, err = client.UpdateChannel(context.Background(), &unchanged)
+		require.NoError(t, err)
+		require.Len(t, headerChangePosts(t, client, channel.Id), 1)
+
+		displayNameOnly := *updated
+		displayNameOnly.DisplayName = "only display name"
+		_, _, err = client.UpdateChannel(context.Background(), &displayNameOnly)
+		require.NoError(t, err)
+		require.Len(t, headerChangePosts(t, client, channel.Id), 1)
+	})
 }
 
 func TestPatchChannelGroupConstrained(t *testing.T) {
@@ -1699,6 +1737,78 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, newHeader, patchedChannel.Header)
 		require.True(t, patchedChannel.AutoTranslation)
 	})
+
+	t.Run("archived channel rejects header patch and leaves stored header unchanged", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			Header:      "keep archived header",
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		header := "should fail"
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+
+		stored, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "keep archived header", stored.Header)
+	})
+
+	t.Run("active channel header patch creates system_header_change", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		header := "patched header"
+		patched, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, header, patched.Header)
+
+		posts := headerChangePosts(t, client, channel.Id)
+		require.Len(t, posts, 1)
+		require.Equal(t, model.PostTypeHeaderChange, posts[0].Type)
+		require.Equal(t, "", posts[0].GetProp("old_header"))
+		require.Equal(t, header, posts[0].GetProp("new_header"))
+	})
+}
+
+func headerChangePosts(t *testing.T, client *model.Client4, channelID string) []*model.Post {
+	t.Helper()
+	postList, _, err := client.GetPostsForChannel(context.Background(), channelID, 0, 60, "", false, false)
+	require.NoError(t, err)
+	require.NotNil(t, postList)
+
+	var found []*model.Post
+	for _, id := range postList.Order {
+		post := postList.Posts[id]
+		if post != nil && post.Type == model.PostTypeHeaderChange {
+			found = append(found, post)
+		}
+	}
+	return found
 }
 
 func TestCanEditChannelBanner(t *testing.T) {
