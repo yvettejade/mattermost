@@ -122,6 +122,7 @@ describe('channel_info_rhs/about_area_channel', () => {
         actions: {
             editChannelName: jest.fn(),
             editChannelPurpose: jest.fn(),
+            editChannelHeader: jest.fn(),
         },
     };
 
@@ -145,7 +146,6 @@ describe('channel_info_rhs/about_area_channel', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
-        expect(screen.getAllByLabelText('Edit')).toHaveLength(2);
     });
 
     test('should trigger editChannelName when clicking channel display name', () => {

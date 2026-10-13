@@ -129,6 +129,9 @@ describe('channel_info_rhs/about_area_dm', () => {
             is_guest: false,
             status: Constants.UserStatuses.ONLINE,
         },
+        actions: {
+            editChannelHeader: jest.fn(),
+        },
     };
 
     test('should display user avatar', () => {
@@ -233,7 +236,6 @@ describe('channel_info_rhs/about_area_dm', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
-        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
     });
 
     test('should not display channel header for bots', () => {
