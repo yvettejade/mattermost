@@ -367,6 +367,63 @@ describe('components/EditChannelHeaderModal', () => {
         });
     });
 
+    describe('add, edit, and remove for regular and group message channels', () => {
+        async function saveHeader(channel: Channel, nextHeader: string) {
+            const patchChannel = jest.fn().mockResolvedValue({});
+            renderWithContext(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    channel={channel}
+                    actions={{...baseProps.actions, patchChannel}}
+                />,
+            );
+
+            const textbox = screen.getByRole('textbox');
+            await userEvent.clear(textbox);
+            if (nextHeader !== '') {
+                await userEvent.type(textbox, nextHeader);
+            }
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith(channel.id, {header: nextHeader});
+            });
+        }
+
+        const regularChannel = {...channel, type: Constants.OPEN_CHANNEL as ChannelType};
+        const groupMessage = {
+            ...channel,
+            id: 'gm-id',
+            type: Constants.GM_CHANNEL as ChannelType,
+            display_name: 'Alice, Bob, Carol',
+            name: '',
+        };
+
+        test('adds a header on a regular channel', async () => {
+            await saveHeader({...regularChannel, header: ''}, 'Standup notes and owner');
+        });
+
+        test('edits a header on a regular channel', async () => {
+            await saveHeader({...regularChannel, header: 'Old header'}, 'Updated header');
+        });
+
+        test('removes a header on a regular channel', async () => {
+            await saveHeader({...regularChannel, header: 'Old header'}, '');
+        });
+
+        test('adds a header on a group message channel', async () => {
+            await saveHeader({...groupMessage, header: ''}, 'Weekly planning');
+        });
+
+        test('edits a header on a group message channel', async () => {
+            await saveHeader({...groupMessage, header: 'Old GM header'}, 'Updated GM header');
+        });
+
+        test('removes a header on a group message channel', async () => {
+            await saveHeader({...groupMessage, header: 'Old GM header'}, '');
+        });
+    });
+
     testComponentForLineBreak(
         (value: string) => (
             <EditChannelHeaderModal

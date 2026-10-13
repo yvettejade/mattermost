@@ -227,4 +227,23 @@ describe('ChannelHeaderText', () => {
             dialogProps: {channel},
         });
     });
+
+    test('should open EditChannelHeaderModal from a group message add click', async () => {
+        const channel = TestHelper.getChannelMock({type: 'G', header: ''});
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Add a channel header'}));
+
+        expect(mockedOpenModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        });
+    });
 });
