@@ -260,4 +260,24 @@ describe('components/drafts/drafts_link', () => {
         const navLink = screen.getByText('Drafts').closest('a');
         expect(navLink).toHaveClass('active');
     });
+
+    it('should cap scheduled posts badge display at 99+ when count exceeds 99 (EC-3)', () => {
+        const scheduledPostIds = Array.from({length: 120}, (_, index) => `scheduled_post${index}`);
+        const state: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                scheduledPosts: {
+                    byTeamId: {
+                        team1: scheduledPostIds,
+                    },
+                },
+            },
+        };
+
+        renderWithRouter(state);
+
+        expect(screen.getByText('99+')).toBeInTheDocument();
+        expect(screen.queryByText('120')).not.toBeInTheDocument();
+    });
 });
