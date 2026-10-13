@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -134,6 +134,9 @@ describe('channel_info_rhs/about_area_gm', () => {
                 username: 'my username2',
             } as UserProfile,
         ],
+        actions: {
+            editChannelHeader: jest.fn(),
+        },
     };
 
     test('should display users avatar', () => {
@@ -159,10 +162,71 @@ describe('channel_info_rhs/about_area_gm', () => {
         expect(screen.getByText('my username')).toBeInTheDocument();
     });
 
+    test('should show empty-state header when header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
     test('should display channel header', () => {
         renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+    });
+
+    test('should trigger editChannelHeader when adding a header on a group message', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
+            />,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByText('Add a channel header'));
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
+    });
+
+    test('should keep an archived group-message header read-only', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                delete_at: 1,
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
             />,
             initialState,
         );
