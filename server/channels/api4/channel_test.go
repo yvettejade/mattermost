@@ -601,6 +601,45 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("header-only update posts one system_header_change and a repeat does not", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		headerChannel := &model.Channel{DisplayName: "Header PUT", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		var err error
+		headerChannel, _, err = client.CreateChannel(context.Background(), headerChannel)
+		require.NoError(t, err)
+
+		headerChannel.Header = "header from put"
+		updated, _, err := client.UpdateChannel(context.Background(), headerChannel)
+		require.NoError(t, err)
+		require.Equal(t, "header from put", updated.Header)
+
+		headerPosts := headerChangePosts(t, client, headerChannel.Id)
+		require.Len(t, headerPosts, 1)
+		require.Equal(t, "", headerPosts[0].GetProp("old_header"))
+		require.Equal(t, "header from put", headerPosts[0].GetProp("new_header"))
+
+		updated.Header = "header from put"
+		_, _, err = client.UpdateChannel(context.Background(), updated)
+		require.NoError(t, err)
+		require.Len(t, headerChangePosts(t, client, headerChannel.Id), 1)
+	})
+}
+
+func headerChangePosts(t *testing.T, client *model.Client4, channelID string) []*model.Post {
+	t.Helper()
+
+	posts, _, err := client.GetPostsForChannel(context.Background(), channelID, 0, 100, "", false, false)
+	require.NoError(t, err)
+
+	headerPosts := make([]*model.Post, 0)
+	for _, post := range posts.Posts {
+		if post.Type == model.PostTypeHeaderChange {
+			headerPosts = append(headerPosts, post)
+		}
+	}
+	return headerPosts
 }
 
 func TestPatchChannelGroupConstrained(t *testing.T) {
@@ -846,6 +885,43 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
 		require.Equal(t, *patch.Header, channel.Header, "do not match")
 		require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
+	})
+
+	t.Run("header patch posts exactly one system_header_change", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "Header PATCH", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		header := "patched header"
+		patched, _, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		require.Equal(t, header, patched.Header)
+
+		headerPosts := headerChangePosts(t, client, channel.Id)
+		require.Len(t, headerPosts, 1)
+		require.Equal(t, "", headerPosts[0].GetProp("old_header"))
+		require.Equal(t, header, headerPosts[0].GetProp("new_header"))
+
+		_, _, err = client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		require.Len(t, headerChangePosts(t, client, channel.Id), 1)
+	})
+
+	t.Run("should reject a patch on an archived channel", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "Archived PATCH", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		header := "should not apply"
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
 	})
 
 	t.Run("should be able to patch with no name", func(t *testing.T) {
