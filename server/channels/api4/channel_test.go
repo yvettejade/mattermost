@@ -413,6 +413,32 @@ func TestCreateChannelManagedCategory(t *testing.T) {
 	})
 }
 
+func channelHeaderChangePosts(t *testing.T, client *model.Client4, channelID string) []*model.Post {
+	t.Helper()
+
+	list, _, err := client.GetPostsForChannel(context.Background(), channelID, 0, 100, "", false, false)
+	require.NoError(t, err)
+
+	posts := make([]*model.Post, 0)
+	for _, post := range list.Posts {
+		if post.Type == model.PostTypeHeaderChange {
+			posts = append(posts, post)
+		}
+	}
+	return posts
+}
+
+func requireHeaderChangePost(t *testing.T, posts []*model.Post, oldHeader, newHeader string) {
+	t.Helper()
+
+	for _, post := range posts {
+		if post.GetProp("old_header") == oldHeader && post.GetProp("new_header") == newHeader {
+			return
+		}
+	}
+	require.Failf(t, "missing system_header_change post", "old_header=%q new_header=%q found=%d", oldHeader, newHeader, len(posts))
+}
+
 func TestUpdateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -600,6 +626,97 @@ func TestUpdateChannel(t *testing.T) {
 		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel3)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("posts system_header_change only when the header changes", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Header Post Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		channel.Header = "first header"
+		updated, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "first header", updated.Header)
+
+		posts := channelHeaderChangePosts(t, client, channel.Id)
+		require.Len(t, posts, 1)
+		requireHeaderChangePost(t, posts, "", "first header")
+
+		updated.Header = "first header"
+		updated, resp, err = client.UpdateChannel(context.Background(), updated)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "first header", updated.Header)
+		require.Len(t, channelHeaderChangePosts(t, client, channel.Id), 1)
+
+		updated.Header = ""
+		updated, resp, err = client.UpdateChannel(context.Background(), updated)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "", updated.Header)
+
+		posts = channelHeaderChangePosts(t, client, channel.Id)
+		require.Len(t, posts, 2)
+		requireHeaderChangePost(t, posts, "first header", "")
+	})
+
+	t.Run("archived channel rejects header update", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Archived Header Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		channel.Header = "keep me"
+		channel, _, err = client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		require.Equal(t, "keep me", channel.Header)
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		channel.Header = "should not persist"
+		_, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+
+		stored, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.Greater(t, stored.DeleteAt, int64(0))
+		require.Equal(t, "keep me", stored.Header)
+	})
+
+	t.Run("direct and group members can set the header", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user1.Email, user1.Password)
+		require.NoError(t, err)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		groupChannel.Header = "gm header"
+		updated, resp, err := client.UpdateChannel(context.Background(), groupChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "gm header", updated.Header)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		directChannel.Header = "dm header"
+		updated, resp, err = client.UpdateChannel(context.Background(), directChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "dm header", updated.Header)
 	})
 }
 
@@ -997,6 +1114,84 @@ func TestPatchChannel(t *testing.T) {
 		_, resp, err = client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch3)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("header patch posts exactly one system_header_change", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Patch Header Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		header := "patched header"
+		patched, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, header, patched.Header)
+
+		posts := channelHeaderChangePosts(t, client, channel.Id)
+		require.Len(t, posts, 1)
+		requireHeaderChangePost(t, posts, "", header)
+	})
+
+	t.Run("archived channel rejects header patch", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Archived Patch Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		header := "keep me"
+		channel, _, err = client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		require.Equal(t, header, channel.Header)
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		rejected := "should not persist"
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &rejected})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+
+		stored, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.Greater(t, stored.DeleteAt, int64(0))
+		require.Equal(t, header, stored.Header)
+	})
+
+	t.Run("direct and group members can patch the header", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user1.Email, user1.Password)
+		require.NoError(t, err)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		gmHeader := "gm header"
+		updated, resp, err := client.PatchChannel(context.Background(), groupChannel.Id, &model.ChannelPatch{Header: &gmHeader})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, gmHeader, updated.Header)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		dmHeader := "dm header"
+		updated, resp, err = client.PatchChannel(context.Background(), directChannel.Id, &model.ChannelPatch{Header: &dmHeader})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, dmHeader, updated.Header)
 	})
 
 	t.Run("Should block changes to default_category_name for group messages", func(t *testing.T) {

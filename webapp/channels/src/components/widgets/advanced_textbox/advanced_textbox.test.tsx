@@ -151,6 +151,25 @@ describe('AdvancedTextbox', () => {
         expect(screen.getByText('This text is too long and exceeds the limit'.length + '/' + props.maxLength)).toBeInTheDocument();
     });
 
+    test('counts Unicode code points when countByCodePoints is set', () => {
+        const props = {
+            ...defaultProps,
+            maxLength: 4,
+            value: '😀'.repeat(3),
+            showCharacterCount: true,
+            countByCodePoints: true,
+        };
+
+        const {rerender} = render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+
+        rerender(<AdvancedTextbox {...{...props, value: '😀'.repeat(5)}}/>);
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('5/4')).toBeInTheDocument();
+    });
+
     test('shows error when text is below minimum character limit', async () => {
         const props = {
             ...defaultProps,
