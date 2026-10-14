@@ -151,6 +151,41 @@ describe('AdvancedTextbox', () => {
         expect(screen.getByText('This text is too long and exceeds the limit'.length + '/' + props.maxLength)).toBeInTheDocument();
     });
 
+    test('counts Unicode code points for the limit and the character counter', () => {
+        const emoji = '😀';
+        const props = {
+            ...defaultProps,
+            maxLength: 2,
+            value: emoji.repeat(2),
+            showCharacterCount: true,
+        };
+
+        const {rerender} = render(<AdvancedTextbox {...props}/>);
+
+        // Two emoji are two code points and four UTF-16 units, which is within the limit.
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+
+        rerender(<AdvancedTextbox {...{...props, value: emoji.repeat(3)}}/>);
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('3/2')).toBeInTheDocument();
+    });
+
+    test('counts Unicode code points for the minimum length', () => {
+        const props = {
+            ...defaultProps,
+            maxLength: 100,
+            minLength: 2,
+            value: '😀',
+            showCharacterCount: true,
+        };
+
+        render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.getByText(/must be at least 2 characters/)).toBeInTheDocument();
+        expect(screen.getByText('1/2')).toBeInTheDocument();
+    });
+
     test('shows error when text is below minimum character limit', async () => {
         const props = {
             ...defaultProps,

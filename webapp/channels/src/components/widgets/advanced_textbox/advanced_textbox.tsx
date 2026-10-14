@@ -58,9 +58,10 @@ const AdvancedTextbox = ({
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Derived values
-    const isTooLong = value.length > maxLength;
-    const isTooShort = minLength !== undefined && value.length > 0 && value.length < minLength;
+    // Code points, so this matches server rune limits. string.length counts UTF-16 units.
+    const codePointLength = Array.from(value).length;
+    const isTooLong = codePointLength > maxLength;
+    const isTooShort = minLength !== undefined && codePointLength > 0 && codePointLength < minLength;
 
     // Update internal error when prop changes or when validation state changes
     useEffect(() => {
@@ -163,7 +164,7 @@ const AdvancedTextbox = ({
                             'below-minimum': isTooShort,
                         })}
                     >
-                        {value.length}{'/'}
+                        {codePointLength}{'/'}
                         {isTooShort ? minLength : maxLength}
                     </div>
                 )}
