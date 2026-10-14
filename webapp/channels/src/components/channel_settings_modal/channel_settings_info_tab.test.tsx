@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,73 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should accept a header of 1024 emoji code points', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await act(async () => {
+            fireEvent.input(headerInput, {target: {value: '😀'.repeat(1024)}});
+        });
+
+        expect(screen.queryByText(/The text entered exceeds the character limit/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+    });
+
+    it('should show header error at 1025 emoji code points', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await act(async () => {
+            fireEvent.input(headerInput, {target: {value: '😀'.repeat(1025)}});
+        });
+
+        expect(screen.getByText(/The text entered exceeds the character limit/)).toBeInTheDocument();
+        const errorPanelMessage = screen.getByText(/There are errors in the form above/);
+        expect(errorPanelMessage.closest('.SaveChangesPanel')).toHaveClass('error');
+    });
+
+    it('should accept a header of 1024 ASCII characters', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await act(async () => {
+            fireEvent.input(headerInput, {target: {value: 'a'.repeat(1024)}});
+        });
+
+        expect(screen.queryByText(/The text entered exceeds the character limit/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+    });
+
+    it('should not treat surrogate pairs as two characters toward the header limit', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        // 600 emoji is 1200 UTF-16 code units (over 1024 via String.length) but 600 code points.
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await act(async () => {
+            fireEvent.input(headerInput, {target: {value: '😀'.repeat(600)}});
+        });
+
+        expect('😀'.repeat(600).length).toBeGreaterThan(1024);
+        expect(screen.queryByText(/The text entered exceeds the character limit/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {
