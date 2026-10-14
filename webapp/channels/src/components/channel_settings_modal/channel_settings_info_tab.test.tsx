@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,42 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should reject a header whose trimmed code-point length is 1025 and not save', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+
+        // SuggestionBox listens for input, not change.
+        fireEvent.input(headerInput, {target: {value: `  ${'😀'.repeat(1025)}  `}});
+
+        expect(screen.getByText(/exceeds the character limit/)).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
+        expect(patchChannel).not.toHaveBeenCalled();
+    });
+
+    it('should save a header of 1024 code points that exceed 1024 UTF-16 code units', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        const header = '😀'.repeat(1024);
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+
+        // SuggestionBox listens for input, not change.
+        fireEvent.input(headerInput, {target: {value: header}});
+
+        expect(screen.queryByText(/exceeds the character limit/)).not.toBeInTheDocument();
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).toHaveBeenCalledWith('channel1', {
+            header,
+        });
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {
