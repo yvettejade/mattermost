@@ -92,6 +92,19 @@ describe('ChannelHeaderText', () => {
         expect(container.childNodes.length).toBe(0);
     });
 
+    test('should return null for whitespace-only header', () => {
+        const channel = TestHelper.getChannelMock({header: '   '});
+
+        const {container} = renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+        );
+
+        expect(container.childNodes.length).toBe(0);
+    });
+
     test('should return null for public channels without header regardless of permissions', () => {
         const channel = TestHelper.getChannelMock({
             type: 'O',
