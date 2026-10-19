@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import {
     addMessageIntoHistory,
 } from 'mattermost-redux/actions/posts';

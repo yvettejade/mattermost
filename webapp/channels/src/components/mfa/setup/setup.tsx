@@ -21,7 +21,7 @@ type Props = {
             };
         }>;
         generateMfaSecret: () => Promise<{
-            data: {
+            data?: {
                 secret: string;
                 qr_code: string;
             };
@@ -65,9 +65,9 @@ export default class Setup extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.generateMfaSecret().then(({data, error}) => {
-            if (error) {
+            if (error || !data) {
                 this.setState({
-                    serverError: error.message,
+                    serverError: error?.message,
                 });
                 return;
             }
