@@ -170,6 +170,35 @@ describe('AdvancedTextbox', () => {
         expect(screen.getByText('5/4')).toBeInTheDocument();
     });
 
+    test('ignores surrounding whitespace when counting code points', () => {
+        const props = {
+            ...defaultProps,
+            maxLength: 4,
+            value: `  ${'😀'.repeat(4)}  `,
+            showCharacterCount: true,
+            countByCodePoints: true,
+        };
+
+        render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+    });
+
+    test('counts trimmed code points when surrounding whitespace still exceeds the limit', () => {
+        const props = {
+            ...defaultProps,
+            maxLength: 4,
+            value: `  ${'😀'.repeat(5)}  `,
+            showCharacterCount: true,
+            countByCodePoints: true,
+        };
+
+        render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('5/4')).toBeInTheDocument();
+    });
+
     test('shows error when text is below minimum character limit', async () => {
         const props = {
             ...defaultProps,

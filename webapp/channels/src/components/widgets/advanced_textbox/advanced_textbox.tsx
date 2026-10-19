@@ -60,8 +60,9 @@ const AdvancedTextbox = ({
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Derived values
-    const countedLength = countByCodePoints ? Array.from(value).length : value.length;
+    // Derived values. Code-point limits apply to the trimmed value so surrounding
+    // whitespace cannot exceed the limit of text that is saved without it.
+    const countedLength = countByCodePoints ? Array.from(value.trim()).length : value.length;
     const isTooLong = countedLength > maxLength;
     const isTooShort = minLength !== undefined && value.length > 0 && value.length < minLength;
 

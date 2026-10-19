@@ -492,6 +492,7 @@ describe('ChannelSettingsInfoTab', () => {
         fireEvent.input(headerInput, {target: {value: `  ${'😀'.repeat(1024)}  `}});
 
         expect(screen.queryByText(/The text entered exceeds the character limit. The channel header is limited to 1024 characters/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
         expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
     });
 
