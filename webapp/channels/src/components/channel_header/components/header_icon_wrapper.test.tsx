@@ -41,6 +41,20 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
         });
     });
 
+    test('should pass through aria-expanded and aria-controls', () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                ariaExpanded={true}
+                ariaControls='channelHeaderPanel'
+            />,
+        );
+
+        const button = screen.getByLabelText('Recent mentions');
+        expect(button).toHaveAttribute('aria-expanded', 'true');
+        expect(button).toHaveAttribute('aria-controls', 'channelHeaderPanel');
+    });
+
     test('should show the shortcut in its tooltip', async () => {
         renderWithContext(
             <HeaderIconWrapper
