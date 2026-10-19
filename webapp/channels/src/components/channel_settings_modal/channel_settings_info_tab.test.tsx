@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,50 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should accept 1024 code points of a non-BMP character in the header', () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        fireEvent.input(headerInput, {target: {value: '😀'.repeat(1024)}});
+
+        expect(screen.queryByText(/The text entered exceeds the character limit. The channel header is limited to 1024 characters/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+    });
+
+    it('should reject 1025 code points of a non-BMP character in the header', () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        fireEvent.input(headerInput, {target: {value: '😀'.repeat(1025)}});
+
+        expect(screen.getByText(/The text entered exceeds the character limit. The channel header is limited to 1024 characters/)).toBeInTheDocument();
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        expect(errorMessage.closest('.SaveChangesPanel')).toHaveClass('error');
+    });
+
+    it('should not show the header limit error when trimmed code points are within 1024', () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        fireEvent.input(headerInput, {target: {value: `  ${'😀'.repeat(1024)}  `}});
+
+        expect(screen.queryByText(/The text entered exceeds the character limit. The channel header is limited to 1024 characters/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {

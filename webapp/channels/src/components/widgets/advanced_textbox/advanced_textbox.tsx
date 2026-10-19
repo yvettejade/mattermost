@@ -29,6 +29,7 @@ type AdvancedTextboxProps = {
     errorMessage?: string | JSX.Element;
     onValidate?: (value: string) => { isValid: boolean; errorMessage?: string };
     showCharacterCount?: boolean;
+    countByCodePoints?: boolean;
     readOnly?: boolean;
     name?: string; // Added name prop for floating label
 };
@@ -51,6 +52,7 @@ const AdvancedTextbox = ({
     errorMessage,
     onValidate,
     showCharacterCount = false,
+    countByCodePoints = false,
     readOnly = false,
     name,
 }: AdvancedTextboxProps) => {
@@ -58,8 +60,10 @@ const AdvancedTextbox = ({
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Derived values
-    const isTooLong = value.length > maxLength;
+    // Derived values. Code-point limits apply to the trimmed value so surrounding
+    // whitespace cannot exceed the limit of text that is saved without it.
+    const countedLength = countByCodePoints ? Array.from(value.trim()).length : value.length;
+    const isTooLong = countedLength > maxLength;
     const isTooShort = minLength !== undefined && value.length > 0 && value.length < minLength;
 
     // Update internal error when prop changes or when validation state changes
@@ -163,7 +167,7 @@ const AdvancedTextbox = ({
                             'below-minimum': isTooShort,
                         })}
                     >
-                        {value.length}{'/'}
+                        {countedLength}{'/'}
                         {isTooShort ? minLength : maxLength}
                     </div>
                 )}
