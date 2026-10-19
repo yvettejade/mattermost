@@ -134,6 +134,9 @@ describe('channel_info_rhs/about_area_gm', () => {
                 username: 'my username2',
             } as UserProfile,
         ],
+        actions: {
+            editChannelHeader: jest.fn(),
+        },
     };
 
     test('should display users avatar', () => {
@@ -168,6 +171,52 @@ describe('channel_info_rhs/about_area_gm', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
-        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+    });
+
+    test('should allow editing the header of an active conversation', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    delete_at: 0,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByRole('button', {name: 'Edit'})).toBeInTheDocument();
+    });
+
+    test('should not offer header edits when the conversation is archived', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    delete_at: 1234,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+    });
+
+    test('should not offer to add a header when an archived conversation has none', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    header: '',
+                    delete_at: 1234,
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 });
