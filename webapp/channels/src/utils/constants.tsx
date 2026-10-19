@@ -992,6 +992,7 @@ export const RHSStates = {
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
     EDIT_HISTORY: 'edit-history',
+    ASSISTANT: 'assistant',
 };
 
 export const UploadStatuses = {

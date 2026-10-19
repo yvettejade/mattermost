@@ -268,6 +268,9 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       <div
         id="mock-invite-members-button"
       />
+      <div
+        id="mock-sidebar-matterbot"
+      />
     </div>
   </div>
 </div>
@@ -334,6 +337,9 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       </div>
       <div
         id="mock-invite-members-button"
+      />
+      <div
+        id="mock-sidebar-matterbot"
       />
     </div>
   </div>

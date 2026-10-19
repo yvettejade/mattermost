@@ -116,6 +116,7 @@ function selectedChannelId(state = '', action: MMAction) {
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
             RHSStates.EDIT_HISTORY,
+            RHSStates.ASSISTANT,
         ].includes(action.state)) {
             return action.channelId;
         }

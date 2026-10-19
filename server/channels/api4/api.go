@@ -400,6 +400,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
 	api.InitAgents()
+	api.InitAssistant()
 	api.InitProperties()
 
 	// If we allow testing then listen for manual testing URL hits

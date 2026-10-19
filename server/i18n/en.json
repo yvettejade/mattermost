@@ -220,6 +220,30 @@
     "translation": "Bridge test helper is disabled."
   },
   {
+    "id": "api.assistant.config_missing",
+    "translation": "The assistant is not configured. Set YvetteGrokAPI and try again."
+  },
+  {
+    "id": "api.assistant.jira_config_missing",
+    "translation": "Jira lookup is not configured. Set YvetteJira and try again."
+  },
+  {
+    "id": "api.assistant.permission",
+    "translation": "You do not have permission to use the assistant in this channel."
+  },
+  {
+    "id": "api.assistant.timeout",
+    "translation": "The assistant timed out. Try again."
+  },
+  {
+    "id": "api.assistant.ungrounded_issue_key",
+    "translation": "I can't answer with issue keys that were not in the Jira lookup."
+  },
+  {
+    "id": "api.assistant.upstream_error",
+    "translation": "The assistant could not complete that request."
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },

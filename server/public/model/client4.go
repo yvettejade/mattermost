@@ -654,6 +654,10 @@ func (c *Client4) viewsRoute(channelId string) clientRoute {
 	return c.channelRoute(channelId).Join("views")
 }
 
+func (c *Client4) assistantRoute(channelId string) clientRoute {
+	return c.channelRoute(channelId).Join("assistant")
+}
+
 func (c *Client4) viewRoute(channelId, viewId string) clientRoute {
 	return c.viewsRoute(channelId).Join(viewId)
 }
@@ -7863,6 +7867,16 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
+}
+
+// AskAssistant sends a channel-grounded assistant request.
+func (c *Client4) AskAssistant(ctx context.Context, channelId string, ask *AssistantAsk) (*AssistantReply, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.assistantRoute(channelId), ask)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AssistantReply](r)
 }
 
 // CreateView creates a view for a channel.
