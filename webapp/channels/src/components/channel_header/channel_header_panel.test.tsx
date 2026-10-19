@@ -43,6 +43,19 @@ describe('ChannelHeaderPanel', () => {
         expect(screen.getByText('Add a channel header…')).toBeInTheDocument();
     });
 
+    test('does not prompt to add a header when the user cannot edit', () => {
+        renderWithContext(
+            <ChannelHeaderPanel
+                {...baseProps}
+                canEdit={false}
+                channel={TestHelper.getChannelMock({id: 'channel_id', header: ''})}
+            />,
+        );
+
+        expect(screen.queryByText('Add a channel header…')).not.toBeInTheDocument();
+        expect(screen.getByText('No channel header')).toBeInTheDocument();
+    });
+
     test('shows Edit when the user can edit and hides it otherwise', () => {
         const {rerender} = renderWithContext(
             <ChannelHeaderPanel {...baseProps}/>,

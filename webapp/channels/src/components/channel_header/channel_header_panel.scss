@@ -1,7 +1,13 @@
 .ChannelHeaderPanel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
     padding: 12px 16px 16px;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     background: var(--center-channel-bg);
+    box-shadow: var(--elevation-2);
 
     &:focus {
         outline: none;
