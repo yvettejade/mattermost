@@ -128,10 +128,17 @@ export default function ChannelHeaderPanel({channel, dmUser, canEdit, onEdit, on
                     />
                 ) : (
                     <p className='ChannelHeaderPanel__empty'>
-                        <FormattedMessage
-                            id='channel_header.headerPanel.empty'
-                            defaultMessage='Add a channel header…'
-                        />
+                        {canEdit ? (
+                            <FormattedMessage
+                                id='channel_header.headerPanel.empty'
+                                defaultMessage='Add a channel header…'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='channel_header.headerPanel.noHeader'
+                                defaultMessage='No channel header'
+                            />
+                        )}
                     </p>
                 )}
             </div>
