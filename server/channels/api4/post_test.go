@@ -2288,6 +2288,84 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestUpdatePostOthersContentPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	ownerClient := th.Client
+	otherClient := th.CreateClient()
+	_, _, err := otherClient.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+	require.NoError(t, err)
+
+	ownerPost, _, err := ownerClient.CreatePost(context.Background(), &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "owner original",
+	})
+	require.NoError(t, err)
+
+	t.Run("non-owner PUT denied without edit_others_posts", func(t *testing.T) {
+		update := ownerPost.Clone()
+		update.Message = "rewritten by non-owner"
+		_, resp, updateErr := otherClient.UpdatePost(context.Background(), ownerPost.Id, update)
+		require.Error(t, updateErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("non-owner PUT allowed with edit_others_posts", func(t *testing.T) {
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		update := ownerPost.Clone()
+		update.Message = "rewritten with permission"
+		updated, _, updateErr := otherClient.UpdatePost(context.Background(), ownerPost.Id, update)
+		require.NoError(t, updateErr)
+		require.Equal(t, "rewritten with permission", updated.Message)
+	})
+
+	t.Run("owner PUT ok", func(t *testing.T) {
+		update := ownerPost.Clone()
+		update.Message = "owner rewrite"
+		updated, _, updateErr := ownerClient.UpdatePost(context.Background(), ownerPost.Id, update)
+		require.NoError(t, updateErr)
+		require.Equal(t, "owner rewrite", updated.Message)
+	})
+
+	t.Run("non-owner can pin and unpin others", func(t *testing.T) {
+		_, pinErr := otherClient.PinPost(context.Background(), ownerPost.Id)
+		require.NoError(t, pinErr)
+
+		pinned, _, getErr := otherClient.GetPost(context.Background(), ownerPost.Id, "")
+		require.NoError(t, getErr)
+		require.True(t, pinned.IsPinned)
+
+		_, unpinErr := otherClient.UnpinPost(context.Background(), ownerPost.Id)
+		require.NoError(t, unpinErr)
+
+		unpinned, _, getErr := otherClient.GetPost(context.Background(), ownerPost.Id, "")
+		require.NoError(t, getErr)
+		require.False(t, unpinned.IsPinned)
+	})
+
+	t.Run("PATCH still denies non-owner without edit_others_posts", func(t *testing.T) {
+		patch := &model.PostPatch{Message: model.NewPointer("patched by non-owner")}
+		_, resp, patchErr := otherClient.PatchPost(context.Background(), ownerPost.Id, patch)
+		require.Error(t, patchErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("PATCH allows non-owner with edit_others_posts", func(t *testing.T) {
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		patch := &model.PostPatch{Message: model.NewPointer("patched with permission")}
+		patched, _, patchErr := otherClient.PatchPost(context.Background(), ownerPost.Id, patch)
+		require.NoError(t, patchErr)
+		require.Equal(t, "patched with permission", patched.Message)
+	})
+}
+
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 

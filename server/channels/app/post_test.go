@@ -413,6 +413,93 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 }
 
+func TestUpdatePostOwnership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	ownerCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+	otherCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser2.Id})
+
+	t.Run("non-owner content edit denied without edit_others_posts", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+		update := post.Clone()
+		update.Message = "rewritten by non-owner"
+		_, _, appErr := th.App.UpdatePost(otherCtx, update, model.DefaultUpdatePostOptions())
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("non-owner content edit allowed with edit_others_posts", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		post := th.CreatePost(t, th.BasicChannel)
+		update := post.Clone()
+		update.Message = "rewritten with permission"
+		updated, _, appErr := th.App.UpdatePost(otherCtx, update, model.DefaultUpdatePostOptions())
+		require.Nil(t, appErr)
+		require.Equal(t, "rewritten with permission", updated.Message)
+	})
+
+	t.Run("owner content edit allowed", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+		update := post.Clone()
+		update.Message = "owner rewrite"
+		updated, _, appErr := th.App.UpdatePost(ownerCtx, update, model.DefaultUpdatePostOptions())
+		require.Nil(t, appErr)
+		require.Equal(t, "owner rewrite", updated.Message)
+	})
+
+	t.Run("non-owner pin-only update allowed", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+		update := post.Clone()
+		update.IsPinned = true
+		updated, _, appErr := th.App.UpdatePost(otherCtx, update, model.DefaultUpdatePostOptions())
+		require.Nil(t, appErr)
+		require.True(t, updated.IsPinned)
+		require.Equal(t, post.Message, updated.Message)
+	})
+
+	t.Run("TrustedUpdate allows non-owner content edit", func(t *testing.T) {
+		post := th.CreatePost(t, th.BasicChannel)
+		update := post.Clone()
+		update.Message = "plugin rewrite"
+		updated, _, appErr := th.App.UpdatePost(otherCtx, update, &model.UpdatePostOptions{TrustedUpdate: true})
+		require.Nil(t, appErr)
+		require.Equal(t, "plugin rewrite", updated.Message)
+	})
+
+	t.Run("manage_system allows non-owner content edit", func(t *testing.T) {
+		adminCtx := th.Context.WithSession(&model.Session{UserId: th.SystemAdminUser.Id})
+		post := th.CreatePost(t, th.BasicChannel)
+		update := post.Clone()
+		update.Message = "admin rewrite"
+		updated, _, appErr := th.App.UpdatePost(adminCtx, update, model.DefaultUpdatePostOptions())
+		require.Nil(t, appErr)
+		require.Equal(t, "admin rewrite", updated.Message)
+	})
+}
+
+func TestUpdatePostOwnershipCardCollaborative(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	otherCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser2.Id})
+	post := th.CreatePost(t, th.BasicChannel, func(p *model.Post) {
+		p.Type = model.PostTypeCard
+	})
+	update := post.Clone()
+	update.Message = "card rewrite by other"
+	updated, _, appErr := th.App.UpdatePost(otherCtx, update, model.DefaultUpdatePostOptions())
+	require.Nil(t, appErr)
+	require.Equal(t, "card rewrite by other", updated.Message)
+}
+
 func TestUpdatePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
