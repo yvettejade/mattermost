@@ -37,6 +37,7 @@ export const PostTypes = {
     GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
     BURN_ON_READ: 'burn_on_read' as PostType,
     SHARED_CHANNEL_STATE: 'system_shared_chan_state' as PostType,
+    CARD: 'card' as PostType,
 };
 
 export default {
