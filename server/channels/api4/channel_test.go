@@ -601,6 +601,75 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("posts a header change system message only when the header changes", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Header Change Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		before, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		require.Empty(t, headerChangePosts(before))
+
+		channel.Header = "design-doc header"
+		updated, _, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		require.Equal(t, "design-doc header", updated.Header)
+
+		afterSet, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		changed := headerChangePosts(afterSet)
+		require.Len(t, changed, 1)
+		require.Equal(t, model.PostTypeHeaderChange, changed[0].Type)
+		require.Equal(t, "", changed[0].GetProp("old_header").(string))
+		require.Equal(t, "design-doc header", changed[0].GetProp("new_header").(string))
+
+		updated.Header = "design-doc header"
+		same, _, err := client.UpdateChannel(context.Background(), updated)
+		require.NoError(t, err)
+		require.Equal(t, "design-doc header", same.Header)
+
+		afterSame, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		require.Len(t, headerChangePosts(afterSame), 1)
+
+		same.Header = ""
+		cleared, _, err := client.UpdateChannel(context.Background(), same)
+		require.NoError(t, err)
+		require.Equal(t, "", cleared.Header)
+
+		afterClear, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		clearedPosts := headerChangePosts(afterClear)
+		require.Len(t, clearedPosts, 2)
+
+		var setPost, clearPost *model.Post
+		for _, post := range clearedPosts {
+			switch post.GetProp("new_header") {
+			case "design-doc header":
+				setPost = post
+			case "":
+				clearPost = post
+			}
+		}
+		require.NotNil(t, setPost)
+		require.Equal(t, "", setPost.GetProp("old_header").(string))
+		require.NotNil(t, clearPost)
+		require.Equal(t, "design-doc header", clearPost.GetProp("old_header").(string))
+		require.Equal(t, "", clearPost.GetProp("new_header").(string))
+	})
+}
+
+func headerChangePosts(list *model.PostList) []*model.Post {
+	var found []*model.Post
+	for _, post := range list.Posts {
+		if post != nil && post.Type == model.PostTypeHeaderChange {
+			found = append(found, post)
+		}
+	}
+	return found
 }
 
 func TestPatchChannelGroupConstrained(t *testing.T) {
@@ -1698,6 +1767,46 @@ func TestPatchChannel(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Equal(t, newHeader, patchedChannel.Header)
 		require.True(t, patchedChannel.AutoTranslation)
+	})
+
+	t.Run("posts exactly one header change system message and rejects archived patches", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Archive Patch Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		header := "kept header"
+		patched, _, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		require.Equal(t, header, patched.Header)
+
+		posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		changed := headerChangePosts(posts)
+		require.Len(t, changed, 1)
+		require.Equal(t, model.PostTypeHeaderChange, changed[0].Type)
+		require.Equal(t, "", changed[0].GetProp("old_header").(string))
+		require.Equal(t, header, changed[0].GetProp("new_header").(string))
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		next := "should fail"
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &next})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+
+		stored, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.Greater(t, stored.DeleteAt, int64(0))
+		require.Equal(t, header, stored.Header)
+
+		after, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		require.Len(t, headerChangePosts(after), 1)
 	})
 }
 
