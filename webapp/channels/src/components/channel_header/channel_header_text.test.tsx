@@ -6,7 +6,11 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import ChannelHeaderText from './channel_header_text';
+import ChannelHeaderText, {
+    canAddChannelHeader,
+    getChannelHeaderDisplayText,
+    getChannelHeaderMentionsMap,
+} from './channel_header_text';
 
 describe('ChannelHeaderText', () => {
     const defaultTeamId = TestHelper.getTeamMock().id;
@@ -141,5 +145,28 @@ describe('ChannelHeaderText', () => {
         );
 
         expect(container.childNodes.length).toBe(0);
+    });
+
+    test('getChannelHeaderDisplayText prefers bot description over the channel header for bot DMs', () => {
+        const bot = TestHelper.getUserMock({is_bot: true, bot_description: 'I schedule standups'});
+        expect(getChannelHeaderDisplayText(TestHelper.getChannelMock({type: 'D', header: 'ignored'}), bot)).toBe('I schedule standups');
+        expect(getChannelHeaderDisplayText(TestHelper.getChannelMock({type: 'O', header: 'Standup at 9'}))).toBe('Standup at 9');
+    });
+
+    test('getChannelHeaderMentionsMap returns channel mentions when present', () => {
+        const mentions = {test: {display_name: 'Test'}};
+        expect(getChannelHeaderMentionsMap(TestHelper.getChannelMock({
+            props: {channel_mentions: mentions},
+        }))).toEqual(mentions);
+        expect(getChannelHeaderMentionsMap(TestHelper.getChannelMock({header: 'plain'}))).toBeUndefined();
+    });
+
+    test('canAddChannelHeader is limited to unarchived public and private channels with permission', () => {
+        expect(canAddChannelHeader(TestHelper.getChannelMock({type: 'O', delete_at: 0}), true)).toBe(true);
+        expect(canAddChannelHeader(TestHelper.getChannelMock({type: 'P', delete_at: 0}), true)).toBe(true);
+        expect(canAddChannelHeader(TestHelper.getChannelMock({type: 'O', delete_at: 0}), false)).toBe(false);
+        expect(canAddChannelHeader(TestHelper.getChannelMock({type: 'O', delete_at: 1}), true)).toBe(false);
+        expect(canAddChannelHeader(TestHelper.getChannelMock({type: 'D', delete_at: 0}), true)).toBe(false);
+        expect(canAddChannelHeader(TestHelper.getChannelMock({type: 'G', delete_at: 0}), true)).toBe(false);
     });
 });
