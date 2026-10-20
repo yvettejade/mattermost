@@ -6,8 +6,10 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal/edit_channel_header_modal';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -22,6 +24,7 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
@@ -49,6 +52,7 @@ describe('components/ChannelHeader', () => {
         remoteNames: [],
         sharedChannelsPluginsEnabled: false,
         isChannelAutotranslated: false,
+        canEditChannelHeader: false,
     };
 
     const populatedProps = {
@@ -326,6 +330,69 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('shows the channel header button for an empty header and opens the modal', async () => {
+        const openModal = jest.fn();
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            actions: {
+                ...populatedProps.actions,
+                openModal,
+            },
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: '',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const button = screen.getByRole('button', {name: 'Channel header'});
+        expect(button).toHaveAttribute('id', 'channelHeaderHeaderButton');
+        await userEvent.click(button);
+
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {
+                channel: props.channel,
+                dmUser: props.dmUser,
+                canEdit: true,
+            },
+        });
+    });
+
+    test('shows the channel header button when a header is set', async () => {
+        const openModal = jest.fn();
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: false,
+            actions: {
+                ...populatedProps.actions,
+                openModal,
+            },
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: 'Set header',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel header'}));
+
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogProps: expect.objectContaining({
+                canEdit: false,
+            }),
+        }));
     });
 
     test('should match snapshot with no last active display because it is disabled', () => {

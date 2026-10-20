@@ -8,7 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 import {TeamTypes} from 'mattermost-redux/action_types';
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
+import {getMyChannelMembership, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -45,6 +45,37 @@ export function canManageMembers(state: GlobalState, channel: Channel) {
     }
 
     return true;
+}
+
+// Matches /header: public and private channels need manage properties; DMs and group messages need membership.
+export function canEditChannelHeader(state: GlobalState, channel: Channel): boolean {
+    if (isArchivedChannel(channel)) {
+        return false;
+    }
+
+    if (channel.type === Constants.OPEN_CHANNEL) {
+        return haveIChannelPermission(
+            state,
+            channel.team_id,
+            channel.id,
+            Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES,
+        );
+    }
+
+    if (channel.type === Constants.PRIVATE_CHANNEL) {
+        return haveIChannelPermission(
+            state,
+            channel.team_id,
+            channel.id,
+            Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES,
+        );
+    }
+
+    if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+        return Boolean(getMyChannelMembership(state, channel.id));
+    }
+
+    return false;
 }
 
 export function findNextUnreadChannelId(curChannelId: string, allChannelIds: string[], unreadChannelIds: string[], direction: number) {

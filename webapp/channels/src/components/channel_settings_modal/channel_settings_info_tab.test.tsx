@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,52 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('accepts a header of 1024 code points that exceeds 1024 UTF-16 units', () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const header = '😀'.repeat(1024);
+        expect(header.length).toBeGreaterThan(1024);
+        expect(Array.from(header).length).toBe(1024);
+
+        fireEvent.input(screen.getByTestId('channel_settings_header_textbox'), {target: {value: header}});
+
+        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue(header);
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+    });
+
+    it('shows an error when a header is 1025 code points', () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        fireEvent.input(screen.getByTestId('channel_settings_header_textbox'), {target: {value: '😀'.repeat(1025)}});
+
+        expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
+    });
+
+    it('still limits channel purpose with string.length', () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const purpose = '😀'.repeat(250);
+        expect(purpose.length).toBe(500);
+        expect(Array.from(purpose).length).toBe(250);
+
+        fireEvent.input(screen.getByTestId('channel_settings_purpose_textbox'), {target: {value: purpose}});
+
+        expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {
