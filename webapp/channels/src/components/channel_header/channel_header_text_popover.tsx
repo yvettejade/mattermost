@@ -17,7 +17,7 @@ import {
     useClick,
     offset,
 } from '@floating-ui/react';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {MouseEvent} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -54,13 +54,19 @@ const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_Y_OF_POPOVER) - (
 interface Props {
     text: string;
     channelMentionsNameMap?: ChannelNamesMap;
+    anchorRef?: React.RefObject<HTMLElement | null>;
+    forceEnablePopover?: boolean;
+    isOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    hideInlineText?: boolean;
 }
 export function ChannelHeaderTextPopover(props: Props) {
     const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
 
     const rootElementRef = useRef<HTMLDivElement>(null);
+    const measurementRef = props.hideInlineText ? props.anchorRef : rootElementRef;
 
-    const isTextOverflowing = checkIfTextIsOverflowing(rootElementRef?.current, props.text);
+    const isTextOverflowing = props.forceEnablePopover || checkIfTextIsOverflowing(measurementRef?.current ?? null, props.text);
 
     const markdownOptions = useMemo(() => {
         const inHeader = {
@@ -80,7 +86,16 @@ export function ChannelHeaderTextPopover(props: Props) {
         };
     }, [props.channelMentionsNameMap]);
 
-    const [isPopoverOpen, setPopoverOpen] = useState(false);
+    const [internalPopoverOpen, setInternalPopoverOpen] = useState(false);
+    const isControlled = props.isOpen !== undefined;
+    const isPopoverOpen = isControlled ? props.isOpen : internalPopoverOpen;
+    const setPopoverOpen = (open: boolean) => {
+        if (isControlled) {
+            props.onOpenChange?.(open);
+        } else {
+            setInternalPopoverOpen(open);
+        }
+    };
 
     const {refs: {setReference, setFloating}, floatingStyles, context: floatingContext} = useFloating({
         open: isTextOverflowing ? isPopoverOpen : false,
@@ -96,22 +111,28 @@ export function ChannelHeaderTextPopover(props: Props) {
     );
 
     const hover = useHover(floatingContext, {
-        enabled: isTextOverflowing,
+        enabled: isTextOverflowing && !props.hideInlineText,
         handleClose: safePolygon({
             requireIntent: false,
             blockPointerEvents: true,
         }),
     });
-    const focus = useFocus(floatingContext);
+    const focus = useFocus(floatingContext, {enabled: !props.hideInlineText});
     const dismiss = useDismiss(floatingContext);
-    const click = useClick(floatingContext);
+    const click = useClick(floatingContext, {enabled: !props.hideInlineText});
     const role = useRole(floatingContext, {role: 'tooltip'});
 
     const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, click, dismiss, role]);
 
+    useEffect(() => {
+        if (props.hideInlineText && props.anchorRef?.current) {
+            setReference(props.anchorRef.current);
+        }
+    }, [props.hideInlineText, props.anchorRef, setReference, isPopoverOpen]);
+
     const rootRef = useMergeRefs([rootElementRef, setReference]);
 
-    const maxWidthOfPopover = getMaxWidthOfPopover(rootElementRef?.current);
+    const maxWidthOfPopover = getMaxWidthOfPopover(measurementRef?.current ?? rootElementRef?.current);
 
     // This action processes clicks on formatted text elements like hashtags, user mentions,
     // channel mentions, etc. while also allowing other elements to function as is such as external links etc
@@ -121,20 +142,21 @@ export function ChannelHeaderTextPopover(props: Props) {
 
     return (
         <>
-            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-            <div
-                ref={rootRef}
-                className='header-description__text'
-                {...getReferenceProps()}
-                onClick={handleClick}
-            >
-                <Markdown
-                    message={props.text}
-                    options={markdownOptions.inHeader}
-                    imageProps={IMAGE_MARKDOWN_OPTIONS}
-                />
-            </div>
-
+            {!props.hideInlineText && (
+                /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
+                <div
+                    ref={rootRef}
+                    className='header-description__text'
+                    {...getReferenceProps()}
+                    onClick={handleClick}
+                >
+                    <Markdown
+                        message={props.text}
+                        options={markdownOptions.inHeader}
+                        imageProps={IMAGE_MARKDOWN_OPTIONS}
+                    />
+                </div>
+            )}
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay
@@ -166,7 +188,7 @@ export function ChannelHeaderTextPopover(props: Props) {
     );
 }
 
-function checkIfTextIsOverflowing(elem: HTMLDivElement | null, text: string): boolean {
+function checkIfTextIsOverflowing(elem: HTMLElement | null, text: string): boolean {
     if (!elem) {
         return false;
     }
@@ -182,7 +204,7 @@ function checkIfTextIsOverflowing(elem: HTMLDivElement | null, text: string): bo
     return elem.scrollWidth > elem.clientWidth || elem.scrollHeight > elem.clientHeight;
 }
 
-function getMaxWidthOfPopover(elem: HTMLDivElement | null): string | number {
+function getMaxWidthOfPopover(elem: HTMLElement | null): string | number {
     if (!elem) {
         return 'inherit';
     }

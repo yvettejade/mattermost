@@ -12,17 +12,19 @@ import {isChannelNamesMap} from 'utils/text_formatting';
 
 import {ChannelHeaderTextPopover} from './channel_header_text_popover';
 
-const token = 'fOuNdMyLeAkeDaPIkEyrZW5fMTIzNDU=';
-
 interface Props {
     teamId?: Team['id'];
     channel: Channel;
     dmUser?: UserProfile;
 }
 
+export function getChannelHeaderDisplayText(channel: Channel, dmUser?: UserProfile) {
+    const isBotDMChannel = channel.type === Constants.DM_CHANNEL && (dmUser?.is_bot ?? false);
+    return isBotDMChannel ? dmUser?.bot_description ?? '' : channel?.header ?? '';
+}
+
 export default function ChannelHeaderText(props: Props) {
-    const isBotDMChannel = props.channel.type === Constants.DM_CHANNEL && (props.dmUser?.is_bot ?? false);
-    const headerText = isBotDMChannel ? props.dmUser?.bot_description ?? '' : props.channel?.header ?? '';
+    const headerText = getChannelHeaderDisplayText(props.channel, props.dmUser);
     const hasHeaderText = headerText.trim().length > 0;
 
     if (!hasHeaderText) {
