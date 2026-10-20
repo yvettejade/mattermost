@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -22,6 +22,7 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
@@ -49,6 +50,7 @@ describe('components/ChannelHeader', () => {
         remoteNames: [],
         sharedChannelsPluginsEnabled: false,
         isChannelAutotranslated: false,
+        canEditHeader: true,
     };
 
     const populatedProps = {
@@ -326,6 +328,67 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render the header button when the header is empty', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: '',
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('#channelHeaderHeaderButton')).not.toBeNull();
+    });
+
+    test('should render the header button when the header is set', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: 'See ~test',
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('#channelHeaderHeaderButton')).not.toBeNull();
+    });
+
+    test('should open the edit channel header modal when the header button is clicked', () => {
+        const openModal = jest.fn();
+        const props = {
+            ...populatedProps,
+            actions: {
+                ...populatedProps.actions,
+                openModal,
+            },
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const headerButton = container.querySelector('#channelHeaderHeaderButton') as HTMLButtonElement;
+        expect(headerButton).not.toBeNull();
+        expect(headerButton).toHaveAccessibleName('Channel header');
+        headerButton.click();
+
+        expect(openModal).toHaveBeenCalledTimes(1);
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogProps: expect.objectContaining({
+                channel: props.channel,
+                canEdit: true,
+            }),
+        }));
     });
 
     test('should match snapshot with no last active display because it is disabled', () => {
