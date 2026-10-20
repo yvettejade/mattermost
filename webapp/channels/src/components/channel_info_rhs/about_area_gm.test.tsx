@@ -134,6 +134,9 @@ describe('channel_info_rhs/about_area_gm', () => {
                 username: 'my username2',
             } as UserProfile,
         ],
+        actions: {
+            editChannelHeader: jest.fn(),
+        },
     };
 
     test('should display users avatar', () => {
@@ -159,6 +162,25 @@ describe('channel_info_rhs/about_area_gm', () => {
         expect(screen.getByText('my username')).toBeInTheDocument();
     });
 
+    test('should show empty-state header when header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
     test('should display channel header', () => {
         renderWithContext(
             <AboutAreaGM
@@ -168,6 +190,5 @@ describe('channel_info_rhs/about_area_gm', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
-        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
     });
 });
