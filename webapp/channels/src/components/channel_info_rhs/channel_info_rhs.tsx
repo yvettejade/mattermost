@@ -14,6 +14,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import Scrollbars from 'components/common/scrollbars';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
@@ -168,6 +169,12 @@ const ChannelInfoRhs = ({
         dialogProps: {channel, teamName: currentTeam.name},
     });
 
+    const editChannelHeader = () => actions.openModal({
+        modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+        dialogType: EditChannelHeaderModal,
+        dialogProps: {channel},
+    });
+
     const openNotificationSettings = () => actions.openModal({
         modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
         dialogType: ChannelNotificationsModal,
@@ -254,6 +261,7 @@ const ChannelInfoRhs = ({
                         actions={{
                             editChannelName,
                             editChannelPurpose,
+                            editChannelHeader,
                         }}
                     />
                     <Divider/>
