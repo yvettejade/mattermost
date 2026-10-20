@@ -28,6 +28,7 @@ import {
 import {canPopout, isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
 import {isEmptyObject} from 'utils/utils';
 
+import ChannelHeaderContentButton from './channel_header_content_button';
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import HeaderIconWrapper from './components/header_icon_wrapper';
@@ -396,6 +397,10 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     className='channel-header__icons'
                                 >
                                     {muteTrigger}
+                                    <ChannelHeaderContentButton
+                                        channel={channel}
+                                        dmUser={dmUser}
+                                    />
                                     {memberListButton}
                                     {pinnedButton}
                                     {this.props.isFileAttachmentsEnabled &&
