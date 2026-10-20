@@ -4,8 +4,21 @@
 import {ArchiveLockOutlineIcon, ArchiveOutlineIcon, GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+
 import * as Utils from 'utils/channel_utils';
 import Constants from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
+
+jest.mock('mattermost-redux/selectors/entities/roles', () => {
+    const original = jest.requireActual('mattermost-redux/selectors/entities/roles');
+    return {
+        ...original,
+        haveIChannelPermission: jest.fn(() => false),
+    };
+});
 
 describe('Channel Utils', () => {
     describe('findNextUnreadChannelId', () => {
@@ -214,6 +227,51 @@ describe('Channel Utils', () => {
             const channel = {type: Constants.GM_CHANNEL, name: 'groupid1234'} as Channel;
             const result = Utils.getChannelRoutePathAndIdentifier(channel, 'johndoe');
             expect(result).toEqual({path: 'messages', identifier: 'groupid1234'});
+        });
+    });
+
+    describe('canEditChannelHeader', () => {
+        const state = {} as GlobalState;
+        const mockedHaveI = haveIChannelPermission as jest.MockedFunction<typeof haveIChannelPermission>;
+
+        beforeEach(() => {
+            mockedHaveI.mockReset();
+            mockedHaveI.mockReturnValue(false);
+        });
+
+        test('returns false when channel is missing', () => {
+            expect(Utils.canEditChannelHeader(state)).toBe(false);
+        });
+
+        test('returns false for archived channels', () => {
+            const archived = TestHelper.getChannelMock({type: 'O', delete_at: 1});
+            mockedHaveI.mockReturnValue(true);
+            expect(Utils.canEditChannelHeader(state, archived)).toBe(false);
+            expect(mockedHaveI).not.toHaveBeenCalled();
+        });
+
+        test('returns true for DM and GM channels without a manage-properties check', () => {
+            const dmChannel = TestHelper.getChannelMock({type: 'D', delete_at: 0});
+            const gmChannel = TestHelper.getChannelMock({type: 'G', delete_at: 0});
+            expect(Utils.canEditChannelHeader(state, dmChannel)).toBe(true);
+            expect(Utils.canEditChannelHeader(state, gmChannel)).toBe(true);
+            expect(mockedHaveI).not.toHaveBeenCalled();
+        });
+
+        test('returns true for public and private channels when the user can manage properties', () => {
+            mockedHaveI.mockReturnValue(true);
+            const publicChannel = TestHelper.getChannelMock({type: 'O', delete_at: 0});
+            const privateChannel = TestHelper.getChannelMock({type: 'P', delete_at: 0});
+            expect(Utils.canEditChannelHeader(state, publicChannel)).toBe(true);
+            expect(Utils.canEditChannelHeader(state, privateChannel)).toBe(true);
+        });
+
+        test('returns false for public and private channels without manage-properties permission', () => {
+            mockedHaveI.mockReturnValue(false);
+            const publicChannel = TestHelper.getChannelMock({type: 'O', delete_at: 0});
+            const privateChannel = TestHelper.getChannelMock({type: 'P', delete_at: 0});
+            expect(Utils.canEditChannelHeader(state, publicChannel)).toBe(false);
+            expect(Utils.canEditChannelHeader(state, privateChannel)).toBe(false);
         });
     });
 });
