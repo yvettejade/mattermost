@@ -36,6 +36,18 @@ exports[`components/ChannelHeader should match snapshot with last active display
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
             <div
               class="channel-header__description"
@@ -55,15 +67,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
                   </time>
                 </span>
               </span>
-              <div
-                class="header-description__text"
-              >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  not the bot description
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -119,6 +122,18 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
             <div
               class="channel-header__description"
@@ -127,15 +142,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
               <span
                 class="header-status__text"
               />
-              <div
-                class="header-description__text"
-              >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  not the bot description
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -207,20 +213,18 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -292,20 +296,18 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -377,20 +379,18 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -462,20 +462,18 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -547,20 +545,18 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -642,20 +638,18 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -727,20 +721,18 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -796,6 +788,18 @@ exports[`components/ChannelHeader should render properly when custom status is e
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
             <div
               class="channel-header__description"
@@ -815,15 +819,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
                   </time>
                 </span>
               </span>
-              <div
-                class="header-description__text"
-              >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  not the bot description
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -879,6 +874,18 @@ exports[`components/ChannelHeader should render properly when custom status is s
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
             <div
               class="channel-header__description"
@@ -901,15 +908,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
                   class="custom-emoji__wrapper"
                 />
               </span>
-              <div
-                class="header-description__text"
-              >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  not the bot description
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -981,20 +979,18 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -1066,20 +1062,18 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -1151,20 +1145,18 @@ exports[`components/ChannelHeader should render properly when populated with cha
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  See $MM_CHANNELMENTION0$
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -1236,20 +1228,18 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -1337,20 +1327,18 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                   class="icon icon-file-text-outline"
                 />
               </button>
-            </div>
-            <div
-              class="channel-header__description"
-              id="channelHeaderDescription"
-            >
-              <div
-                class="header-description__text"
+              <button
+                aria-controls="channelHeaderPanel"
+                aria-expanded="false"
+                aria-label="Channel header"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPanelButton"
               >
-                <p
-                  class="markdown__paragraph-inline"
-                >
-                  header
-                </p>
-              </div>
+                <i
+                  aria-hidden="true"
+                  class="icon icon-text-box-outline"
+                />
+              </button>
             </div>
           </div>
         </div>
