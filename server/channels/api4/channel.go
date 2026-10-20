@@ -239,6 +239,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// oldChannel.Header is overwritten before UpdateChannel, so the system post
+	// has to compare against the value loaded from the store.
+	oldHeader := oldChannel.Header
 	oldChannel.Header = channel.Header
 	oldChannel.Purpose = channel.Purpose
 
@@ -266,6 +269,12 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if oldChannelDisplayName != channel.DisplayName {
 		if err := c.App.PostUpdateChannelDisplayNameMessage(c.AppContext, c.AppContext.Session().UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
 			c.Logger.Warn("Error while posting channel display name message", mlog.Err(err))
+		}
+	}
+
+	if updatedChannel.Header != oldHeader {
+		if err := c.App.PostUpdateChannelHeaderMessage(c.AppContext, c.AppContext.Session().UserId, updatedChannel, oldHeader, updatedChannel.Header); err != nil {
+			c.Logger.Warn("Error while posting channel header message", mlog.Err(err))
 		}
 	}
 
@@ -435,6 +444,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if updatingProperties && oldChannel.DeleteAt > 0 {
+		c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.deleted.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 

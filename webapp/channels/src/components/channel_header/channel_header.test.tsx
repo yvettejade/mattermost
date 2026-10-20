@@ -22,6 +22,7 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
@@ -49,6 +50,7 @@ describe('components/ChannelHeader', () => {
         remoteNames: [],
         sharedChannelsPluginsEnabled: false,
         isChannelAutotranslated: false,
+        canEditChannelHeader: false,
     };
 
     const populatedProps = {
@@ -350,5 +352,81 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('renders the add-header placeholder only for an empty editable header', () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: '   ',
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('button.header-placeholder')).not.toBeNull();
+        expect(container.querySelector('button.header-placeholder')).toHaveAccessibleName('Add a channel header');
+    });
+
+    test('does not render the placeholder when a header is set', () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: 'Weekly notes',
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('button.header-placeholder')).toBeNull();
+    });
+
+    test('does not render the placeholder when the channel is archived', () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: false,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: '',
+                delete_at: 1234,
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('button.header-placeholder')).toBeNull();
+    });
+
+    test('does not render the placeholder for a bot DM', () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: false,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: '',
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'bot_id',
+                is_bot: true,
+                bot_description: 'the bot description',
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('button.header-placeholder')).toBeNull();
     });
 });
