@@ -32,6 +32,7 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
+import {openModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
     showChannelFiles,
@@ -45,6 +46,7 @@ import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
 
+import {canEditChannelHeader} from './can_edit_channel_header';
 import ChannelHeader from './channel_header';
 
 function makeMapStateToProps() {
@@ -108,6 +110,7 @@ function makeMapStateToProps() {
             hideGuestTags: config.HideGuestTags === 'true',
             sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
+            canEditChannelHeader: canEditChannelHeader(state, channel, dmUser),
         };
     };
 }
@@ -121,6 +124,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         updateChannelNotifyProps,
         showChannelMembers,
         fetchChannelRemotes,
+        openModal,
     }, dispatch),
 });
 

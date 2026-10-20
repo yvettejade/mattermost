@@ -12,6 +12,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
+import {canEditChannelHeader} from 'components/channel_header/can_edit_channel_header';
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
@@ -21,6 +22,7 @@ import MenuItemAutotranslation from '../menu_items/autotranslation';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
+import MenuItemEditHeader from '../menu_items/edit_header';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel';
 import MenuItemToggleInfo from '../menu_items/toggle_info';
@@ -40,6 +42,7 @@ interface Props extends Menu.FirstMenuItemProps {
 
 const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const canEditHeader = useSelector((state: GlobalState) => canEditChannelHeader(state, channel));
 
     return (
         <>
@@ -65,6 +68,11 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
             )}
             {canAccessChannelSettingsForChannel && (
                 <MenuItemChannelSettings
+                    channel={channel}
+                />
+            )}
+            {canEditHeader && (
+                <MenuItemEditHeader
                     channel={channel}
                 />
             )}

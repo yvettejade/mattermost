@@ -6,8 +6,8 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -22,7 +22,9 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
+        canEditChannelHeader: false,
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
@@ -350,5 +352,103 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('shows the add-header placeholder only when the header is empty and the user may edit', () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: {
+                ...populatedProps.channel,
+                header: '',
+            },
+        };
+
+        const {container, rerender} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const placeholder = container.querySelector('button.header-placeholder');
+        expect(placeholder).not.toBeNull();
+        expect(placeholder).toHaveTextContent('Add a channel header');
+
+        rerender(
+            <ChannelHeader
+                {...props}
+                channel={{...props.channel, header: 'Already set'}}
+            />,
+        );
+        expect(container.querySelector('button.header-placeholder')).toBeNull();
+    });
+
+    test('does not show the add-header placeholder for archived channels, bot DMs, or users without permission', () => {
+        const emptyHeaderProps = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: {
+                ...populatedProps.channel,
+                header: '',
+            },
+        };
+
+        const {container, rerender} = renderWithContext(
+            <ChannelHeader
+                {...emptyHeaderProps}
+                canEditChannelHeader={false}
+            />,
+        );
+        expect(container.querySelector('button.header-placeholder')).toBeNull();
+
+        rerender(
+            <ChannelHeader
+                {...emptyHeaderProps}
+                channel={{...emptyHeaderProps.channel, delete_at: 1234}}
+                canEditChannelHeader={false}
+            />,
+        );
+        expect(container.querySelector('button.header-placeholder')).toBeNull();
+
+        rerender(
+            <ChannelHeader
+                {...emptyHeaderProps}
+                channel={{
+                    ...emptyHeaderProps.channel,
+                    type: Constants.DM_CHANNEL as ChannelType,
+                    header: '',
+                }}
+                dmUser={TestHelper.getUserMock({id: 'bot_id', is_bot: true, bot_description: 'a bot'})}
+                canEditChannelHeader={false}
+            />,
+        );
+        expect(container.querySelector('button.header-placeholder')).toBeNull();
+        expect(screen.getByText('a bot')).toBeInTheDocument();
+    });
+
+    test('opens EDIT_CHANNEL_HEADER when the placeholder is clicked', () => {
+        const openModal = jest.fn();
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: {
+                ...populatedProps.channel,
+                header: '',
+            },
+            actions: {
+                ...populatedProps.actions,
+                openModal,
+            },
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const placeholder = container.querySelector('button.header-placeholder') as HTMLButtonElement;
+        expect(placeholder).not.toBeNull();
+        placeholder.click();
+
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+        }));
     });
 });

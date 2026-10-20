@@ -18,6 +18,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
+import {canEditChannelHeader} from 'components/channel_header/can_edit_channel_header';
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
@@ -29,6 +30,7 @@ import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
+import MenuItemEditHeader from '../menu_items/edit_header';
 import MenuItemNotification from '../menu_items/notification';
 import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
@@ -53,6 +55,9 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const canEditHeader = useSelector((state: GlobalState) => canEditChannelHeader(state, channel));
+    const canConvertToPrivate = !isGroupConstrained && !isGuest(user.roles);
+    const showSettingsSubmenu = canEditHeader || (!canAccessChannelSettingsForChannel && canConvertToPrivate);
 
     return (
         <>
@@ -84,37 +89,36 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                             channel={channel}
                         />
                     )}
-                    {canAccessChannelSettingsForChannel ? (
-                        <>
-                            <MenuItemChannelSettings
-                                channel={channel}
-                            />
-                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                    {canAccessChannelSettingsForChannel && (
+                        <MenuItemChannelSettings
+                            channel={channel}
+                        />
+                    )}
+                    {showSettingsSubmenu && (
+                        <Menu.SubMenu
+                            id={canAccessChannelSettingsForChannel ? 'channelHeaderSettings' : 'channelSettings'}
+                            labels={
+                                <FormattedMessage
+                                    id='channel_header.settings'
+                                    defaultMessage='Settings'
+                                />
+                            }
+                            leadingElement={<CogOutlineIcon size={18}/>}
+                            trailingElements={<ChevronRightIcon size={16}/>}
+                            menuId={'channelSettings-menu'}
+                            menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
+                        >
+                            {canEditHeader && (
+                                <MenuItemEditHeader
+                                    channel={channel}
+                                />
+                            )}
+                            {canConvertToPrivate && (
                                 <MenuItemConvertToPrivate
                                     channel={channel}
                                 />
                             )}
-                        </>
-                    ) : (
-                        (!isGroupConstrained && !isGuest(user.roles)) && (
-                            <Menu.SubMenu
-                                id={'channelSettings'}
-                                labels={
-                                    <FormattedMessage
-                                        id='channel_header.settings'
-                                        defaultMessage='Settings'
-                                    />
-                                }
-                                leadingElement={<CogOutlineIcon size={18}/>}
-                                trailingElements={<ChevronRightIcon size={16}/>}
-                                menuId={'channelSettings-menu'}
-                                menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
-                            >
-                                <MenuItemConvertToPrivate
-                                    channel={channel}
-                                />
-                            </Menu.SubMenu>
-                        )
+                        </Menu.SubMenu>
                     )}
                 </>
             )}
