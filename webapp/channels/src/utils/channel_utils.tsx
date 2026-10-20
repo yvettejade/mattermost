@@ -47,6 +47,33 @@ export function canManageMembers(state: GlobalState, channel: Channel) {
     return true;
 }
 
+export function canEditChannelHeader(state: GlobalState, channel: Channel) {
+    if (isArchivedChannel(channel)) {
+        return false;
+    }
+
+    if (channel.type === Constants.PRIVATE_CHANNEL) {
+        return haveIChannelPermission(
+            state,
+            channel.team_id,
+            channel.id,
+            Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES,
+        );
+    }
+
+    if (channel.type === Constants.OPEN_CHANNEL) {
+        return haveIChannelPermission(
+            state,
+            channel.team_id,
+            channel.id,
+            Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES,
+        );
+    }
+
+    // DM and group headers require membership only; the caller is already in the channel.
+    return channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
+}
+
 export function findNextUnreadChannelId(curChannelId: string, allChannelIds: string[], unreadChannelIds: string[], direction: number) {
     const curIndex = allChannelIds.indexOf(curChannelId);
 
