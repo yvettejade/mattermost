@@ -12,6 +12,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
@@ -22,6 +23,7 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
@@ -115,6 +117,19 @@ class ChannelHeader extends React.PureComponent<Props> {
         } else if (this.props.channel) {
             this.props.actions.showChannelMembers(this.props.channel.id);
         }
+    };
+
+    editChannelHeader = (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (!this.props.channel) {
+            return;
+        }
+
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel: this.props.channel},
+        });
     };
 
     renderCustomStatus = () => {
@@ -342,6 +357,21 @@ class ChannelHeader extends React.PureComponent<Props> {
             );
         }
 
+        const isBotDM = isDirect && Boolean(dmUser?.is_bot);
+        const channelHeaderButton = isBotDM ? null : (
+            <HeaderIconWrapper
+                buttonClass='channel-header__icon channel-header__icon--left btn btn-icon btn-xs'
+                buttonId='channelHeaderHeaderButton'
+                onClick={this.editChannelHeader}
+                tooltip={this.props.intl.formatMessage({id: 'channel_header.channelHeader', defaultMessage: 'Channel header'})}
+            >
+                <i
+                    aria-hidden='true'
+                    className='icon icon-text-box-outline'
+                />
+            </HeaderIconWrapper>
+        );
+
         let muteTrigger;
         if (isChannelMuted) {
             muteTrigger = (
@@ -408,6 +438,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    {channelHeaderButton}
                                     <Pluggable
                                         pluggableName='ChannelHeaderIcon'
                                         channel={channel}
