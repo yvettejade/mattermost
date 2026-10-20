@@ -305,6 +305,30 @@ describe('components/ChannelHeader', () => {
         expect(container.querySelector('#channel-info-btn')).toBeNull();
     });
 
+    test('should show channel header content button when header text exists', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: 'Important channel guidance',
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('#channelHeaderContentButton')).not.toBeNull();
+    });
+
+    test('should not show channel header content button when header text is empty', () => {
+        const {container} = renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        expect(container.querySelector('#channelHeaderContentButton')).toBeNull();
+    });
+
     test('should match snapshot with last active display', () => {
         const props = {
             ...populatedProps,
