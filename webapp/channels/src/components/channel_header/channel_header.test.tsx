@@ -6,7 +6,9 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {Permissions} from 'mattermost-redux/constants';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -350,5 +352,130 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    const viewHeaderState = {
+        entities: {
+            channels: {
+                myMembers: {
+                    channel_id: {
+                        ...TestHelper.getChannelMembershipMock({
+                            channel_id: 'channel_id',
+                            user_id: 'user_id',
+                        }),
+                        roles: 'channel_role',
+                    },
+                },
+                roles: {
+                    channel_id: new Set(['channel_role']),
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
+                myMembers: {
+                    team_id: {team_id: 'team_id', roles: 'team_role'},
+                },
+                teams: {
+                    team_id: TestHelper.getTeamMock({id: 'team_id'}),
+                },
+            },
+            users: {
+                currentUserId: 'user_id',
+                profiles: {
+                    user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_role'}),
+                },
+            },
+            roles: {
+                roles: {
+                    system_role: {permissions: []},
+                    team_role: {permissions: []},
+                    channel_role: {permissions: [Permissions.READ_CHANNEL]},
+                },
+            },
+            general: {
+                config: {},
+            },
+        },
+    };
+
+    test('should show the view-header button and configured header content', async () => {
+        const props = {
+            ...populatedProps,
+            channel: {
+                ...populatedProps.channel,
+                header: 'Standup at 9',
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+            viewHeaderState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'View channel header'}));
+        expect(screen.getByTestId('channelHeaderViewModalContent')).toHaveTextContent('Standup at 9');
+    });
+
+    test('should show an empty state from the view-header button when no header is set', async () => {
+        const props = {
+            ...populatedProps,
+            channel: {
+                ...populatedProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+            viewHeaderState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'View channel header'}));
+        expect(screen.getByTestId('channelHeaderViewModalEmpty')).toHaveTextContent('This channel does not have a header.');
+    });
+
+    test('should not show the view-header button on direct messages', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: 'DM header',
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'user_id',
+                is_bot: false,
+            }),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+            viewHeaderState,
+        );
+
+        expect(screen.queryByRole('button', {name: 'View channel header'})).not.toBeInTheDocument();
+    });
+
+    test('should keep the channel header mounted after closing the header view', async () => {
+        const props = {
+            ...populatedProps,
+            channel: {
+                ...populatedProps.channel,
+                header: 'Standup at 9',
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+            viewHeaderState,
+        );
+
+        expect(screen.getByRole('banner', {name: 'channel header region'})).toBeInTheDocument();
+        await userEvent.click(screen.getByRole('button', {name: 'View channel header'}));
+        await userEvent.click(screen.getAllByRole('button', {name: 'Close'})[0]);
+
+        expect(screen.queryByTestId('channelHeaderViewModalContent')).not.toBeInTheDocument();
+        expect(screen.getByRole('banner', {name: 'channel header region'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'View channel header'})).toBeInTheDocument();
     });
 });
