@@ -134,6 +134,7 @@ describe('channel_info_rhs/about_area_gm', () => {
                 username: 'my username2',
             } as UserProfile,
         ],
+        editChannelHeader: jest.fn(),
     };
 
     test('should display users avatar', () => {
@@ -163,6 +164,45 @@ describe('channel_info_rhs/about_area_gm', () => {
         renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+        expect(screen.getByLabelText('Edit')).toBeInTheDocument();
+    });
+
+    test('should show empty-state add header when the GM header is empty', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should show archived GM header as read-only', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                delete_at: 1,
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaGM
+                {...props}
             />,
             initialState,
         );

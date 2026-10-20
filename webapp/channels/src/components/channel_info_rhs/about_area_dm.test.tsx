@@ -129,6 +129,7 @@ describe('channel_info_rhs/about_area_dm', () => {
             is_guest: false,
             status: Constants.UserStatuses.ONLINE,
         },
+        editChannelHeader: jest.fn(),
     };
 
     test('should display user avatar', () => {
@@ -228,6 +229,65 @@ describe('channel_info_rhs/about_area_dm', () => {
         renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+        expect(screen.getByLabelText('Edit')).toBeInTheDocument();
+    });
+
+    test('should show empty-state add header for human DMs', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should not show add header for archived DMs without a header', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+                delete_at: 1,
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should show archived DM header as read-only', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                delete_at: 1,
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
             />,
             initialState,
         );
