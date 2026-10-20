@@ -6,7 +6,32 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import ChannelHeaderText from './channel_header_text';
+import ChannelHeaderText, {getChannelHeaderText, getChannelMentionsNameMap, isBotDMChannel} from './channel_header_text';
+
+describe('channel header text helpers', () => {
+    const bot = TestHelper.getUserMock({is_bot: true, bot_description: 'Bot text'});
+    const human = TestHelper.getUserMock({is_bot: false});
+
+    test('isBotDMChannel should only be true for DMs with a bot', () => {
+        expect(isBotDMChannel(TestHelper.getChannelMock({type: 'D'}), bot)).toBe(true);
+        expect(isBotDMChannel(TestHelper.getChannelMock({type: 'D'}), human)).toBe(false);
+        expect(isBotDMChannel(TestHelper.getChannelMock({type: 'D'}))).toBe(false);
+        expect(isBotDMChannel(TestHelper.getChannelMock({type: 'O'}), bot)).toBe(false);
+    });
+
+    test('getChannelHeaderText should use the bot description for bot DMs and the header otherwise', () => {
+        expect(getChannelHeaderText(TestHelper.getChannelMock({type: 'D', header: 'Header'}), bot)).toBe('Bot text');
+        expect(getChannelHeaderText(TestHelper.getChannelMock({type: 'D', header: 'Header'}), human)).toBe('Header');
+        expect(getChannelHeaderText(TestHelper.getChannelMock({type: 'O', header: 'Header'}))).toBe('Header');
+    });
+
+    test('getChannelMentionsNameMap should only return valid channel mention maps', () => {
+        const mentions = {'town-square': {display_name: 'Town Square'}};
+        expect(getChannelMentionsNameMap(TestHelper.getChannelMock({props: {channel_mentions: mentions}}))).toBe(mentions);
+        expect(getChannelMentionsNameMap(TestHelper.getChannelMock({props: {channel_mentions: 'nope'}}))).toBeUndefined();
+        expect(getChannelMentionsNameMap(TestHelper.getChannelMock({}))).toBeUndefined();
+    });
+});
 
 describe('ChannelHeaderText', () => {
     const defaultTeamId = TestHelper.getTeamMock().id;
