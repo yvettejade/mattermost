@@ -317,4 +317,62 @@ describe('AdvancedTextbox', () => {
         label = document.querySelector('.AdvancedTextbox__label');
         expect(label).toHaveClass('AdvancedTextbox__label--active');
     });
+
+    test('counts UTF-16 code units by default so one emoji can exceed maxLength', () => {
+        const emoji = '😀';
+        expect(emoji.length).toBeGreaterThan(1);
+
+        const props = {
+            ...defaultProps,
+            maxLength: 1,
+            value: emoji,
+            showCharacterCount: true,
+        };
+
+        render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText(`${emoji.length}/1`)).toBeInTheDocument();
+    });
+
+    test('counts one emoji as one code point toward maxLength when countByCodePoints is set', () => {
+        const emoji = '😀';
+        expect(emoji.length).toBeGreaterThan(1);
+
+        const props = {
+            ...defaultProps,
+            maxLength: 1,
+            value: emoji,
+            showCharacterCount: true,
+            countByCodePoints: true,
+        };
+
+        const {rerender} = render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+
+        rerender(<AdvancedTextbox {...{...props, value: emoji + emoji}}/>);
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('2/1')).toBeInTheDocument();
+    });
+
+    test('counts the trimmed string when countByCodePoints is set', () => {
+        const emoji = '😀';
+        const padded = `  ${emoji}  `;
+        expect(Array.from(padded).length).toBeGreaterThan(1);
+        expect(Array.from(padded.trim()).length).toBe(1);
+
+        render(
+            <AdvancedTextbox
+                {...defaultProps}
+                maxLength={1}
+                value={padded}
+                showCharacterCount={true}
+                countByCodePoints={true}
+            />,
+        );
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+    });
 });

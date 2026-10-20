@@ -438,6 +438,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if oldChannel.DeleteAt > 0 && updatingProperties {
+		c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.deleted.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if oldChannel.Name == model.DefaultChannelName {
 		if patch.Name != nil && *patch.Name != oldChannel.Name {
 			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.tried.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
