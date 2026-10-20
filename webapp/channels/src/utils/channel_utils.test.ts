@@ -3,9 +3,15 @@
 
 import {ArchiveLockOutlineIcon, ArchiveOutlineIcon, GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {Permissions} from 'mattermost-redux/constants';
 
 import * as Utils from 'utils/channel_utils';
 import Constants from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 describe('Channel Utils', () => {
     describe('findNextUnreadChannelId', () => {
@@ -55,6 +61,67 @@ describe('Channel Utils', () => {
             const unreadChannelIds = ['3', '4', '5'];
 
             expect(Utils.findNextUnreadChannelId(curChannelId, allChannelIds, unreadChannelIds, -1)).toEqual(4);
+        });
+    });
+
+    describe('canEditChannelHeader', () => {
+        function makeState(permissions: string[]): DeepPartial<GlobalState> {
+            return {
+                entities: {
+                    users: {
+                        currentUserId: 'user_id',
+                        profiles: {
+                            user_id: {
+                                id: 'user_id',
+                                roles: 'system_user',
+                            },
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_user: {
+                                permissions,
+                            },
+                        },
+                    },
+                    teams: {
+                        myMembers: {},
+                    },
+                    channels: {
+                        roles: {},
+                    },
+                },
+            };
+        }
+
+        test('returns false for archived channels', () => {
+            const channel = TestHelper.getChannelMock({delete_at: 1});
+            expect(Utils.canEditChannelHeader(makeState([Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]) as GlobalState, channel)).toBe(false);
+        });
+
+        test('returns true for DM channels without a manage-properties permission', () => {
+            const channel = TestHelper.getChannelMock({type: Constants.DM_CHANNEL});
+            expect(Utils.canEditChannelHeader(makeState([]) as GlobalState, channel)).toBe(true);
+        });
+
+        test('returns true for GM channels without a manage-properties permission', () => {
+            const channel = TestHelper.getChannelMock({type: Constants.GM_CHANNEL});
+            expect(Utils.canEditChannelHeader(makeState([]) as GlobalState, channel)).toBe(true);
+        });
+
+        test('returns true for public channels when the user can manage public properties', () => {
+            const channel = TestHelper.getChannelMock({type: Constants.OPEN_CHANNEL});
+            expect(Utils.canEditChannelHeader(makeState([Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]) as GlobalState, channel)).toBe(true);
+        });
+
+        test('returns false for public channels without the manage-properties permission', () => {
+            const channel = TestHelper.getChannelMock({type: Constants.OPEN_CHANNEL});
+            expect(Utils.canEditChannelHeader(makeState([]) as GlobalState, channel)).toBe(false);
+        });
+
+        test('returns true for private channels when the user can manage private properties', () => {
+            const channel = TestHelper.getChannelMock({type: Constants.PRIVATE_CHANNEL});
+            expect(Utils.canEditChannelHeader(makeState([Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES]) as GlobalState, channel)).toBe(true);
         });
     });
 
