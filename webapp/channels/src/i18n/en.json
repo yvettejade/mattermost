@@ -3964,6 +3964,7 @@
   "channel_header.channel_settings": "Channel Settings",
   "channel_header.channelFiles": "Channel files",
   "channel_header.channelHasGuests": "Channel has guests",
+  "channel_header.channelHeader": "Channel header",
   "channel_header.channelMembers": "Members",
   "channel_header.closeChannelInfo": "Close Info",
   "channel_header.delete": "Archive Channel",
