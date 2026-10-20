@@ -305,6 +305,23 @@ describe('components/ChannelHeader', () => {
         expect(container.querySelector('#channel-info-btn')).toBeNull();
     });
 
+    test('should render the channel header popover button without changing the inline header line', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: 'See ~test',
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('#channelHeaderPopoverButton')).not.toBeNull();
+        expect(container.querySelector('#channelHeaderDescription .header-description__text')).not.toBeNull();
+    });
+
     test('should match snapshot with last active display', () => {
         const props = {
             ...populatedProps,
