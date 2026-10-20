@@ -305,6 +305,36 @@ describe('components/ChannelHeader', () => {
         expect(container.querySelector('#channel-info-btn')).toBeNull();
     });
 
+    test.each([
+        Constants.OPEN_CHANNEL,
+        Constants.PRIVATE_CHANNEL,
+        Constants.GM_CHANNEL,
+    ] as ChannelType[])('should render the channel header button in the icon row for channel type %s', (type) => {
+        const props = {
+            ...populatedProps,
+            channel: {...populatedProps.channel, type, header: 'Header text'},
+        };
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('.channel-header__icons #channelHeaderHeaderButton')).not.toBeNull();
+        expect(container.querySelector('.channel-header__description .header-description__text')).toHaveTextContent('Header text');
+    });
+
+    test('should render the channel header button for DM channels', () => {
+        const props = {
+            ...populatedProps,
+            channel: {...populatedProps.channel, type: Constants.DM_CHANNEL as ChannelType, header: 'DM header'},
+            dmUser: TestHelper.getUserMock({id: 'dm_user_id'}),
+        };
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('.channel-header__icons #channelHeaderHeaderButton')).not.toBeNull();
+    });
+
     test('should match snapshot with last active display', () => {
         const props = {
             ...populatedProps,

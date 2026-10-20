@@ -32,9 +32,9 @@ import {handleFormattedTextClick} from 'utils/utils';
 import './channel_header_text_popover.scss';
 
 const TEXT_IN_HEADER_MARKDOWN_OPTIONS = {singleline: true};
-const TEXT_IN_POPOVER_MARKDOWN_OPTIONS = {singleline: false};
-const MENTION_MARKDOWN_OPTIONS = {mentionHighlight: false, atMentions: true};
-const IMAGE_MARKDOWN_OPTIONS = {hideUtilities: true};
+export const TEXT_IN_POPOVER_MARKDOWN_OPTIONS = {singleline: false};
+export const MENTION_MARKDOWN_OPTIONS = {mentionHighlight: false, atMentions: true};
+export const IMAGE_MARKDOWN_OPTIONS = {hideUtilities: true};
 
 const TRANSITION_STYLE_PROPS = {
     duration: {
