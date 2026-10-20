@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,45 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should reject a trimmed header of 1025 Unicode code points', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const longHeader = '😀'.repeat(1025);
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        fireEvent.input(headerInput, {target: {value: longHeader}});
+
+        expect(screen.getByText(/The text entered exceeds the character limit/)).toBeInTheDocument();
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        expect(errorMessage.closest('.SaveChangesPanel')).toHaveClass('error');
+    });
+
+    it('should accept 1024 Unicode code points plus trailing spaces', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const validHeader = `${'😀'.repeat(1024)}   `;
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        fireEvent.input(headerInput, {target: {value: validHeader}});
+
+        expect(screen.queryByText(/The text entered exceeds the character limit/)).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).toHaveBeenCalledWith('channel1', {
+            header: '😀'.repeat(1024),
+        });
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {
