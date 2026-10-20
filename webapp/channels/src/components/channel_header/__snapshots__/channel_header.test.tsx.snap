@@ -217,7 +217,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -315,7 +315,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -413,7 +413,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -511,7 +511,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -609,7 +609,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -717,7 +717,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -815,7 +815,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -1082,7 +1082,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -1180,7 +1180,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -1278,7 +1278,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -1376,7 +1376,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>
@@ -1490,7 +1490,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               >
                 <i
                   aria-hidden="true"
-                  class="icon icon-text-box-outline"
+                  class="icon icon-pencil-outline"
                 />
               </button>
             </div>

@@ -179,7 +179,7 @@ export default function ChannelHeaderTextButton({channel}: Props) {
                 >
                     <i
                         aria-hidden='true'
-                        className='icon icon-text-box-outline'
+                        className='icon icon-pencil-outline'
                     />
                 </button>
             </WithTooltip>
