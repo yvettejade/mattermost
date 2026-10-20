@@ -122,6 +122,7 @@ describe('channel_info_rhs/about_area_channel', () => {
         actions: {
             editChannelName: jest.fn(),
             editChannelPurpose: jest.fn(),
+            editChannelHeader: jest.fn(),
         },
     };
 
@@ -145,7 +146,108 @@ describe('channel_info_rhs/about_area_channel', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
-        expect(screen.getAllByLabelText('Edit')).toHaveLength(2);
+        expect(screen.getAllByLabelText('Edit')).toHaveLength(3);
+    });
+
+    test('should show add channel header empty-state when header is empty and editable', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should treat whitespace-only header as empty when editable', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '   ',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+        expect(screen.queryByText('   ')).not.toBeInTheDocument();
+    });
+
+    test('should hide header empty-state when user cannot edit properties', () => {
+        const props = {
+            ...defaultProps,
+            canEditChannelProperties: false,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Channel Header')).not.toBeInTheDocument();
+    });
+
+    test('should show read-only header when set and user cannot edit', () => {
+        const props = {
+            ...defaultProps,
+            canEditChannelProperties: false,
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('my channel header')).toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should trigger editChannelHeader from empty-state', () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                header: '',
+            },
+            actions: {
+                ...defaultProps.actions,
+                editChannelHeader: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        fireEvent.click(screen.getByText('Add a channel header'));
+        expect(props.actions.editChannelHeader).toHaveBeenCalled();
     });
 
     test('should trigger editChannelName when clicking channel display name', () => {
