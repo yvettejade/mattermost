@@ -18,13 +18,19 @@ const DM_CHANNEL_ID = 'dm_channel_id';
 const CURRENT_USER_ID = 'user_id';
 
 function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
-    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D'});
+    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D', header: ''});
     const currentUser = TestHelper.getUserMock({id: CURRENT_USER_ID});
     return {
         entities: {
             channels: {
                 channels: {
                     [DM_CHANNEL_ID]: channel,
+                },
+                myMembers: {
+                    [DM_CHANNEL_ID]: TestHelper.getChannelMembershipMock({
+                        channel_id: DM_CHANNEL_ID,
+                        user_id: CURRENT_USER_ID,
+                    }),
                 },
             },
             general: {
@@ -45,12 +51,22 @@ function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalS
 
 function getStateWithRestrictedDMAndGM(): DeepPartial<GlobalState> {
     const state = getBaseState();
-    state!.entities!.general!.config!.RestrictDMAndGMAutotranslation = 'true';
-    return state;
+    return {
+        ...state,
+        entities: {
+            ...state.entities,
+            general: {
+                config: {
+                    EnableAutoTranslation: 'true',
+                    RestrictDMAndGMAutotranslation: 'true',
+                },
+            },
+        },
+    };
 }
 
 describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
-    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D'});
+    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D', header: ''});
     const user = TestHelper.getUserMock({id: CURRENT_USER_ID});
     const defaultProps = {
         channel,
@@ -73,6 +89,47 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
 
         expect(screen.getByText('Channel Settings')).toBeInTheDocument();
         expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
+    });
+
+    it('shows Edit Header when the channel has a header', () => {
+        const channelWithHeader = TestHelper.getChannelMock({
+            id: DM_CHANNEL_ID,
+            type: 'D',
+            header: 'existing header',
+        });
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderDirectMenu
+                    {...defaultProps}
+                    channel={channelWithHeader}
+                />
+            </WithTestMenuContext>,
+            getBaseState(),
+        );
+
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
+    });
+
+    it('shows Edit Header when RestrictDMAndGMAutotranslation is enabled and header is set', () => {
+        const channelWithHeader = TestHelper.getChannelMock({
+            id: DM_CHANNEL_ID,
+            type: 'D',
+            header: 'existing header',
+        });
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderDirectMenu
+                    {...defaultProps}
+                    channel={channelWithHeader}
+                />
+            </WithTestMenuContext>,
+            getStateWithRestrictedDMAndGM(),
+        );
+
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
     });
 
     it('does not show Edit Header when RestrictDMAndGMAutotranslation is enabled', () => {

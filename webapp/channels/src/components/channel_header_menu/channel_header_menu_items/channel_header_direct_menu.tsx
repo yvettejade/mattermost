@@ -10,13 +10,17 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {canEditChannelHeader} from 'selectors/views/channel_header';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
+import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
+
 import type {GlobalState} from 'types/store';
 
+import MenuItemEditChannelHeader from '../menu_items/edit_channel_header_menu';
 import MenuItemAutotranslation from '../menu_items/autotranslation';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
@@ -40,6 +44,10 @@ interface Props extends Menu.FirstMenuItemProps {
 
 const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const dmUserId = getUserIdFromChannelName(user.id, channel.name);
+    const canEditHeader = useSelector((state: GlobalState) => canEditChannelHeader(state, channel.id, dmUserId));
+    const hasChannelHeader = Boolean(channel.header?.trim());
+    const showEditHeaderMenuItem = canEditHeader && hasChannelHeader && channel.delete_at === 0;
 
     return (
         <>
@@ -65,6 +73,11 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
             )}
             {canAccessChannelSettingsForChannel && (
                 <MenuItemChannelSettings
+                    channel={channel}
+                />
+            )}
+            {showEditHeaderMenuItem && (
+                <MenuItemEditChannelHeader
                     channel={channel}
                 />
             )}

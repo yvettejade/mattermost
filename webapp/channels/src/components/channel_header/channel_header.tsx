@@ -16,12 +16,15 @@ import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
 import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
@@ -117,6 +120,19 @@ class ChannelHeader extends React.PureComponent<Props> {
         }
     };
 
+    openEditChannelHeaderModal = () => {
+        const {channel, actions} = this.props;
+        if (!channel) {
+            return;
+        }
+
+        actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        });
+    };
+
     renderCustomStatus = () => {
         const {customStatus, isCustomStatusEnabled, isCustomStatusExpired} = this.props;
         const isStatusSet = !isCustomStatusExpired && (customStatus?.text || customStatus?.emoji);
@@ -154,10 +170,13 @@ class ChannelHeader extends React.PureComponent<Props> {
             rhsState,
             hasGuests,
             hideGuestTags,
+            canEditChannelHeader,
         } = this.props;
         if (!channel) {
             return null;
         }
+
+        const showHeaderPlaceholder = canEditChannelHeader && !(channel.header || '').trim();
 
         const ariaLabelChannelHeader = this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
 
@@ -426,6 +445,24 @@ class ChannelHeader extends React.PureComponent<Props> {
                                         channel={channel}
                                         dmUser={dmUser}
                                     />
+                                    {showHeaderPlaceholder && (
+                                        <button
+                                            type='button'
+                                            className='header-placeholder'
+                                            aria-label={this.props.intl.formatMessage({
+                                                id: 'channel_header.headerText.addNewButton',
+                                                defaultMessage: 'Add a channel header',
+                                            })}
+                                            onClick={this.openEditChannelHeaderModal}
+                                        >
+                                            <span>
+                                                <FormattedMessage
+                                                    id='channel_header.headerText.addNewButton'
+                                                    defaultMessage='Add a channel header'
+                                                />
+                                            </span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

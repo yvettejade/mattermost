@@ -32,6 +32,7 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
+import {openModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
     showChannelFiles,
@@ -41,6 +42,7 @@ import {
 import {getRhsState} from 'selectors/rhs';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 
+import {canEditChannelHeader} from 'selectors/views/channel_header';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
@@ -85,9 +87,16 @@ function makeMapStateToProps() {
             timestampUnits = getLastActiveTimestampUnits(state, dmUser.id);
         }
 
+        let canEditHeader = false;
+        if (channel) {
+            const dmUserId = channel.type === General.DM_CHANNEL ? getUserIdFromChannelName(user.id, channel.name) : undefined;
+            canEditHeader = canEditChannelHeader(state, channel.id, dmUserId);
+        }
+
         return {
             team: getCurrentTeam(state),
             channel,
+            canEditChannelHeader: canEditHeader,
             channelMember: getMyCurrentChannelMembership(state),
             memberCount: stats?.member_count || 0,
             currentUser: user,
@@ -121,6 +130,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         updateChannelNotifyProps,
         showChannelMembers,
         fetchChannelRemotes,
+        openModal,
     }, dispatch),
 });
 
