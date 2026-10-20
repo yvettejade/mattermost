@@ -409,7 +409,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
-                                    {!isDirect && <ChannelHeaderTextButton channel={channel}/>}
+                                    {!isDirect && (
+                                        <ChannelHeaderTextButton
+                                            key={channel.id}
+                                            channel={channel}
+                                        />
+                                    )}
                                     <Pluggable
                                         pluggableName='ChannelHeaderIcon'
                                         channel={channel}
