@@ -12,6 +12,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
@@ -22,12 +23,14 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
 import {canPopout, isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
 import {isEmptyObject} from 'utils/utils';
 
+import ChannelHeaderPanel, {CHANNEL_HEADER_PANEL_ID} from './channel_header_panel';
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import HeaderIconWrapper from './components/header_icon_wrapper';
@@ -36,12 +39,19 @@ import type {PropsFromRedux} from './index';
 
 export type Props = WrappedComponentProps & PropsFromRedux;
 
-class ChannelHeader extends React.PureComponent<Props> {
+type State = {
+    isHeaderPanelOpen: boolean;
+};
+
+class ChannelHeader extends React.PureComponent<Props, State> {
     toggleFavoriteRef: RefObject<HTMLButtonElement>;
 
     constructor(props: Props) {
         super(props);
         this.toggleFavoriteRef = React.createRef();
+        this.state = {
+            isHeaderPanelOpen: false,
+        };
     }
 
     componentDidMount() {
@@ -59,6 +69,10 @@ class ChannelHeader extends React.PureComponent<Props> {
         const prevHeader = prevProps.channel ? prevProps.channel.header : '';
         if (header !== prevHeader) {
             this.props.actions.getCustomEmojisInText(header);
+        }
+
+        if (this.props.channel?.id !== prevProps.channel?.id) {
+            this.setState({isHeaderPanelOpen: false});
         }
 
         // Fetch remote names when channel changes or when a channel becomes shared
@@ -99,6 +113,28 @@ class ChannelHeader extends React.PureComponent<Props> {
         } else if (this.props.channel) {
             this.props.actions.showChannelFiles(this.props.channel.id);
         }
+    };
+
+    toggleHeaderPanel = () => {
+        this.setState((state) => ({isHeaderPanelOpen: !state.isHeaderPanelOpen}));
+    };
+
+    closeHeaderPanel = () => {
+        this.setState({isHeaderPanelOpen: false}, () => {
+            document.getElementById('channelHeaderPanelButton')?.focus();
+        });
+    };
+
+    editChannelHeader = () => {
+        if (!this.props.channel) {
+            return;
+        }
+
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel: this.props.channel},
+        });
     };
 
     popoutChannelView = () => {
@@ -261,6 +297,14 @@ class ChannelHeader extends React.PureComponent<Props> {
             'channel-header__icon--active': rhsState === RHSStates.CHANNEL_FILES,
         });
         const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
+        const headerPanelButtonClass = classNames('channel-header__icon channel-header__icon--left btn btn-icon btn-xs', {
+            'channel-header__icon--active': this.state.isHeaderPanelOpen,
+        });
+        const headerPanelTooltip = this.state.isHeaderPanelOpen ? (
+            this.props.intl.formatMessage({id: 'channel_header.closeChannelHeader', defaultMessage: 'Close channel header'})
+        ) : (
+            this.props.intl.formatMessage({id: 'channel_header.channelHeader', defaultMessage: 'Channel header'})
+        );
         const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
             'channel-header__icon--active': rhsState === RHSStates.PIN,
         });
@@ -408,6 +452,19 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    <HeaderIconWrapper
+                                        buttonClass={headerPanelButtonClass}
+                                        buttonId={'channelHeaderPanelButton'}
+                                        onClick={this.toggleHeaderPanel}
+                                        tooltip={headerPanelTooltip}
+                                        ariaExpanded={this.state.isHeaderPanelOpen}
+                                        ariaControls={CHANNEL_HEADER_PANEL_ID}
+                                    >
+                                        <i
+                                            className='icon icon-text-box-outline'
+                                            aria-hidden='true'
+                                        />
+                                    </HeaderIconWrapper>
                                     <Pluggable
                                         pluggableName='ChannelHeaderIcon'
                                         channel={channel}
@@ -446,6 +503,15 @@ class ChannelHeader extends React.PureComponent<Props> {
                         />
                     )}
                 </div>
+                {this.state.isHeaderPanelOpen && (
+                    <ChannelHeaderPanel
+                        channel={channel}
+                        dmUser={dmUser}
+                        canEdit={this.props.canEditChannelHeader}
+                        onEdit={this.editChannelHeader}
+                        onClose={this.closeHeaderPanel}
+                    />
+                )}
             </div>
         );
     }

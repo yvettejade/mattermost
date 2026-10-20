@@ -6,8 +6,10 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -22,7 +24,9 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
+        canEditChannelHeader: false,
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
@@ -326,6 +330,165 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should keep existing header actions and inline header text after adding the header button', () => {
+        const props = {
+            ...populatedProps,
+            channel: {
+                ...populatedProps.channel,
+                header: 'Standup at 9',
+            },
+            pinnedPostsCount: 2,
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(screen.getByRole('button', {name: 'Channel header'})).toHaveAttribute('id', 'channelHeaderPanelButton');
+        expect(screen.getByRole('button', {name: 'Channel files'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Members'})).toBeInTheDocument();
+        expect(container.querySelector('#channelHeaderPinButton')).not.toBeNull();
+        expect(screen.getByText('Standup at 9')).toBeInTheDocument();
+        expect(screen.queryByRole('region', {name: 'Channel header'})).not.toBeInTheDocument();
+    });
+
+    test('should toggle the channel header panel from the header button', async () => {
+        const props = {
+            ...populatedProps,
+            channel: {
+                ...populatedProps.channel,
+                header: 'Standup at 9',
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const headerButton = screen.getByRole('button', {name: 'Channel header'});
+        await userEvent.click(headerButton);
+
+        expect(screen.getByRole('region', {name: 'Channel header'})).toBeInTheDocument();
+        expect(screen.getAllByText('Standup at 9').length).toBeGreaterThanOrEqual(1);
+        expect(headerButton).toHaveAttribute('aria-expanded', 'true');
+        expect(headerButton).toHaveClass('channel-header__icon--active');
+        expect(headerButton).toHaveAccessibleName('Close channel header');
+
+        await userEvent.click(headerButton);
+
+        expect(screen.queryByRole('region', {name: 'Channel header'})).not.toBeInTheDocument();
+        expect(headerButton).toHaveAttribute('aria-expanded', 'false');
+        expect(headerButton).toHaveAccessibleName('Channel header');
+    });
+
+    test('should close the header panel from the Close control', async () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel header'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
+
+        expect(screen.queryByRole('region', {name: 'Channel header'})).not.toBeInTheDocument();
+    });
+
+    test('should show a permission-gated Edit action that opens the edit header modal', async () => {
+        const withoutPermission = {
+            ...populatedProps,
+            canEditChannelHeader: false,
+            channel: {
+                ...populatedProps.channel,
+                header: 'Standup at 9',
+            },
+        };
+
+        const {rerender} = renderWithContext(
+            <ChannelHeader {...withoutPermission}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel header'}));
+        expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+
+        const withPermission = {
+            ...withoutPermission,
+            canEditChannelHeader: true,
+        };
+
+        rerender(
+            <ChannelHeader {...withPermission}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Edit'}));
+        expect(withPermission.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(withPermission.actions.openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel: withPermission.channel},
+        });
+    });
+
+    test('should show an empty state when the header has no text', async () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: {
+                ...populatedProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel header'}));
+
+        expect(screen.getByText('Add a channel header…')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Edit'})).toBeInTheDocument();
+    });
+
+    test('should show a no-header message when the header is empty and the user cannot edit', async () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: false,
+            channel: {
+                ...populatedProps.channel,
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel header'}));
+
+        expect(screen.getByText('No channel header')).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+    });
+
+    test('should close the header panel when switching channels', async () => {
+        const {rerender} = renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel header'}));
+        expect(screen.getByRole('region', {name: 'Channel header'})).toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                channel={{
+                    ...populatedProps.channel,
+                    id: 'other_channel_id',
+                    header: 'Other header',
+                }}
+            />,
+        );
+
+        expect(screen.queryByRole('region', {name: 'Channel header'})).not.toBeInTheDocument();
     });
 
     test('should match snapshot with no last active display because it is disabled', () => {
