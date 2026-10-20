@@ -103,6 +103,27 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.getByText('Edit Header')).toBeInTheDocument();
     });
 
+    it('shows Edit Header for group-constrained members when channel settings is unavailable', () => {
+        const groupConstrainedChannel = TestHelper.getChannelMock({
+            ...channel,
+            group_constrained: true,
+        });
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu
+                    {...defaultProps}
+                    channel={groupConstrainedChannel}
+                />
+            </WithTestMenuContext>,
+            getStateWithRestrictedDMAndGM(),
+        );
+
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
+        expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+        expect(screen.queryByText('Convert to Private Channel')).not.toBeInTheDocument();
+    });
+
     it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
         renderWithContext(
             <WithTestMenuContext>

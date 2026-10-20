@@ -98,7 +98,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                         </>
                     ) : (
                         <>
-                            {(isGuest(user.roles)) && (
+                            {(isGuest(user.roles) || isGroupConstrained) && (
                                 <EditConversationHeader
                                     leadingElement={<CogOutlineIcon size='18px'/>}
                                     channel={channel}
