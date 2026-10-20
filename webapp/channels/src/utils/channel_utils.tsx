@@ -47,6 +47,27 @@ export function canManageMembers(state: GlobalState, channel: Channel) {
     return true;
 }
 
+export function canEditChannelHeader(state: GlobalState, channel: Channel) {
+    if (!channel || channel.delete_at !== 0) {
+        return false;
+    }
+
+    if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+        return true;
+    }
+
+    const permission = channel.type === Constants.PRIVATE_CHANNEL ?
+        Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES :
+        Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+
+    return haveIChannelPermission(
+        state,
+        channel.team_id,
+        channel.id,
+        permission,
+    );
+}
+
 export function findNextUnreadChannelId(curChannelId: string, allChannelIds: string[], unreadChannelIds: string[], direction: number) {
     const curIndex = allChannelIds.indexOf(curChannelId);
 
