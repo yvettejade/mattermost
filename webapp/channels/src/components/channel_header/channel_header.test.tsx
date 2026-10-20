@@ -305,6 +305,62 @@ describe('components/ChannelHeader', () => {
         expect(container.querySelector('#channel-info-btn')).toBeNull();
     });
 
+    test('should render the view channel header button for team channels', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                team_id: 'team_id',
+                name: 'Test',
+                type: Constants.OPEN_CHANNEL as ChannelType,
+            }),
+        };
+
+        const state = {
+            entities: {
+                channels: {
+                    myMembers: {
+                        channel_id: {...props.channelMember, roles: 'channel_role'},
+                    },
+                    roles: {
+                        channel_id: new Set(['channel_role']),
+                    },
+                },
+                teams: {
+                    currentTeamId: 'team_id',
+                    myMembers: {
+                        team_id: {team_id: 'team_id', roles: 'team_role'},
+                    },
+                    teams: {
+                        team_id: props.team,
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: props.currentUser,
+                    },
+                },
+                roles: {
+                    roles: {
+                        team_role: {permissions: []},
+                        channel_role: {permissions: ['read_channel']},
+                    },
+                },
+                general: {
+                    config: {},
+                },
+            },
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+            state,
+        );
+
+        expect(container.querySelector('#channelHeaderViewButton')).not.toBeNull();
+    });
+
     test('should match snapshot with last active display', () => {
         const props = {
             ...populatedProps,
