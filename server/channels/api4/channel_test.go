@@ -601,6 +601,64 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("posts a header change system message when the header changes", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: "Header Change Channel",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			Header:      "old header",
+		}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		channel.Header = "new header"
+		updated, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "new header", updated.Header)
+
+		posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+
+		var headerPosts []*model.Post
+		for _, post := range posts.Posts {
+			if post.Type == model.PostTypeHeaderChange {
+				headerPosts = append(headerPosts, post)
+			}
+		}
+		require.Len(t, headerPosts, 1)
+		require.Equal(t, "old header", headerPosts[0].GetProp("old_header"))
+		require.Equal(t, "new header", headerPosts[0].GetProp("new_header"))
+	})
+
+	t.Run("does not post a header change system message when the header is unchanged", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: "Header Unchanged Channel",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			Header:      "same header",
+		}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		channel.Purpose = "updated purpose only"
+		_, _, err = client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+
+		for _, post := range posts.Posts {
+			require.NotEqual(t, model.PostTypeHeaderChange, post.Type)
+		}
+	})
 }
 
 func TestPatchChannelGroupConstrained(t *testing.T) {
@@ -1698,6 +1756,66 @@ func TestPatchChannel(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Equal(t, newHeader, patchedChannel.Header)
 		require.True(t, patchedChannel.AutoTranslation)
+	})
+
+	t.Run("rejects a header patch on an archived channel", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: "Archived Header Channel",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			Header:      "keep me",
+		}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		newHeader := "should not apply"
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &newHeader})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+
+		fetched, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "keep me", fetched.Header)
+	})
+
+	t.Run("posts a single header change system message on an active channel", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: "Active Header Patch",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			Header:      "old header",
+		}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		newHeader := "new header"
+		patched, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &newHeader})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, "new header", patched.Header)
+
+		posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+
+		var headerPosts []*model.Post
+		for _, post := range posts.Posts {
+			if post.Type == model.PostTypeHeaderChange {
+				headerPosts = append(headerPosts, post)
+			}
+		}
+		require.Len(t, headerPosts, 1)
+		require.Equal(t, "old header", headerPosts[0].GetProp("old_header"))
+		require.Equal(t, "new header", headerPosts[0].GetProp("new_header"))
 	})
 }
 
