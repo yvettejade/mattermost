@@ -16,6 +16,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {canEditChannelHeader} from 'selectors/views/channel_header';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
@@ -24,6 +25,7 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 
 import type {GlobalState} from 'types/store';
 
+import MenuItemEditChannelHeader from '../menu_items/edit_channel_header_menu';
 import MenuItemAutotranslation from '../menu_items/autotranslation';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
@@ -53,6 +55,12 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const canEditHeader = useSelector((state: GlobalState) => canEditChannelHeader(state, channel.id));
+    const hasChannelHeader = Boolean(channel.header?.trim());
+    const showConvertToPrivate = !isGroupConstrained && !isGuest(user.roles);
+    const showSettingsSubMenuForConvert = !canAccessChannelSettingsForChannel && showConvertToPrivate;
+    const showSettingsSubMenuForEditHeader = canEditHeader && hasChannelHeader;
+    const showSettingsSubMenu = showSettingsSubMenuForConvert || showSettingsSubMenuForEditHeader;
 
     return (
         <>
@@ -84,37 +92,43 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                             channel={channel}
                         />
                     )}
-                    {canAccessChannelSettingsForChannel ? (
+                    {canAccessChannelSettingsForChannel && (
                         <>
                             <MenuItemChannelSettings
                                 channel={channel}
                             />
-                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                            {showConvertToPrivate && (
                                 <MenuItemConvertToPrivate
                                     channel={channel}
                                 />
                             )}
                         </>
-                    ) : (
-                        (!isGroupConstrained && !isGuest(user.roles)) && (
-                            <Menu.SubMenu
-                                id={'channelSettings'}
-                                labels={
-                                    <FormattedMessage
-                                        id='channel_header.settings'
-                                        defaultMessage='Settings'
-                                    />
-                                }
-                                leadingElement={<CogOutlineIcon size={18}/>}
-                                trailingElements={<ChevronRightIcon size={16}/>}
-                                menuId={'channelSettings-menu'}
-                                menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
-                            >
+                    )}
+                    {showSettingsSubMenu && (
+                        <Menu.SubMenu
+                            id={'channelSettings'}
+                            labels={
+                                <FormattedMessage
+                                    id='channel_header.settings'
+                                    defaultMessage='Settings'
+                                />
+                            }
+                            leadingElement={<CogOutlineIcon size={18}/>}
+                            trailingElements={<ChevronRightIcon size={16}/>}
+                            menuId={'channelSettings-menu'}
+                            menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
+                        >
+                            {showSettingsSubMenuForEditHeader && (
+                                <MenuItemEditChannelHeader
+                                    channel={channel}
+                                />
+                            )}
+                            {showSettingsSubMenuForConvert && (
                                 <MenuItemConvertToPrivate
                                     channel={channel}
                                 />
-                            </Menu.SubMenu>
-                        )
+                            )}
+                        </Menu.SubMenu>
                     )}
                 </>
             )}

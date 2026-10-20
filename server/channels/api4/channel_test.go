@@ -26,6 +26,25 @@ import (
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
+func countHeaderChangePosts(t *testing.T, th *TestHelper, channelID string) int {
+	t.Helper()
+
+	postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+		ChannelId: channelID,
+		Page:      0,
+		PerPage:   200,
+	})
+	require.Nil(t, appErr)
+
+	count := 0
+	for _, postID := range postList.Order {
+		if postList.Posts[postID].Type == model.PostTypeHeaderChange {
+			count++
+		}
+	}
+	return count
+}
+
 func TestCreateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -600,6 +619,43 @@ func TestUpdateChannel(t *testing.T) {
 		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel3)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("posts header_change when header changes via PUT", func(t *testing.T) {
+		headerChannel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		var err error
+		headerChannel, _, err = client.CreateChannel(context.Background(), headerChannel)
+		require.NoError(t, err)
+
+		beforeCount := countHeaderChangePosts(t, th, headerChannel.Id)
+		headerChannel.Header = "header from put"
+		_, _, err = client.UpdateChannel(context.Background(), headerChannel)
+		require.NoError(t, err)
+		require.Equal(t, beforeCount+1, countHeaderChangePosts(t, th, headerChannel.Id))
+	})
+
+	t.Run("does not post header_change when header is unchanged via PUT", func(t *testing.T) {
+		headerChannel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			Header:      "same header",
+		}
+		var err error
+		headerChannel, _, err = client.CreateChannel(context.Background(), headerChannel)
+		require.NoError(t, err)
+
+		beforeCount := countHeaderChangePosts(t, th, headerChannel.Id)
+		headerChannel.Header = "same header"
+		_, _, err = client.UpdateChannel(context.Background(), headerChannel)
+		require.NoError(t, err)
+		require.Equal(t, beforeCount, countHeaderChangePosts(t, th, headerChannel.Id))
 	})
 }
 
@@ -1698,6 +1754,52 @@ func TestPatchChannel(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Equal(t, newHeader, patchedChannel.Header)
 		require.True(t, patchedChannel.AutoTranslation)
+	})
+
+	t.Run("rejects header patch when channel is deleted", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		newHeader := "archived header"
+		patch := &model.ChannelPatch{Header: &newHeader}
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("posts exactly one header_change when header changes via patch", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		beforeCount := countHeaderChangePosts(t, th, channel.Id)
+		newHeader := "patched header"
+		patch := &model.ChannelPatch{Header: &newHeader}
+		_, _, err = client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		require.Equal(t, beforeCount+1, countHeaderChangePosts(t, th, channel.Id))
 	})
 }
 

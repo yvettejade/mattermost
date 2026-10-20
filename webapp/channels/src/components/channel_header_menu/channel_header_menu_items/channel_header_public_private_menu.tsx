@@ -11,12 +11,17 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {useSelector} from 'react-redux';
+
+import {canEditChannelHeader} from 'selectors/views/channel_header';
+
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
 import {Constants} from 'utils/constants';
 
+import MenuItemEditChannelHeader from '../menu_items/edit_channel_header_menu';
 import MenuItemArchiveChannel from '../menu_items/archive_channel';
 import MenuItemAutotranslation from '../menu_items/autotranslation';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
@@ -32,6 +37,8 @@ import MenuItemToggleInfo from '../menu_items/toggle_info';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
 import MenuItemUnarchiveChannel from '../menu_items/unarchive_channel';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
+
+import type {GlobalState} from 'types/store';
 
 interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
@@ -51,6 +58,9 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
+    const canEditHeader = useSelector((state: GlobalState) => canEditChannelHeader(state, channel.id));
+    const hasChannelHeader = Boolean(channel.header?.trim());
+    const showEditHeaderMenuItem = canEditHeader && hasChannelHeader && !isArchived;
 
     const channelMembersPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS;
     const channelDeletePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
@@ -76,6 +86,11 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                     <MenuItemChannelSettings
                         channel={channel}
                     />
+                    {showEditHeaderMenuItem && (
+                        <MenuItemEditChannelHeader
+                            channel={channel}
+                        />
+                    )}
                     {isChannelBookmarksEnabled && (
                         <MenuItemChannelBookmarks
                             channel={channel}

@@ -7,7 +7,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -23,6 +23,7 @@ function getBaseState(): DeepPartial<GlobalState> {
         type: 'G' as const,
         group_constrained: false,
         delete_at: 0,
+        header: '',
     });
     const currentUser = TestHelper.getUserMock({id: CURRENT_USER_ID, roles: 'system_user'});
     return {
@@ -30,6 +31,12 @@ function getBaseState(): DeepPartial<GlobalState> {
             channels: {
                 channels: {
                     [GM_CHANNEL_ID]: channel,
+                },
+                myMembers: {
+                    [GM_CHANNEL_ID]: TestHelper.getChannelMembershipMock({
+                        channel_id: GM_CHANNEL_ID,
+                        user_id: CURRENT_USER_ID,
+                    }),
                 },
             },
             general: {
@@ -54,7 +61,10 @@ function getStateWithRestrictedDMAndGM(): DeepPartial<GlobalState> {
         entities: {
             ...state.entities,
             general: {
-                config: {RestrictDMAndGMAutotranslation: 'true'},
+                config: {
+                    EnableAutoTranslation: 'true',
+                    RestrictDMAndGMAutotranslation: 'true',
+                },
             },
         },
     };
@@ -66,6 +76,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         type: 'G' as const,
         group_constrained: false,
         delete_at: 0,
+        header: '',
     });
     const user = TestHelper.getUserMock({id: CURRENT_USER_ID, roles: 'system_user'});
     const defaultProps = {
@@ -89,6 +100,29 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
 
         expect(screen.getByText('Channel Settings')).toBeInTheDocument();
         expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
+    });
+
+    it('shows Edit Header under Settings when the channel has a header', async () => {
+        const channelWithHeader = TestHelper.getChannelMock({
+            ...channel,
+            header: 'group header',
+        });
+        const state = getStateWithRestrictedDMAndGM();
+        state.entities!.channels!.channels![GM_CHANNEL_ID] = channelWithHeader;
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu
+                    {...defaultProps}
+                    channel={channelWithHeader}
+                />
+            </WithTestMenuContext>,
+            state,
+        );
+
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+        await userEvent.hover(screen.getByText('Settings'));
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
     });
 
     it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', () => {
