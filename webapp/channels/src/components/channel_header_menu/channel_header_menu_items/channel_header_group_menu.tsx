@@ -29,6 +29,7 @@ import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import CloseMessage from '../menu_items/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
+import EditConversationHeader from '../menu_items/edit_conversation_header';
 import MenuItemNotification from '../menu_items/notification';
 import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
@@ -96,25 +97,36 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                             )}
                         </>
                     ) : (
-                        (!isGroupConstrained && !isGuest(user.roles)) && (
-                            <Menu.SubMenu
-                                id={'channelSettings'}
-                                labels={
-                                    <FormattedMessage
-                                        id='channel_header.settings'
-                                        defaultMessage='Settings'
-                                    />
-                                }
-                                leadingElement={<CogOutlineIcon size={18}/>}
-                                trailingElements={<ChevronRightIcon size={16}/>}
-                                menuId={'channelSettings-menu'}
-                                menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
-                            >
-                                <MenuItemConvertToPrivate
+                        <>
+                            {(isGuest(user.roles) || isGroupConstrained) && (
+                                <EditConversationHeader
+                                    leadingElement={<CogOutlineIcon size='18px'/>}
                                     channel={channel}
                                 />
-                            </Menu.SubMenu>
-                        )
+                            )}
+                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                                <Menu.SubMenu
+                                    id={'channelSettings'}
+                                    labels={
+                                        <FormattedMessage
+                                            id='channel_header.settings'
+                                            defaultMessage='Settings'
+                                        />
+                                    }
+                                    leadingElement={<CogOutlineIcon size={18}/>}
+                                    trailingElements={<ChevronRightIcon size={16}/>}
+                                    menuId={'channelSettings-menu'}
+                                    menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
+                                >
+                                    <EditConversationHeader
+                                        channel={channel}
+                                    />
+                                    <MenuItemConvertToPrivate
+                                        channel={channel}
+                                    />
+                                </Menu.SubMenu>
+                            )}
+                        </>
                     )}
                 </>
             )}

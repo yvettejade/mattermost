@@ -7,7 +7,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -91,7 +91,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
     });
 
-    it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', () => {
+    it('shows Edit Header in the Settings submenu when RestrictDMAndGMAutotranslation is enabled', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu {...defaultProps}/>
@@ -99,7 +99,29 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
             getStateWithRestrictedDMAndGM(),
         );
 
-        expect(screen.getByText('Settings')).toBeInTheDocument();
+        await userEvent.click(screen.getByText('Settings'));
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
+    });
+
+    it('shows Edit Header for group-constrained members when channel settings is unavailable', () => {
+        const groupConstrainedChannel = TestHelper.getChannelMock({
+            ...channel,
+            group_constrained: true,
+        });
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu
+                    {...defaultProps}
+                    channel={groupConstrainedChannel}
+                />
+            </WithTestMenuContext>,
+            getStateWithRestrictedDMAndGM(),
+        );
+
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
+        expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+        expect(screen.queryByText('Convert to Private Channel')).not.toBeInTheDocument();
     });
 
     it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
