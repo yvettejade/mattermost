@@ -6,8 +6,8 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -22,6 +22,7 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
@@ -303,6 +304,100 @@ describe('components/ChannelHeader', () => {
         const channelInfo = container.querySelector('.channel-header__info');
         expect(channelInfo).not.toBeNull();
         expect(container.querySelector('#channel-info-btn')).toBeNull();
+    });
+
+    test('should open the edit header modal from the channel header button', async () => {
+        const props = {
+            ...populatedProps,
+            actions: {
+                ...populatedProps.actions,
+                openModal: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const button = screen.getByRole('button', {name: 'Channel header'});
+        expect(button).toHaveAttribute('id', 'channelHeaderHeaderButton');
+
+        await userEvent.click(button);
+
+        expect(props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogProps: {channel: props.channel},
+        }));
+    });
+
+    test('should show the channel header button when the header is empty', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                header: '',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(screen.getByRole('button', {name: 'Channel header'})).toBeInTheDocument();
+    });
+
+    test('should show the channel header button for direct and group messages', () => {
+        const dmProps = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: 'Catch up tomorrow',
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'user_id',
+                is_bot: false,
+            }),
+        };
+
+        const {unmount} = renderWithContext(
+            <ChannelHeader {...dmProps}/>,
+        );
+
+        expect(screen.getByRole('button', {name: 'Channel header'})).toBeInTheDocument();
+        unmount();
+
+        renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                channel={TestHelper.getChannelMock({
+                    type: Constants.GM_CHANNEL as ChannelType,
+                    header: 'Planning notes',
+                })}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Channel header'})).toBeInTheDocument();
+    });
+
+    test('should not show the channel header button for bot direct messages', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: '',
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'bot_id',
+                is_bot: true,
+                bot_description: 'I am a bot',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Channel header'})).not.toBeInTheDocument();
     });
 
     test('should match snapshot with last active display', () => {
