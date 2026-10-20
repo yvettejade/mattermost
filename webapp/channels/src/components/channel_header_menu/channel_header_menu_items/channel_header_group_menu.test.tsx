@@ -7,7 +7,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -88,7 +88,9 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.getByText('Channel Settings')).toBeInTheDocument();
-        expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+        fireEvent.mouseEnter(screen.getByText('Settings'));
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
     });
 
     it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', () => {
@@ -149,6 +151,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+        expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Settings')).not.toBeInTheDocument();
     });
 
     it('does not show Settings submenu when the channel is archived', () => {
@@ -173,5 +177,6 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+        expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
     });
 });

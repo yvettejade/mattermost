@@ -12,6 +12,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
@@ -22,6 +23,7 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
@@ -115,6 +117,19 @@ class ChannelHeader extends React.PureComponent<Props> {
         } else if (this.props.channel) {
             this.props.actions.showChannelMembers(this.props.channel.id);
         }
+    };
+
+    showEditChannelHeaderModal = (e?: MouseEvent<HTMLButtonElement>) => {
+        e?.preventDefault();
+        if (!this.props.channel) {
+            return;
+        }
+
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel: this.props.channel},
+        });
     };
 
     renderCustomStatus = () => {
@@ -426,6 +441,18 @@ class ChannelHeader extends React.PureComponent<Props> {
                                         channel={channel}
                                         dmUser={dmUser}
                                     />
+                                    {this.props.canEditChannelHeader && !(channel.header || '').trim() && !(isDirect && dmUser?.is_bot) && (
+                                        <button
+                                            type='button'
+                                            className='header-placeholder'
+                                            onClick={this.showEditChannelHeaderModal}
+                                        >
+                                            <FormattedMessage
+                                                id='channel_header.headerText.addNewButton'
+                                                defaultMessage='Add a channel header'
+                                            />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
