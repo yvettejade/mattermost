@@ -295,6 +295,18 @@ describe('components/ChannelHeader', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should render the channel header popover button in the icon row', () => {
+        const {container} = renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        const headerButton = container.querySelector('#channelHeaderPopoverButton');
+        expect(headerButton).not.toBeNull();
+        expect(headerButton).toHaveAttribute('aria-label', 'Channel header');
+        expect(headerButton).toHaveAttribute('aria-controls', 'channelHeaderPopover');
+        expect(container.querySelector('#channelHeaderDescription')).not.toBeNull();
+    });
+
     test('should contain the channel info button', () => {
         const {container} = renderWithContext(
             <ChannelHeader {...populatedProps}/>,
