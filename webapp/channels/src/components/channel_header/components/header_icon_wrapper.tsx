@@ -23,6 +23,8 @@ type Props = {
     children: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltip: string;
+    ariaExpanded?: boolean;
+    ariaControls?: string;
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
@@ -39,6 +41,8 @@ const HeaderIconWrapper = (props: Props) => {
         tooltipShortcut,
         isRhsOpen,
         pluginId,
+        ariaExpanded,
+        ariaControls,
     } = props;
 
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
@@ -54,6 +58,8 @@ const HeaderIconWrapper = (props: Props) => {
                 <button
                     id={buttonId}
                     aria-label={ariaLabelText}
+                    aria-expanded={ariaExpanded}
+                    aria-controls={ariaControls}
                     className={buttonClass || 'channel-header__icon'}
                     onClick={onClick}
                 >
