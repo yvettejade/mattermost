@@ -11,7 +11,7 @@ import {
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
-import {General} from 'mattermost-redux/constants';
+import {General, Permissions} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
@@ -20,6 +20,7 @@ import {
     isMyChannelAutotranslated,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -32,6 +33,7 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
+import {openModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
     showChannelFiles,
@@ -45,6 +47,7 @@ import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
 
+import {canEditChannelHeader} from './can_edit_channel_header';
 import ChannelHeader from './channel_header';
 
 function makeMapStateToProps() {
@@ -78,6 +81,13 @@ function makeMapStateToProps() {
         }
 
         const stats = getCurrentChannelStats(state);
+        const isPrivate = channel?.type === General.PRIVATE_CHANNEL;
+        const canManageProperties = channel ? haveIChannelPermission(
+            state,
+            channel.team_id,
+            channel.id,
+            isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES,
+        ) : false;
 
         let isLastActiveEnabled = false;
         if (dmUser) {
@@ -108,6 +118,7 @@ function makeMapStateToProps() {
             hideGuestTags: config.HideGuestTags === 'true',
             sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
+            canEditChannelHeader: canEditChannelHeader({channel, dmUser, canManageProperties}),
         };
     };
 }
@@ -121,6 +132,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         updateChannelNotifyProps,
         showChannelMembers,
         fetchChannelRemotes,
+        openModal,
     }, dispatch),
 });
 
