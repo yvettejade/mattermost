@@ -11,7 +11,7 @@ import {
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
-import {General} from 'mattermost-redux/constants';
+import {General, Permissions} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
@@ -20,6 +20,7 @@ import {
     isMyChannelAutotranslated,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -32,6 +33,7 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
+import {openModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
     showChannelFiles,
@@ -108,8 +110,29 @@ function makeMapStateToProps() {
             hideGuestTags: config.HideGuestTags === 'true',
             sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
+            canEditChannelHeader: Boolean(channel && canEditChannelHeader(state, channel, dmUser)),
         };
     };
+}
+
+function canEditChannelHeader(state: GlobalState, channel: NonNullable<ReturnType<typeof getCurrentChannel>>, dmUser: ReturnType<typeof getUser> | undefined) {
+    if (channel.delete_at > 0) {
+        return false;
+    }
+
+    if (channel.type === General.DM_CHANNEL && dmUser?.is_bot) {
+        return false;
+    }
+
+    if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+        return true;
+    }
+
+    const permission = channel.type === General.PRIVATE_CHANNEL ?
+        Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES :
+        Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+
+    return haveIChannelPermission(state, channel.team_id, channel.id, permission);
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -121,6 +144,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         updateChannelNotifyProps,
         showChannelMembers,
         fetchChannelRemotes,
+        openModal,
     }, dispatch),
 });
 
