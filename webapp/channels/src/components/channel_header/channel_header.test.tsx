@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -303,6 +303,59 @@ describe('components/ChannelHeader', () => {
         const channelInfo = container.querySelector('.channel-header__info');
         expect(channelInfo).not.toBeNull();
         expect(container.querySelector('#channel-info-btn')).toBeNull();
+    });
+
+    test.each([
+        Constants.OPEN_CHANNEL,
+        Constants.PRIVATE_CHANNEL,
+        Constants.GM_CHANNEL,
+    ])('should render the channel header button in the icon row for channel type %s', (type) => {
+        const props = {
+            ...populatedProps,
+            channel: {...populatedProps.channel, type: type as ChannelType},
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const button = screen.getByRole('button', {name: 'Channel header'});
+        expect(container.querySelector('.channel-header__icons')).toContainElement(button);
+    });
+
+    test('should toggle the channel header popover from the header icon row', async () => {
+        const props = {
+            ...populatedProps,
+            channel: {...populatedProps.channel, header: 'Full channel header text'},
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const button = screen.getByRole('button', {name: 'Channel header'});
+        await userEvent.click(button);
+        expect(screen.getByRole('dialog')).toHaveTextContent('Full channel header text');
+
+        await userEvent.click(button);
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    test('should not render the channel header button in DMs', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                header: 'the dm header',
+                type: Constants.DM_CHANNEL as ChannelType,
+            }),
+            dmUser: TestHelper.getUserMock({id: 'user_id'}),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Channel header'})).not.toBeInTheDocument();
     });
 
     test('should match snapshot with last active display', () => {
