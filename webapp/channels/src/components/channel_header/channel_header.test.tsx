@@ -303,6 +303,10 @@ describe('components/ChannelHeader', () => {
         const channelInfo = container.querySelector('.channel-header__info');
         expect(channelInfo).not.toBeNull();
         expect(container.querySelector('#channel-info-btn')).toBeNull();
+
+        const headerButton = container.querySelector('#channelHeaderPopoverButton');
+        expect(headerButton).not.toBeNull();
+        expect(container.querySelector('.channel-header__icons')?.contains(headerButton)).toBe(true);
     });
 
     test('should match snapshot with last active display', () => {
