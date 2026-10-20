@@ -299,6 +299,49 @@ describe('AdvancedTextbox', () => {
         expect(label).not.toHaveClass('AdvancedTextbox__label--active');
     });
 
+    test('counts UTF-16 length by default and code points when opted in', () => {
+        const emoji = '😀';
+        expect(emoji.length).toBe(2);
+        expect(Array.from(emoji).length).toBe(1);
+
+        const {rerender} = render(
+            <AdvancedTextbox
+                {...defaultProps}
+                maxLength={1}
+                value={emoji}
+                showCharacterCount={true}
+            />,
+        );
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('2/1')).toBeInTheDocument();
+
+        rerender(
+            <AdvancedTextbox
+                {...defaultProps}
+                maxLength={1}
+                value={`  ${emoji}  `}
+                showCharacterCount={true}
+                countCodePoints={true}
+            />,
+        );
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+
+        rerender(
+            <AdvancedTextbox
+                {...defaultProps}
+                maxLength={1}
+                value={emoji.repeat(2)}
+                showCharacterCount={true}
+                countCodePoints={true}
+            />,
+        );
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('2/1')).toBeInTheDocument();
+    });
+
     test('keeps active class on label when component loses focus but has value', () => {
         render(<AdvancedTextbox {...{...defaultProps, name: 'Test Label', value: 'Some value'}}/>);
 

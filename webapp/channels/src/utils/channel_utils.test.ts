@@ -3,9 +3,41 @@
 
 import {ArchiveLockOutlineIcon, ArchiveOutlineIcon, GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+
+import Permissions from 'mattermost-redux/constants/permissions';
 
 import * as Utils from 'utils/channel_utils';
 import Constants from 'utils/constants';
+
+function headerPermissionState(channelId: string, permission?: string, member = true): GlobalState {
+    return {
+        entities: {
+            users: {
+                currentUserId: 'user_id',
+                profiles: {
+                    user_id: {id: 'user_id', roles: 'system_user'},
+                },
+            },
+            roles: {
+                roles: permission ? {
+                    channel_user: {name: 'channel_user', permissions: [permission]},
+                } : {},
+            },
+            teams: {
+                myMembers: {},
+            },
+            channels: {
+                roles: permission ? {
+                    [channelId]: new Set(['channel_user']),
+                } : {},
+                myMembers: member ? {
+                    [channelId]: {channel_id: channelId, user_id: 'user_id'},
+                } : {},
+            },
+        },
+    } as unknown as GlobalState;
+}
 
 describe('Channel Utils', () => {
     describe('findNextUnreadChannelId', () => {
@@ -214,6 +246,47 @@ describe('Channel Utils', () => {
             const channel = {type: Constants.GM_CHANNEL, name: 'groupid1234'} as Channel;
             const result = Utils.getChannelRoutePathAndIdentifier(channel, 'johndoe');
             expect(result).toEqual({path: 'messages', identifier: 'groupid1234'});
+        });
+    });
+
+    describe('canEditChannelHeader', () => {
+        const channel = {
+            id: 'channel_id',
+            team_id: 'team_id',
+            type: Constants.OPEN_CHANNEL,
+            delete_at: 0,
+        } as Channel;
+
+        test('allows a public channel when the user can manage public channel properties', () => {
+            const state = headerPermissionState(channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
+            expect(Utils.canEditChannelHeader(state, channel)).toBe(true);
+        });
+
+        test('refuses a public channel without permission', () => {
+            const state = headerPermissionState(channel.id);
+            expect(Utils.canEditChannelHeader(state, channel)).toBe(false);
+        });
+
+        test('allows a private channel only with the private properties permission', () => {
+            const privateChannel = {...channel, type: Constants.PRIVATE_CHANNEL} as Channel;
+            const allowed = headerPermissionState(channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES);
+            const denied = headerPermissionState(channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
+            expect(Utils.canEditChannelHeader(allowed, privateChannel)).toBe(true);
+            expect(Utils.canEditChannelHeader(denied, privateChannel)).toBe(false);
+        });
+
+        test('refuses an archived channel even with permission', () => {
+            const state = headerPermissionState(channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
+            expect(Utils.canEditChannelHeader(state, {...channel, delete_at: 10})).toBe(false);
+        });
+
+        test('allows DM and group channels only for members', () => {
+            const dm = {...channel, type: Constants.DM_CHANNEL} as Channel;
+            const gm = {...channel, type: Constants.GM_CHANNEL} as Channel;
+            expect(Utils.canEditChannelHeader(headerPermissionState(channel.id, undefined, true), dm)).toBe(true);
+            expect(Utils.canEditChannelHeader(headerPermissionState(channel.id, undefined, false), dm)).toBe(false);
+            expect(Utils.canEditChannelHeader(headerPermissionState(channel.id, undefined, true), gm)).toBe(true);
+            expect(Utils.canEditChannelHeader(headerPermissionState(channel.id, undefined, false), gm)).toBe(false);
         });
     });
 });

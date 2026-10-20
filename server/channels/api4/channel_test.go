@@ -1701,6 +1701,88 @@ func TestPatchChannel(t *testing.T) {
 	})
 }
 
+func TestPatchChannelHeader(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	t.Run("PATCH header on an active channel persists and posts the header system message", func(t *testing.T) {
+		header := "markdown **header**"
+		patched, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, header, patched.Header)
+
+		fetched, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+		require.Equal(t, header, fetched.Header)
+
+		posts, _, err := client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		require.True(t, headerChangePostExists(posts, header))
+
+		empty := ""
+		patched, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &empty})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, patched.Header)
+
+		posts, _, err = client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		require.True(t, headerChangePostExists(posts, ""))
+	})
+
+	t.Run("PATCH header on an archived channel returns deleted", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		_, err := client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		header := "archived header"
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+	})
+
+	t.Run("member without manage_public_channel_properties receives forbidden", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		th.LoginBasic2(t)
+		header := "no permission"
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM member can patch the header but not the purpose", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		dm, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+
+		header := "dm header"
+		patched, resp, err := client.PatchChannel(context.Background(), dm.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, header, patched.Header)
+
+		purpose := "dm purpose"
+		_, resp, err = client.PatchChannel(context.Background(), dm.Id, &model.ChannelPatch{Purpose: &purpose})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
+func headerChangePostExists(posts *model.PostList, newHeader string) bool {
+	for _, post := range posts.Posts {
+		if post != nil && post.Type == model.PostTypeHeaderChange && post.GetProp("new_header") == newHeader {
+			return true
+		}
+	}
+	return false
+}
+
 func TestCanEditChannelBanner(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
