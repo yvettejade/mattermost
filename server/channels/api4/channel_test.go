@@ -999,6 +999,35 @@ func TestPatchChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("Should allow header changes for direct and group messages", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user1.Email, user1.Password)
+		require.NoError(t, err)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		groupHeader := "group header"
+		patchedGroup, resp, err := client.PatchChannel(context.Background(), groupChannel.Id, &model.ChannelPatch{Header: &groupHeader})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, groupHeader, patchedGroup.Header)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		dmHeader := "dm header"
+		patchedDirect, resp, err := client.PatchChannel(context.Background(), directChannel.Id, &model.ChannelPatch{Header: &dmHeader})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, dmHeader, patchedDirect.Header)
+	})
+
 	t.Run("Should block changes to default_category_name for group messages", func(t *testing.T) {
 		user1 := th.CreateUser(t)
 		user2 := th.CreateUser(t)
