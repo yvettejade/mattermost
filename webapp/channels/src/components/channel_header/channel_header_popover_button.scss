@@ -1,0 +1,33 @@
+@use 'utils/variables';
+
+.ChannelHeaderPopover {
+    z-index: variables.$z-index-popover;
+    display: flex;
+    overflow: hidden;
+    width: min(420px, calc(100vw - 32px));
+    max-height: min(320px, calc(100vh - 200px));
+    flex-direction: column;
+    padding: 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-s);
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-4);
+    gap: 12px;
+}
+
+.ChannelHeaderPopover__body {
+    overflow: auto;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    line-height: 20px;
+    word-break: break-word;
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.ChannelHeaderPopover__empty {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+}
