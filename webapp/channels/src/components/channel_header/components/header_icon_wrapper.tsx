@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useRef} from 'react';
+import type {RefObject} from 'react';
 
 import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -20,6 +21,7 @@ type Props = {
 
     buttonClass?: string;
     buttonId: string;
+    buttonRef?: RefObject<HTMLButtonElement | null>;
     children: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltip: string;
@@ -33,6 +35,7 @@ const HeaderIconWrapper = (props: Props) => {
         ariaLabelOverride,
         buttonClass,
         buttonId,
+        buttonRef,
         children,
         onClick,
         tooltip: tooltipText,
@@ -44,6 +47,8 @@ const HeaderIconWrapper = (props: Props) => {
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
 
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
+    const localButtonRef = useRef<HTMLButtonElement>(null);
+    const resolvedButtonRef = buttonRef ?? localButtonRef;
 
     return (
         <>
@@ -53,6 +58,7 @@ const HeaderIconWrapper = (props: Props) => {
             >
                 <button
                     id={buttonId}
+                    ref={resolvedButtonRef}
                     aria-label={ariaLabelText}
                     className={buttonClass || 'channel-header__icon'}
                     onClick={onClick}
