@@ -18,6 +18,7 @@ jest.mock('./sidebar_category_sorting_menu', () => () => <div id='mock-sorting-m
 jest.mock('../sidebar_channel', () => () => <li id='mock-sidebar-channel'/>);
 jest.mock('../add_channels_cta_button', () => () => <div id='mock-add-channels-button'/>);
 jest.mock('../invite_members_button', () => () => <div id='mock-invite-members-button'/>);
+jest.mock('plugins/pluggable', () => () => <div id='mock-pluggable-above-invite'/>);
 
 // Suppress react-beautiful-dnd console errors in tests
 beforeEach(() => {
@@ -202,6 +203,46 @@ describe('components/sidebar/sidebar_category', () => {
         await userEvent.click(screen.getByText('custom_category_1'));
 
         expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith('category1', false);
+    });
+
+    test('should render LeftSidebarAboveInviteMembers immediately before Invite Members when DMs are expanded', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        const pluggable = document.querySelector('#mock-pluggable-above-invite');
+        const invite = document.querySelector('#mock-invite-members-button');
+        expect(pluggable).toBeInTheDocument();
+        expect(invite).toBeInTheDocument();
+        const parent = pluggable?.parentElement;
+        expect(parent).toBe(invite?.parentElement);
+        const children = Array.from(parent?.children ?? []);
+        expect(children.indexOf(pluggable as Element)).toBeLessThan(children.indexOf(invite as Element));
+        expect(children.indexOf(invite as Element) - children.indexOf(pluggable as Element)).toBe(1);
+    });
+
+    test('should hide LeftSidebarAboveInviteMembers and Invite Members when DM category is collapsed', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                collapsed: true,
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(document.querySelector('#mock-pluggable-above-invite')).not.toBeInTheDocument();
+        expect(document.querySelector('#mock-invite-members-button')).not.toBeInTheDocument();
     });
 
     test('should not show category menu for managed categories', () => {

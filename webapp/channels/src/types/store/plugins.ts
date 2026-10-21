@@ -62,6 +62,7 @@ export type PluginsState = {
         PopoverUserAttributes: PopoverUserAttributesComponent[];
         PopoverUserActions: PopoverUserActionsComponent[];
         LeftSidebarHeader: LeftSidebarHeaderComponent[];
+        LeftSidebarAboveInviteMembers: LeftSidebarAboveInviteMembersComponent[];
         Root: RootComponent[];
         BottomTeamSidebar: BottomTeamSidebarComponent[];
         PostMessageAttachment: PostMessageAttachmentComponent[];
@@ -396,6 +397,10 @@ export type PopoverUserActionsComponent = PluginComponent & {
 };
 
 export type LeftSidebarHeaderComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps>;
+};
+
+export type LeftSidebarAboveInviteMembersComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps>;
 };
 

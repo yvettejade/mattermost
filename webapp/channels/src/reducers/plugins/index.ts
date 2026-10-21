@@ -207,6 +207,7 @@ const initialComponents: PluginsState['components'] = {
     FilesDropdown: [],
     FileUploadMethod: [],
     LeftSidebarHeader: [],
+    LeftSidebarAboveInviteMembers: [],
     MessageWillFormat: [],
     PopoverUserActions: [],
     PopoverUserAttributes: [],

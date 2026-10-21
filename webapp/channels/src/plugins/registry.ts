@@ -162,6 +162,15 @@ export default class PluginRegistry {
     });
 
     /**
+     * Register a component immediately above Invite Members in the expanded Direct Messages
+     * category footer of the left-hand channel sidebar.
+     * Accepts a React component. Returns a unique identifier.
+     */
+    registerLeftSidebarAboveInviteMembersComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('LeftSidebarAboveInviteMembers', this.id, component);
+    });
+
+    /**
      * Register a component fixed to the bottom of the team sidebar. Does not render if
      * user is only on one team and the team sidebar is not shown.
      * Accepts a React component. Returns a unique identifier.
