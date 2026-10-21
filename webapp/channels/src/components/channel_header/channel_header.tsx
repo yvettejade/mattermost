@@ -10,6 +10,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
+import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import PopoutButton from 'components/popout_button';
@@ -22,6 +23,7 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
@@ -107,6 +109,22 @@ class ChannelHeader extends React.PureComponent<Props> {
             const {path, identifier} = getChannelRoutePathAndIdentifier(channel, dmUser?.username);
             popoutChannel(intl.formatMessage(getPopoutChannelTitle(channel.type)), team.name, path, identifier);
         }
+    };
+
+    openEditChannelHeader = () => {
+        if (!this.props.channel) {
+            return;
+        }
+
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.CHANNEL_SETTINGS,
+            dialogType: ChannelSettingsModal,
+            dialogProps: {
+                channelId: this.props.channel.id,
+                focusOriginElement: 'channelHeaderEditButton',
+                isOpen: true,
+            },
+        });
     };
 
     toggleChannelMembersRHS = () => {
@@ -342,6 +360,25 @@ class ChannelHeader extends React.PureComponent<Props> {
             );
         }
 
+        let editHeaderButton = null;
+        if (this.props.canEditChannelHeader) {
+            const editHeaderTooltip = channel.header?.trim() ? this.props.intl.formatMessage({id: 'channel_header.setConversationHeader', defaultMessage: 'Edit Header'}) : this.props.intl.formatMessage({id: 'channel_header.headerText.addNewButton', defaultMessage: 'Add a channel header'});
+
+            editHeaderButton = (
+                <HeaderIconWrapper
+                    buttonClass='channel-header__icon channel-header__icon--left btn btn-icon btn-xs'
+                    buttonId='channelHeaderEditButton'
+                    onClick={this.openEditChannelHeader}
+                    tooltip={editHeaderTooltip}
+                >
+                    <i
+                        aria-hidden='true'
+                        className='icon icon-pencil-outline'
+                    />
+                </HeaderIconWrapper>
+            );
+        }
+
         let muteTrigger;
         if (isChannelMuted) {
             muteTrigger = (
@@ -408,6 +445,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    {editHeaderButton}
                                     <Pluggable
                                         pluggableName='ChannelHeaderIcon'
                                         channel={channel}

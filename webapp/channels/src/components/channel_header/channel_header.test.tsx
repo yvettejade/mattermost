@@ -6,8 +6,8 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -22,6 +22,7 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
@@ -49,6 +50,7 @@ describe('components/ChannelHeader', () => {
         remoteNames: [],
         sharedChannelsPluginsEnabled: false,
         isChannelAutotranslated: false,
+        canEditChannelHeader: false,
     };
 
     const populatedProps = {
@@ -169,6 +171,47 @@ describe('components/ChannelHeader', () => {
         (muteButton as HTMLElement).click();
         expect(props.actions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
         expect(props.actions.updateChannelNotifyProps).toHaveBeenCalledWith('user_id', 'channel_id', {mark_unread: 'all'});
+    });
+
+    test('should not render the edit header button without permission', () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit Header'})).not.toBeInTheDocument();
+    });
+
+    test('should render the add header button when the header is empty', () => {
+        renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                channel={{...populatedProps.channel, header: ''}}
+                canEditChannelHeader={true}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
+    });
+
+    test('should open channel settings when the edit header button is clicked', async () => {
+        const props = {
+            ...populatedProps,
+            actions: {...populatedProps.actions, openModal: jest.fn()},
+            channel: {...populatedProps.channel, header: 'Existing header'},
+            canEditChannelHeader: true,
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Edit Header'}));
+
+        expect(props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.CHANNEL_SETTINGS,
+            dialogProps: expect.objectContaining({channelId: 'channel_id'}),
+        }));
     });
 
     test('should render active pinned posts', () => {
