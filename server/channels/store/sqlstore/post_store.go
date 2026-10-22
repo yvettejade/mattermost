@@ -1157,6 +1157,14 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 		return err
 	}
 
+	if err = deletePollVotesForPosts(transaction, s.getQueryBuilder(), postIds); err != nil {
+		return err
+	}
+
+	if err = removeUserFromPollVotes(transaction, userId); err != nil {
+		return err
+	}
+
 	if err = transaction.Commit(); err != nil {
 		return errors.Wrap(err, "commit_transaction")
 	}

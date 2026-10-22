@@ -270,6 +270,39 @@ func TestPollVotesDeletedWithPost(t *testing.T) {
 		assert.False(t, hasPollVotes(t, th, post.Id))
 	})
 
+	t.Run("permanent user deletion", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, th.BasicChannel)
+
+		ownReply := newPollPost(th.BasicChannel.Id, user.Id)
+		ownReply.RootId = th.BasicPost.Id
+		ownReply, _, appErr := th.App.CreatePostAsUser(th.Context, ownReply, "", true)
+		require.Nil(t, appErr)
+		ownPoll, err := model.PollFromPost(ownReply)
+		require.NoError(t, err)
+		_, appErr = th.App.VotePoll(th.Context, ownReply.Id, th.BasicUser.Id, ownPoll.Options[0].ID)
+		require.Nil(t, appErr)
+
+		othersPoll, a, b := createTestPollPost(t, th)
+		_, appErr = th.App.VotePoll(th.Context, othersPoll.Id, th.BasicUser.Id, a)
+		require.Nil(t, appErr)
+		before, appErr := th.App.VotePoll(th.Context, othersPoll.Id, user.Id, b)
+		require.Nil(t, appErr)
+		require.Equal(t, []string{user.Id}, before.Votes[b])
+
+		require.NoError(t, th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, user.Id))
+
+		assert.False(t, hasPollVotes(t, th, ownReply.Id), "votes on the user's own poll should be removed")
+
+		after, appErr := th.App.GetPollResults(th.Context, othersPoll.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, after.Votes[b], "the user's vote on another user's poll should be removed")
+		assert.Equal(t, []string{th.BasicUser.Id}, after.Votes[a])
+		assert.Equal(t, 1, after.TotalVotes)
+		assert.Greater(t, after.UpdateAt, before.UpdateAt)
+	})
+
 	t.Run("data retention", func(t *testing.T) {
 		post := newPollPost(th.BasicChannel.Id, th.BasicUser.Id)
 		post.CreateAt = 1

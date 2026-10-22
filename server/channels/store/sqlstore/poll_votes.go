@@ -52,3 +52,24 @@ func deletePollVotesForThreads(transaction *sqlxTxWrapper, builder sq.StatementB
 
 	return deletePollVotesForPosts(transaction, builder, pollIds)
 }
+
+// removeUserFromPollVotes erases a user's ballot from every stored poll and
+// bumps update_at so clients replace any results that still include it.
+func removeUserFromPollVotes(transaction *sqlxTxWrapper, userId string) error {
+	_, err := transaction.Exec(`
+		UPDATE PluginKeyValueStore
+		SET PValue = convert_to(
+			jsonb_set(
+				convert_from(PValue, 'UTF8')::jsonb #- ARRAY['votes', ?],
+				'{update_at}',
+				to_jsonb(COALESCE((convert_from(PValue, 'UTF8')::jsonb->>'update_at')::bigint, 0) + 1)
+			)::text, 'UTF8')
+		WHERE PluginId = ?
+			AND (convert_from(PValue, 'UTF8')::jsonb -> 'votes' -> ?) IS NOT NULL`,
+		userId, model.PollKVNamespace, userId)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove user from poll votes")
+	}
+
+	return nil
+}
