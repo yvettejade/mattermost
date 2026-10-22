@@ -5,11 +5,14 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const pollVoteMaxAttempts = 5
@@ -28,10 +31,21 @@ func (a *App) getPollPost(rctx request.CTX, postID string) (*model.Post, *model.
 	return post, poll, nil
 }
 
-func (a *App) getPollVotes(postID string) (model.PollVotes, []byte, *model.AppError) {
-	raw, appErr := a.GetPluginKey(model.PollKVNamespace, model.PollVotesKVKey(postID))
-	if appErr != nil {
-		return nil, nil, appErr
+func (a *App) getPollVotes(postID string, fromMaster bool) (model.PollVotes, []byte, *model.AppError) {
+	var raw []byte
+	if fromMaster {
+		kv, err := a.Srv().Store().Plugin().GetFromMaster(model.PollKVNamespace, model.PollVotesKVKey(postID))
+		if err == nil {
+			raw = kv.Value
+		} else if nfErr := new(store.ErrNotFound); !errors.As(err, &nfErr) {
+			return nil, nil, model.NewAppError("getPollVotes", "app.plugin_store.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	} else {
+		var appErr *model.AppError
+		raw, appErr = a.GetPluginKey(model.PollKVNamespace, model.PollVotesKVKey(postID))
+		if appErr != nil {
+			return nil, nil, appErr
+		}
 	}
 
 	votes := model.PollVotes{}
@@ -52,7 +66,7 @@ func (a *App) GetPollResults(rctx request.CTX, postID string) (*model.PollResult
 		return nil, appErr
 	}
 
-	votes, _, appErr := a.getPollVotes(postID)
+	votes, _, appErr := a.getPollVotes(postID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -82,7 +96,7 @@ func (a *App) VotePoll(rctx request.CTX, postID, userID, optionID string) (*mode
 
 	key := model.PollVotesKVKey(postID)
 	for range pollVoteMaxAttempts {
-		votes, oldRaw, appErr := a.getPollVotes(postID)
+		votes, oldRaw, appErr := a.getPollVotes(postID, true)
 		if appErr != nil {
 			return nil, appErr
 		}

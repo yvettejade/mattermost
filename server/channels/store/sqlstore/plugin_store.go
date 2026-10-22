@@ -206,6 +206,16 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value []byt
 }
 
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, error) {
+	return ps.get(ps.GetReplica(), pluginId, key)
+}
+
+// GetFromMaster reads from the master so callers doing read-then-CompareAndSet
+// observe the latest committed value instead of a lagging replica.
+func (ps SqlPluginStore) GetFromMaster(pluginId, key string) (*model.PluginKeyValue, error) {
+	return ps.get(ps.GetMaster(), pluginId, key)
+}
+
+func (ps SqlPluginStore) get(db *sqlxDBWrapper, pluginId, key string) (*model.PluginKeyValue, error) {
 	currentTime := model.GetMillis()
 	query := ps.getQueryBuilder().Select("PluginId, PKey, PValue, ExpireAt").
 		From("PluginKeyValueStore").
@@ -217,7 +227,7 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, error
 		return nil, errors.Wrap(err, "plugin_tosql")
 	}
 
-	row := ps.GetReplica().QueryRow(queryString, args...)
+	row := db.QueryRow(queryString, args...)
 	var kv model.PluginKeyValue
 	if err := row.Scan(&kv.PluginId, &kv.Key, &kv.Value, &kv.ExpireAt); err != nil {
 		if err == sql.ErrNoRows {

@@ -119,6 +119,7 @@ describe('components/poll/PollPost', () => {
 
     test('reverts the optimistic vote when the request fails', async () => {
         jest.spyOn(Client4, 'votePoll').mockRejectedValue(new Error('nope'));
+        jest.spyOn(Client4, 'getPollResults').mockResolvedValue(results({a: [], b: ['u1']}));
 
         renderWithContext(<PollPost post={post}/>, initialState(results({a: [], b: ['u1']})));
 

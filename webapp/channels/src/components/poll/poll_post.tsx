@@ -67,7 +67,7 @@ const PollPost = ({post}: Props) => {
 
         const {error} = await dispatch(votePoll(post.id, nextOptionId));
         if (error) {
-            dispatch(receivedPollResults(results));
+            dispatch(fetchPollResults(post.id));
         }
     }, [dispatch, results, myVote, currentUserId, post.id, isPending]);
 

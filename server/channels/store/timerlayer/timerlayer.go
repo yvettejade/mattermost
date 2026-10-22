@@ -6536,6 +6536,22 @@ func (s *TimerLayerPluginStore) Get(pluginID string, key string) (*model.PluginK
 	return result, err
 }
 
+func (s *TimerLayerPluginStore) GetFromMaster(pluginID string, key string) (*model.PluginKeyValue, error) {
+	start := time.Now()
+
+	result, err := s.PluginStore.GetFromMaster(pluginID, key)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.GetFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPluginStore) List(pluginID string, page int, perPage int) ([]string, error) {
 	start := time.Now()
 

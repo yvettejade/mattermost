@@ -41,6 +41,9 @@ export function fetchPollResults(postId: string): ActionFuncAsync<PollResults> {
 
 /**
  * Sets the current user's vote. Passing null retracts it.
+ *
+ * The response is not stored: it can arrive after a newer poll_updated event,
+ * so the store only takes results from the ordered websocket broadcast.
  */
 export function votePoll(postId: string, optionId: string | null): ActionFuncAsync<PollResults> {
     return async (dispatch, getState) => {
@@ -53,7 +56,6 @@ export function votePoll(postId: string, optionId: string | null): ActionFuncAsy
             return {error: error as ServerError};
         }
 
-        dispatch(receivedPollResults(data));
         return {data};
     };
 }
