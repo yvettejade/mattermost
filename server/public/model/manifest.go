@@ -315,6 +315,10 @@ func (m *Manifest) IsValid() error {
 		return errors.New("invalid plugin ID")
 	}
 
+	if IsReservedPluginId(m.Id) {
+		return errors.New("plugin ID is reserved")
+	}
+
 	if strings.TrimSpace(m.Name) == "" {
 		return errors.New("a plugin name is needed")
 	}

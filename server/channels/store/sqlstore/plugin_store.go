@@ -209,8 +209,8 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, error
 	return ps.get(ps.GetReplica(), pluginId, key)
 }
 
-// GetFromMaster reads from the master so callers doing read-then-CompareAndSet
-// observe the latest committed value instead of a lagging replica.
+// GetFromMaster reads from the primary, for read-modify-write callers that
+// must not see replica lag between their read and a compare-and-set.
 func (ps SqlPluginStore) GetFromMaster(pluginId, key string) (*model.PluginKeyValue, error) {
 	return ps.get(ps.GetMaster(), pluginId, key)
 }

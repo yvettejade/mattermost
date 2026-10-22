@@ -423,6 +423,10 @@ func extractPlugin(bundle io.ReadSeeker, extractDir string) (*model.Manifest, st
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.invalid_id.app_error", map[string]any{"Min": model.MinIdLength, "Max": model.MaxIdLength, "Regex": model.ValidIdRegex}, "", http.StatusBadRequest)
 	}
 
+	if model.IsReservedPluginId(manifest.Id) {
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.reserved_id.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusBadRequest)
+	}
+
 	return manifest, extractDir, nil
 }
 

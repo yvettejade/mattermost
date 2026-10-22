@@ -996,6 +996,10 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
+	if err = deletePollVotesForThreads(transaction, s.getQueryBuilder(), []string{postID}); err != nil {
+		return err
+	}
+
 	if id.RootId == "" {
 		err = s.deleteThread(transaction, postID, time)
 	} else {
@@ -1090,6 +1094,10 @@ func (s *SqlPostStore) permanentDeleteAssociatedData(transaction *sqlxTxWrapper,
 	}
 
 	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = deletePollVotesForThreads(transaction, s.getQueryBuilder(), postIds); err != nil {
 		return err
 	}
 
@@ -1235,6 +1243,10 @@ func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId stri
 		}
 
 		if err = s.permanentDeleteReadReceipts(transaction, ids); err != nil {
+			return err
+		}
+
+		if err = deletePollVotesForPosts(transaction, s.getQueryBuilder(), ids); err != nil {
 			return err
 		}
 

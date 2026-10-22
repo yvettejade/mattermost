@@ -1043,6 +1043,12 @@ func genericRetentionPoliciesDeletion(
 		}
 		rowsAffected = int64(len(ids))
 
+		if r.Table == "Posts" {
+			if err = deletePollVotesForPosts(txn, s.getQueryBuilder(), ids); err != nil {
+				return 0, err
+			}
+		}
+
 		if len(ids) > 0 {
 			retentionIdsRow := model.RetentionIdsForDeletion{
 				TableName: r.Table,

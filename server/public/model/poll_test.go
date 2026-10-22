@@ -74,38 +74,119 @@ func TestPollFromPost(t *testing.T) {
 	})
 }
 
+func TestNormalizePollPost(t *testing.T) {
+	newPost := func(poll any) *Post {
+		post := &Post{Type: PostTypePoll}
+		post.AddProp(PostPropsPoll, poll)
+		return post
+	}
+
+	t.Run("trims text and replaces client option ids", func(t *testing.T) {
+		post := newPost(map[string]any{
+			"question": "  Lunch?  ",
+			"options": []any{
+				map[string]any{"id": "a", "text": " Tacos "},
+				map[string]any{"id": "a", "text": "Pizza"},
+			},
+		})
+
+		require.NoError(t, NormalizePollPost(post))
+		poll, err := PollFromPost(post)
+		require.NoError(t, err)
+		assert.Equal(t, "Lunch?", poll.Question)
+		assert.Equal(t, "Tacos", poll.Options[0].Text)
+		assert.True(t, IsValidId(poll.Options[0].ID))
+		assert.NotEqual(t, poll.Options[0].ID, poll.Options[1].ID)
+	})
+
+	for name, poll := range map[string]any{
+		"missing":         nil,
+		"wrong type":      "not a poll",
+		"numeric text":    map[string]any{"question": "Q", "options": []any{map[string]any{"text": 1}, map[string]any{"text": "b"}}},
+		"one option":      map[string]any{"question": "Q", "options": []any{map[string]any{"text": "a"}}},
+		"blank option":    map[string]any{"question": "Q", "options": []any{map[string]any{"text": "a"}, map[string]any{"text": "  "}}},
+		"unknown field":   map[string]any{"question": "Q", "extra": true, "options": []any{map[string]any{"text": "a"}, map[string]any{"text": "b"}}},
+		"oversized props": map[string]any{"question": "Q", "options": []any{map[string]any{"text": "a"}, map[string]any{"text": strings.Repeat("b", PollPropsMaxBytes)}}},
+		"long question":   map[string]any{"question": strings.Repeat("q", PollQuestionMaxRunes+1), "options": []any{map[string]any{"text": "a"}, map[string]any{"text": "b"}}},
+	} {
+		t.Run("rejects "+name, func(t *testing.T) {
+			assert.Error(t, NormalizePollPost(newPost(poll)))
+		})
+	}
+}
+
+func TestPollPropsEqual(t *testing.T) {
+	a := &Post{}
+	a.AddProp(PostPropsPoll, map[string]any{"question": "Q", "options": []any{map[string]any{"id": "1", "text": "a"}}})
+	b := a.Clone()
+	assert.True(t, PollPropsEqual(a, b))
+
+	b.AddProp(PostPropsPoll, map[string]any{"question": "Q2", "options": []any{map[string]any{"id": "1", "text": "a"}}})
+	assert.False(t, PollPropsEqual(a, b))
+
+	b.DelProp(PostPropsPoll)
+	assert.False(t, PollPropsEqual(a, b))
+
+	c := &Post{}
+	c.AddProp(PostPropsPoll, Poll{Question: "Q", Options: []PollOption{{ID: "1", Text: "a"}}})
+	assert.True(t, PollPropsEqual(a, c))
+}
+
+func TestIsReservedPluginId(t *testing.T) {
+	assert.True(t, IsReservedPluginId(PollKVNamespace))
+	assert.True(t, IsReservedPluginId("COM.mattermost.Polls"))
+	assert.False(t, IsReservedPluginId("com.mattermost.calls"))
+
+	m := &Manifest{Id: PollKVNamespace, Name: "polls", Version: "1.0.0"}
+	assert.ErrorContains(t, m.IsValid(), "reserved")
+}
+
 func TestPollVotesWithVote(t *testing.T) {
 	t.Run("casts a vote without mutating the original", func(t *testing.T) {
 		original := PollVotes{}
-		next := original.WithVote("u1", "a", 100)
+		next, changed := original.WithVote("u1", "a", 100)
 
+		assert.True(t, changed)
 		assert.Empty(t, original)
 		assert.Equal(t, PollVote{OptionID: "a", VotedAt: 100}, next["u1"])
 	})
 
 	t.Run("changing a vote replaces it", func(t *testing.T) {
-		votes := PollVotes{}.WithVote("u1", "a", 100).WithVote("u1", "b", 200)
+		votes, _ := PollVotes{}.WithVote("u1", "a", 100)
+		votes, changed := votes.WithVote("u1", "b", 200)
 
+		assert.True(t, changed)
 		require.Len(t, votes, 1)
 		assert.Equal(t, PollVote{OptionID: "b", VotedAt: 200}, votes["u1"])
 	})
 
-	t.Run("re-voting the same option keeps the original timestamp", func(t *testing.T) {
-		votes := PollVotes{}.WithVote("u1", "a", 100).WithVote("u1", "a", 200)
+	t.Run("re-voting the same option is a no-op", func(t *testing.T) {
+		votes, _ := PollVotes{}.WithVote("u1", "a", 100)
+		votes, changed := votes.WithVote("u1", "a", 200)
+
+		assert.False(t, changed)
 		assert.Equal(t, int64(100), votes["u1"].VotedAt)
 	})
 
 	t.Run("empty option retracts", func(t *testing.T) {
-		votes := PollVotes{}.WithVote("u1", "a", 100).WithVote("u1", "", 200)
+		votes, _ := PollVotes{}.WithVote("u1", "a", 100)
+		votes, changed := votes.WithVote("u1", "", 200)
+
+		assert.True(t, changed)
 		assert.Empty(t, votes)
+	})
+
+	t.Run("retracting without a vote is a no-op", func(t *testing.T) {
+		_, changed := PollVotes{}.WithVote("u1", "", 200)
+		assert.False(t, changed)
 	})
 }
 
-func TestPollVotesResults(t *testing.T) {
+func TestPollStateResults(t *testing.T) {
 	poll := newTestPoll()
 
 	t.Run("no votes", func(t *testing.T) {
-		results := PollVotes{}.Results(poll, "post1")
+		results := PollState{}.Results(poll, "post1")
 
 		assert.Equal(t, "post1", results.PostID)
 		assert.Equal(t, 0, results.TotalVotes)
@@ -113,14 +194,15 @@ func TestPollVotesResults(t *testing.T) {
 	})
 
 	t.Run("groups voters by option in vote order", func(t *testing.T) {
-		votes := PollVotes{
+		state := PollState{UpdateAt: 42, Votes: PollVotes{
 			"u3": {OptionID: "a", VotedAt: 300},
 			"u1": {OptionID: "a", VotedAt: 100},
 			"u2": {OptionID: "b", VotedAt: 200},
 			"u0": {OptionID: "a", VotedAt: 300},
-		}
-		results := votes.Results(poll, "post1")
+		}}
+		results := state.Results(poll, "post1")
 
+		assert.Equal(t, int64(42), results.UpdateAt)
 		assert.Equal(t, 4, results.TotalVotes)
 		assert.Equal(t, []string{"u1", "u0", "u3"}, results.Votes["a"])
 		assert.Equal(t, []string{"u2"}, results.Votes["b"])
@@ -128,11 +210,11 @@ func TestPollVotesResults(t *testing.T) {
 	})
 
 	t.Run("ignores votes for removed options", func(t *testing.T) {
-		votes := PollVotes{
+		state := PollState{Votes: PollVotes{
 			"u1": {OptionID: "a", VotedAt: 100},
 			"u2": {OptionID: "gone", VotedAt: 200},
-		}
-		results := votes.Results(poll, "post1")
+		}}
+		results := state.Results(poll, "post1")
 
 		assert.Equal(t, 1, results.TotalVotes)
 		assert.NotContains(t, results.Votes, "gone")

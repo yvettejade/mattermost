@@ -7745,6 +7745,10 @@
     "translation": "Unable to remove plugin bundle from file store."
   },
   {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.Id}} is reserved and cannot be installed."
+  },
+  {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade."
   },
@@ -7819,6 +7823,14 @@
   {
     "id": "app.poll.decode.app_error",
     "translation": "Unable to read the poll votes."
+  },
+  {
+    "id": "app.poll.immutable.app_error",
+    "translation": "A poll's question, options, and post type cannot be changed after it is posted."
+  },
+  {
+    "id": "app.poll.invalid.app_error",
+    "translation": "The poll is invalid. It needs a question and 2 to 10 unique, non-empty options within the length limits."
   },
   {
     "id": "app.poll.invalid_option.app_error",

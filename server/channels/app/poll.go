@@ -11,11 +11,37 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const pollVoteMaxAttempts = 5
+
+// normalizePollPost validates a poll post on creation and rewrites its props
+// to the canonical, server-owned form.
+func normalizePollPost(post *model.Post) *model.AppError {
+	if err := model.NormalizePollPost(post); err != nil {
+		return model.NewAppError("CreatePost", "app.poll.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	return nil
+}
+
+// checkPollPostUpdate rejects edits that would change a poll's type or its
+// question/options; only the fallback message and similar fields may change.
+func checkPollPostUpdate(oldPost, receivedPost, newPost *model.Post) *model.AppError {
+	if oldPost.Type != model.PostTypePoll && receivedPost.Type != model.PostTypePoll {
+		return nil
+	}
+
+	if receivedPost.Type != "" && receivedPost.Type != oldPost.Type {
+		return model.NewAppError("UpdatePost", "app.poll.immutable.app_error", nil, "post type cannot change", http.StatusBadRequest)
+	}
+
+	if oldPost.Type == model.PostTypePoll && !model.PollPropsEqual(oldPost, newPost) {
+		return model.NewAppError("UpdatePost", "app.poll.immutable.app_error", nil, "poll cannot change", http.StatusBadRequest)
+	}
+
+	return nil
+}
 
 func (a *App) getPollPost(rctx request.CTX, postID string) (*model.Post, *model.Poll, *model.AppError) {
 	post, appErr := a.GetSinglePost(rctx, postID, false)
@@ -31,33 +57,28 @@ func (a *App) getPollPost(rctx request.CTX, postID string) (*model.Post, *model.
 	return post, poll, nil
 }
 
-func (a *App) getPollVotes(postID string, fromMaster bool) (model.PollVotes, []byte, *model.AppError) {
-	var raw []byte
-	if fromMaster {
-		kv, err := a.Srv().Store().Plugin().GetFromMaster(model.PollKVNamespace, model.PollVotesKVKey(postID))
-		if err == nil {
-			raw = kv.Value
-		} else if nfErr := new(store.ErrNotFound); !errors.As(err, &nfErr) {
-			return nil, nil, model.NewAppError("getPollVotes", "app.plugin_store.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+// getPollState always reads from the primary so results are never stale and
+// the compare-and-set in VotePoll compares against the latest value.
+func (a *App) getPollState(postID string) (model.PollState, []byte, *model.AppError) {
+	state := model.PollState{Votes: model.PollVotes{}}
+
+	kv, err := a.Srv().Store().Plugin().GetFromMaster(model.PollKVNamespace, model.PollVotesKVKey(postID))
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return state, nil, nil
 		}
-	} else {
-		var appErr *model.AppError
-		raw, appErr = a.GetPluginKey(model.PollKVNamespace, model.PollVotesKVKey(postID))
-		if appErr != nil {
-			return nil, nil, appErr
-		}
+		return state, nil, model.NewAppError("getPollState", "app.plugin_store.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	votes := model.PollVotes{}
-	if raw == nil {
-		return votes, nil, nil
+	if err := json.Unmarshal(kv.Value, &state); err != nil {
+		return state, nil, model.NewAppError("getPollState", "app.poll.decode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if state.Votes == nil {
+		state.Votes = model.PollVotes{}
 	}
 
-	if err := json.Unmarshal(raw, &votes); err != nil {
-		return nil, nil, model.NewAppError("getPollVotes", "app.poll.decode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return votes, raw, nil
+	return state, kv.Value, nil
 }
 
 func (a *App) GetPollResults(rctx request.CTX, postID string) (*model.PollResults, *model.AppError) {
@@ -66,16 +87,16 @@ func (a *App) GetPollResults(rctx request.CTX, postID string) (*model.PollResult
 		return nil, appErr
 	}
 
-	votes, _, appErr := a.getPollVotes(postID, false)
+	state, _, appErr := a.getPollState(postID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	return votes.Results(poll, postID), nil
+	return state.Results(poll, postID), nil
 }
 
 // VotePoll sets userID's vote on the poll, replacing any previous vote.
-// An empty optionID retracts the vote. Results are broadcast to the channel.
+// An empty optionID retracts the vote. Changed results are broadcast to the channel.
 func (a *App) VotePoll(rctx request.CTX, postID, userID, optionID string) (*model.PollResults, *model.AppError) {
 	post, poll, appErr := a.getPollPost(rctx, postID)
 	if appErr != nil {
@@ -96,12 +117,18 @@ func (a *App) VotePoll(rctx request.CTX, postID, userID, optionID string) (*mode
 
 	key := model.PollVotesKVKey(postID)
 	for range pollVoteMaxAttempts {
-		votes, oldRaw, appErr := a.getPollVotes(postID, true)
+		state, oldRaw, appErr := a.getPollState(postID)
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		next := votes.WithVote(userID, optionID, model.GetMillis())
+		now := model.GetMillis()
+		votes, changed := state.Votes.WithVote(userID, optionID, now)
+		if !changed {
+			return state.Results(poll, postID), nil
+		}
+
+		next := model.PollState{Votes: votes, UpdateAt: max(now, state.UpdateAt+1)}
 		newRaw, err := json.Marshal(next)
 		if err != nil {
 			return nil, model.NewAppError("VotePoll", "app.poll.decode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
