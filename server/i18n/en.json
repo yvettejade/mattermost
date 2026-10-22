@@ -7813,6 +7813,26 @@
     "translation": "Could not save or update plugin key value."
   },
   {
+    "id": "app.poll.archived_channel.app_error",
+    "translation": "You cannot vote on a poll in an archived channel."
+  },
+  {
+    "id": "app.poll.decode.app_error",
+    "translation": "Unable to read the poll votes."
+  },
+  {
+    "id": "app.poll.invalid_option.app_error",
+    "translation": "The selected option is not part of this poll."
+  },
+  {
+    "id": "app.poll.not_a_poll.app_error",
+    "translation": "This post is not a valid poll."
+  },
+  {
+    "id": "app.poll.vote_conflict.app_error",
+    "translation": "Too many people voted at once. Please try again."
+  },
+  {
     "id": "app.post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts."
   },
