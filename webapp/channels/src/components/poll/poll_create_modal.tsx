@@ -5,7 +5,7 @@ import React, {useCallback, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {EyeOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -15,7 +15,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {generateId} from 'utils/utils';
 
-import {POLL_MAX_OPTIONS, POLL_MIN_OPTIONS, POLL_OPTION_MAX_LENGTH, POLL_QUESTION_MAX_LENGTH} from './utils';
+import {POLL_MAX_OPTIONS, POLL_MIN_OPTIONS, POLL_OPTION_MAX_LENGTH, POLL_QUESTION_MAX_LENGTH, pollMessages} from './utils';
 
 import './poll_create_modal.scss';
 
@@ -152,6 +152,14 @@ const PollCreateModal = ({channelId, rootId, onExited}: Props) => {
                     <PlusIcon size={16}/>
                     {formatMessage(msg.addOption)}
                 </button>
+
+                <div
+                    className='PollCreateModal__notice'
+                    data-testid='pollVisibilityNotice'
+                >
+                    <EyeOutlineIcon size={16}/>
+                    {formatMessage(pollMessages.visibilityNotice)}
+                </div>
             </div>
         </GenericModal>
     );

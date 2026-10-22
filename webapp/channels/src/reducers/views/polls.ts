@@ -15,6 +15,10 @@ function resultsByPostId(state: Record<string, PollResults> = {}, action: MMActi
     switch (action.type) {
     case ActionTypes.RECEIVED_POLL_RESULTS: {
         const results: PollResults = action.data;
+        const current = state[results.post_id];
+        if (current && results.update_at < current.update_at) {
+            return state;
+        }
         return {
             ...state,
             [results.post_id]: results,

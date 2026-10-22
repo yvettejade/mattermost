@@ -187,6 +187,16 @@
         }
     }
 
+    &__notice {
+        display: flex;
+        align-items: center;
+        margin-top: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        gap: 4px;
+        line-height: 16px;
+    }
+
     &__total {
         color: var(--center-channel-color);
         font-weight: 600;
@@ -202,7 +212,7 @@
     &__footer {
         display: flex;
         flex-wrap: wrap;
-        margin-top: 12px;
+        margin-top: 4px;
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
         gap: 6px;

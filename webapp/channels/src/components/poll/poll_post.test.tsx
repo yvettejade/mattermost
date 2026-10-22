@@ -31,10 +31,11 @@ describe('components/poll/PollPost', () => {
         },
     });
 
-    const results = (votes: PollResults['votes']): PollResults => ({
+    const results = (votes: PollResults['votes'], updateAt = 1): PollResults => ({
         post_id: 'post1',
         votes,
         total_votes: Object.values(votes).reduce((sum, voters) => sum + voters.length, 0),
+        update_at: updateAt,
     });
 
     const initialState = (pollResults?: PollResults) => ({
@@ -84,7 +85,7 @@ describe('components/poll/PollPost', () => {
     });
 
     test('votes optimistically and keeps server results', async () => {
-        const votePoll = jest.spyOn(Client4, 'votePoll').mockResolvedValue(results({a: ['me'], b: []}));
+        const votePoll = jest.spyOn(Client4, 'votePoll').mockResolvedValue(results({a: ['me'], b: []}, 2));
 
         renderWithContext(<PollPost post={post}/>, initialState(results({a: [], b: []})));
 
@@ -95,7 +96,7 @@ describe('components/poll/PollPost', () => {
     });
 
     test('changing a vote moves it to the new option', async () => {
-        const votePoll = jest.spyOn(Client4, 'votePoll').mockResolvedValue(results({a: ['u1'], b: ['me']}));
+        const votePoll = jest.spyOn(Client4, 'votePoll').mockResolvedValue(results({a: ['u1'], b: ['me']}, 2));
 
         renderWithContext(<PollPost post={post}/>, initialState(results({a: ['u1', 'me'], b: []})));
 
@@ -107,7 +108,7 @@ describe('components/poll/PollPost', () => {
     });
 
     test('clicking the current vote retracts it', async () => {
-        const retract = jest.spyOn(Client4, 'retractPollVote').mockResolvedValue(results({a: ['u1'], b: []}));
+        const retract = jest.spyOn(Client4, 'retractPollVote').mockResolvedValue(results({a: ['u1'], b: []}, 2));
 
         renderWithContext(<PollPost post={post}/>, initialState(results({a: ['u1', 'me'], b: []})));
 
@@ -133,11 +134,38 @@ describe('components/poll/PollPost', () => {
         const {store} = renderWithContext(<PollPost post={post}/>, initialState(results({a: [], b: []})));
 
         act(() => {
-            store.dispatch(receivedPollResults(results({a: ['u1'], b: ['u2', 'me']})));
+            store.dispatch(receivedPollResults(results({a: ['u1'], b: ['u2', 'me']}, 5)));
         });
 
         expect(option(/^Tacos: 33%, 1 vote/)).toBeInTheDocument();
         expect(option(/^Pizza: 67%, 2 votes/)).toBeInTheDocument();
         expect(screen.getByText('3 votes')).toBeInTheDocument();
+    });
+
+    test('ignores results older than the ones shown', () => {
+        const {store} = renderWithContext(<PollPost post={post}/>, initialState(results({a: ['u1'], b: []}, 10)));
+
+        act(() => {
+            store.dispatch(receivedPollResults(results({a: [], b: []}, 9)));
+        });
+
+        expect(option(/^Tacos: 100%, 1 vote/)).toBeInTheDocument();
+    });
+
+    test('tells users that votes are visible', () => {
+        renderWithContext(<PollPost post={post}/>, initialState(results({a: [], b: []})));
+
+        expect(screen.getByText('Votes are visible to channel members')).toBeInTheDocument();
+    });
+
+    test('falls back to the plain message for a malformed poll payload', () => {
+        const malformed = {...post, props: {poll: {question: 'Lunch?', options: [{id: 1, text: {nested: true}}, null]}}};
+        const getPollResults = jest.spyOn(Client4, 'getPollResults');
+
+        renderWithContext(<PollPost post={malformed}/>, initialState());
+
+        expect(screen.getByText('📊 Lunch?')).toBeInTheDocument();
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+        expect(getPollResults).not.toHaveBeenCalled();
     });
 });

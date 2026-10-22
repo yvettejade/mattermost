@@ -10,6 +10,7 @@ import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
 import PollPost from 'components/poll/poll_post';
+import {getPollFromPost} from 'components/poll/utils';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {PostTypes} from 'utils/constants';
@@ -112,7 +113,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             );
         }
 
-        if (this.props.post && this.props.post.type === PostTypes.CUSTOM_POLL) {
+        if (this.props.post && this.props.post.type === PostTypes.CUSTOM_POLL && getPollFromPost(this.props.post)) {
             return <PollPost post={this.props.post}/>;
         }
 

@@ -53,6 +53,11 @@ describe('components/poll/PollCreateModal', () => {
         expect(postButton()).toBeEnabled();
     });
 
+    test('shows the vote visibility notice', () => {
+        renderModal();
+        expect(screen.getByTestId('pollVisibilityNotice')).toHaveTextContent('Votes are visible to channel members');
+    });
+
     test('adds and removes options', async () => {
         renderModal();
         expect(screen.queryByRole('button', {name: /Remove option/})).not.toBeInTheDocument();

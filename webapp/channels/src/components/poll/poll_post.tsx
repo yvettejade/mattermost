@@ -6,7 +6,7 @@ import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ChartBarIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
+import {ChartBarIcon, CheckCircleIcon, EyeOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -18,7 +18,7 @@ import Avatars from 'components/widgets/users/avatars';
 
 import type {GlobalState} from 'types/store';
 
-import {applyVoteLocally, emptyPollResults, getPercent, getPollFromPost, getUserVote} from './utils';
+import {applyVoteLocally, emptyPollResults, getPercent, getPollFromPost, getUserVote, pollMessages} from './utils';
 
 import './poll_post.scss';
 
@@ -43,10 +43,10 @@ const PollPost = ({post}: Props) => {
     }, []);
 
     useEffect(() => {
-        if (!storedResults && !isPending) {
+        if (poll && !storedResults && !isPending) {
             dispatch(fetchPollResults(post.id));
         }
-    }, [dispatch, storedResults, post.id, isPending]);
+    }, [dispatch, poll, storedResults, post.id, isPending]);
 
     const results = useMemo(() => {
         if (!poll) {
@@ -162,6 +162,11 @@ const PollPost = ({post}: Props) => {
                     );
                 })}
             </ul>
+
+            <div className='PollPost__notice'>
+                <EyeOutlineIcon size={14}/>
+                <FormattedMessage {...pollMessages.visibilityNotice}/>
+            </div>
 
             <div className='PollPost__footer'>
                 <span className='PollPost__total'>

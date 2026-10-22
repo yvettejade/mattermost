@@ -5842,6 +5842,7 @@
   "poll.post.hint_voted": "Click an option to change or remove your vote",
   "poll.post.option_aria": "{option}: {percent}%, {count, plural, one {# vote} other {# votes}}",
   "poll.post.total": "{count, plural, one {# vote} other {# votes}}",
+  "poll.visibility_notice": "Votes are visible to channel members",
   "popout_menu_item.openInNewWindow": "Open in new window",
   "post_body.check_for_out_of_channel_groups_mentions.message": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",
   "post_body.check_for_out_of_channel_mentions.link.and": " and ",

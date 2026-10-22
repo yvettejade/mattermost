@@ -17,4 +17,7 @@ export type PollResults = {
     /** Voter user IDs per option ID, earliest voter first. */
     votes: Record<string, string[]>;
     total_votes: number;
+
+    /** Increases with every server write; older results must not replace newer ones. */
+    update_at: number;
 };

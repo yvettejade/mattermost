@@ -55,4 +55,17 @@
         margin-top: 12px;
         gap: 4px;
     }
+
+    &__notice {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-top: 20px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        gap: 6px;
+        line-height: 16px;
+    }
 }

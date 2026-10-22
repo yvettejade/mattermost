@@ -462,7 +462,7 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
 
     case WebSocketEvents.PollUpdated:
-        dispatch(receivedPollResults(JSON.parse(msg.data.results)));
+        handlePollUpdatedEvent(msg);
         break;
 
     case WebSocketEvents.LeaveTeam:
@@ -1037,6 +1037,17 @@ async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {
     if (post.is_pinned) {
         dispatch(getChannelStats(post.channel_id));
     }
+}
+
+export function handlePollUpdatedEvent(msg: WebSocketMessages.PollUpdated) {
+    let results;
+    try {
+        results = JSON.parse(msg.data.results);
+    } catch (error) {
+        console.error('Failed to parse poll_updated event', error); //eslint-disable-line no-console
+        return;
+    }
+    dispatch(receivedPollResults(results));
 }
 
 export function handlePostUnreadEvent(msg: WebSocketMessages.PostUnread) {
