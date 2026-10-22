@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, useStore} from 'react-redux';
 
 import {ChartBarIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';
@@ -29,6 +29,7 @@ type Props = {
 const PollPost = ({post}: Props) => {
     const {formatMessage, formatNumber} = useIntl();
     const dispatch = useDispatch();
+    const store = useStore<GlobalState>();
 
     const poll = useMemo(() => getPollFromPost(post), [post]);
     const currentUserId = useSelector(getCurrentUserId);
@@ -67,9 +68,14 @@ const PollPost = ({post}: Props) => {
 
         const {error} = await dispatch(votePoll(post.id, nextOptionId));
         if (error) {
-            dispatch(fetchPollResults(post.id));
+            // Roll back only our own optimistic vote against the latest stored results, and only
+            // if no newer vote has replaced it, so broadcasts applied meanwhile are kept.
+            const latest = getPollResults(store.getState(), post.id);
+            if (latest && getUserVote(latest, currentUserId) === (nextOptionId ?? undefined)) {
+                dispatch(receivedPollResults(applyVoteLocally(latest, currentUserId, myVote ?? null)));
+            }
         }
-    }, [dispatch, results, myVote, currentUserId, post.id, isPending]);
+    }, [dispatch, store, results, myVote, currentUserId, post.id, isPending]);
 
     if (!poll || !results) {
         return <p>{post.message}</p>;
