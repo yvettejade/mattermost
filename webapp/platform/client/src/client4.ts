@@ -109,6 +109,7 @@ import type {
     PluginsResponse,
     PluginStatus,
 } from '@mattermost/types/plugins';
+import type {PollResults} from '@mattermost/types/polls';
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
@@ -2486,6 +2487,27 @@ export default class Client4 {
     burnPostNow = (postId: string) => {
         return this.doFetch(
             `${this.getPostRoute(postId)}/burn`,
+            {method: 'delete'},
+        );
+    };
+
+    getPollResults = (postId: string) => {
+        return this.doFetch<PollResults>(
+            `${this.getPostRoute(postId)}/poll`,
+            {method: 'get'},
+        );
+    };
+
+    votePoll = (postId: string, optionId: string) => {
+        return this.doFetch<PollResults>(
+            `${this.getPostRoute(postId)}/poll/vote`,
+            {method: 'post', body: JSON.stringify({option_id: optionId})},
+        );
+    };
+
+    retractPollVote = (postId: string) => {
+        return this.doFetch<PollResults>(
+            `${this.getPostRoute(postId)}/poll/vote`,
             {method: 'delete'},
         );
     };

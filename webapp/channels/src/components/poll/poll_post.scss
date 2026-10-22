@@ -1,0 +1,204 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@keyframes poll-voters-in {
+    from {
+        opacity: 0;
+        transform: translateX(-6px) scale(0.85);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.PollPost {
+    max-width: 560px;
+    padding: 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 8px;
+    margin-top: 4px;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-1);
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 12px;
+        gap: 6px;
+    }
+
+    &__badge {
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+        font-size: 11px;
+        font-weight: 600;
+        gap: 4px;
+        letter-spacing: 0.02em;
+        line-height: 16px;
+        text-transform: uppercase;
+    }
+
+    &__question {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        overflow-wrap: anywhere;
+    }
+
+    &__options {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        margin: 0;
+        gap: 8px;
+        list-style: none;
+    }
+
+    &__option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__bar {
+        position: relative;
+        display: flex;
+        overflow: hidden;
+        min-width: 0;
+        height: 40px;
+        flex: 1;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: var(--center-channel-color);
+        cursor: pointer;
+        gap: 12px;
+        text-align: left;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+
+        &:hover:not(:disabled) {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+
+        &:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--button-bg);
+            outline: none;
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.64;
+        }
+
+        &--leading .PollPost__fill {
+            background: rgba(var(--button-bg-rgb), 0.2);
+        }
+
+        &--selected {
+            border-color: var(--button-bg);
+
+            .PollPost__fill {
+                background: rgba(var(--button-bg-rgb), 0.32);
+            }
+
+            .PollPost__percent {
+                color: var(--button-bg);
+            }
+        }
+    }
+
+    &__fill {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+        transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1), background-color 300ms ease;
+    }
+
+    &__label,
+    &__stats {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    &__label {
+        min-width: 0;
+    }
+
+    &__text {
+        overflow: hidden;
+        font-size: 14px;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__check {
+        flex: none;
+        color: var(--button-bg);
+    }
+
+    &__stats {
+        flex: none;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__percent {
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 300ms ease;
+    }
+
+    &__count {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+    }
+
+    &__voters {
+        display: flex;
+        width: 96px;
+        flex: none;
+        justify-content: flex-start;
+
+        .Avatars > * {
+            animation: poll-voters-in 300ms ease;
+        }
+    }
+
+    &__total {
+        color: var(--center-channel-color);
+        font-weight: 600;
+
+        &::after {
+            margin-left: 6px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            content: '\00B7';
+            font-weight: 400;
+        }
+    }
+
+    &__footer {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        gap: 6px;
+        line-height: 16px;
+    }
+}

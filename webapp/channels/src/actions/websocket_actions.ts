@@ -146,6 +146,7 @@ import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'acti
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
+import {receivedPollResults} from 'actions/views/polls';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
@@ -458,6 +459,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.BurnOnReadPostAllRevealed:
         dispatch(handleBurnOnReadAllRevealed(msg.data));
+        break;
+
+    case WebSocketEvents.PollUpdated:
+        dispatch(receivedPollResults(JSON.parse(msg.data.results)));
         break;
 
     case WebSocketEvents.LeaveTeam:

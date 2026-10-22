@@ -17,6 +17,7 @@ import marketplace from './marketplace';
 import modals from './modals';
 import notice from './notice';
 import onboardingTasks from './onboarding_tasks';
+import polls from './polls';
 import posts from './posts';
 import productMenu from './product_menu';
 import readout from './readout';
@@ -53,4 +54,5 @@ export default combineReducers({
     productMenu,
     drafts,
     readout,
+    polls,
 });

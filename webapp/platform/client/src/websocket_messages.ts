@@ -11,6 +11,7 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Group, GroupMember as GroupMemberType} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {PluginManifest, PluginStatus} from '@mattermost/types/plugins';
+import type {PollResults} from '@mattermost/types/polls';
 import type {Post, PostAcknowledgement as PostAcknowledgementType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
@@ -97,6 +98,10 @@ export type BurnOnReadPostBurned = BaseWebSocketMessage<WebSocketEvents.BurnOnRe
 export type BurnOnReadPostAllRevealed = BaseWebSocketMessage<WebSocketEvents.BurnOnReadPostAllRevealed, {
     post_id: string;
     sender_expire_at: number;
+}>;
+
+export type PollUpdated = BaseWebSocketMessage<WebSocketEvents.PollUpdated, {
+    results: JsonEncodedValue<PollResults>;
 }>;
 
 export type EphemeralPost = BaseWebSocketMessage<WebSocketEvents.EphemeralMessage, {
