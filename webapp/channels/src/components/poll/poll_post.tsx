@@ -148,7 +148,7 @@ const PollPost = ({post}: Props) => {
                                     </span>
                                 </span>
                             </button>
-                            <div className='PollPost__voters'>
+                            <div className={classNames('PollPost__voters', {'PollPost__voters--collapsed': total === 0})}>
                                 {count > 0 && (
                                     <Avatars
                                         userIds={voters}
@@ -172,7 +172,7 @@ const PollPost = ({post}: Props) => {
                 {myVote ? (
                     <FormattedMessage
                         id='poll.post.hint_voted'
-                        defaultMessage='Pick another option to change your vote, or click yours again to remove it'
+                        defaultMessage='Click an option to change or remove your vote'
                     />
                 ) : (
                     <FormattedMessage

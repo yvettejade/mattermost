@@ -5839,7 +5839,7 @@
   "poll.post.badge": "Poll",
   "poll.post.count": "{count, plural, one {# vote} other {# votes}}",
   "poll.post.hint": "Click an option to vote",
-  "poll.post.hint_voted": "Pick another option to change your vote, or click yours again to remove it",
+  "poll.post.hint_voted": "Click an option to change or remove your vote",
   "poll.post.option_aria": "{option}: {percent}%, {count, plural, one {# vote} other {# votes}}",
   "poll.post.total": "{count, plural, one {# vote} other {# votes}}",
   "popout_menu_item.openInNewWindow": "Open in new window",
