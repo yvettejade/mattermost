@@ -170,6 +170,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, err
 	}
 
+	if post.Type == model.PostTypePoll {
+		if err = normalizePollPost(post); err != nil {
+			return nil, false, err
+		}
+	}
+
 	foundPost, err := a.deduplicateCreatePost(rctx, post)
 	if err != nil {
 		return nil, false, err
@@ -907,6 +913,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			} else {
 				newPost.DelProp(model.PostPropsMmBlocksActions)
 			}
+		}
+
+		if appErr = checkPollPostUpdate(oldPost, receivedUpdatedPost, newPost); appErr != nil {
+			return nil, false, appErr
 		}
 
 		var fileIds []string

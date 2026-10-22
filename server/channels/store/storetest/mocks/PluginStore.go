@@ -154,6 +154,36 @@ func (_m *PluginStore) Get(pluginID string, key string) (*model.PluginKeyValue, 
 	return r0, r1
 }
 
+// GetFromMaster provides a mock function with given fields: pluginID, key
+func (_m *PluginStore) GetFromMaster(pluginID string, key string) (*model.PluginKeyValue, error) {
+	ret := _m.Called(pluginID, key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFromMaster")
+	}
+
+	var r0 *model.PluginKeyValue
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PluginKeyValue, error)); ok {
+		return rf(pluginID, key)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.PluginKeyValue); ok {
+		r0 = rf(pluginID, key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PluginKeyValue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pluginID, key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // List provides a mock function with given fields: pluginID, page, perPage
 func (_m *PluginStore) List(pluginID string, page int, perPage int) ([]string, error) {
 	ret := _m.Called(pluginID, page, perPage)

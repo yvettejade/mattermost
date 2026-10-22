@@ -857,6 +857,7 @@ type PluginStore interface {
 	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error)
 	SetWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, error)
 	Get(pluginID, key string) (*model.PluginKeyValue, error)
+	GetFromMaster(pluginID, key string) (*model.PluginKeyValue, error)
 	Delete(pluginID, key string) error
 	DeleteAllForPlugin(PluginID string) error
 	DeleteAllExpired() error

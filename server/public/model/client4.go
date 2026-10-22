@@ -7777,6 +7777,33 @@ func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *R
 	return DecodeJSONFromResponse[*PostInfo](r)
 }
 
+func (c *Client4) GetPollResults(ctx context.Context, postId string) (*PollResults, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.postRoute(postId).Join("poll"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PollResults](r)
+}
+
+func (c *Client4) VotePoll(ctx context.Context, postId, optionId string) (*PollResults, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.postRoute(postId).Join("poll", "vote"), PollVoteRequest{OptionID: optionId})
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PollResults](r)
+}
+
+func (c *Client4) RetractPollVote(ctx context.Context, postId string) (*PollResults, *Response, error) {
+	r, err := c.doAPIDelete(ctx, c.postRoute(postId).Join("poll", "vote"))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PollResults](r)
+}
+
 func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*PostAcknowledgement, *Response, error) {
 	r, err := c.doAPIPost(ctx, c.userRoute(userId).Join(c.postRoute(postId), "ack"), "")
 	if err != nil {

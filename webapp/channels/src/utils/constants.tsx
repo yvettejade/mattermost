@@ -188,6 +188,7 @@ export const suitePluginIds = {
 
 export const ActionTypes = keyMirror({
     SET_PRODUCT_SWITCHER_OPEN: null,
+    RECEIVED_POLL_RESULTS: null,
     RECEIVED_FOCUSED_POST: null,
     SELECT_POST: null,
     HIGHLIGHT_REPLY: null,
@@ -339,6 +340,7 @@ export const PostRequestTypes = keyMirror({
 
 export const ModalIdentifiers = {
     ABOUT: 'about',
+    POLL_CREATE: 'poll_create',
     TEAM_SETTINGS: 'team_settings',
     CHANNEL_INFO: 'channel_info',
     DELETE_CHANNEL: 'delete_channel',
@@ -750,6 +752,7 @@ export const PostTypes = {
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
     CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
+    CUSTOM_POLL: 'custom_poll',
     AUTO_TRANSLATION_CHANGE: 'system_autotranslation',
     BURN_ON_READ: 'burn_on_read',
     SHARED_CHANNEL_STATE: 'system_shared_chan_state',

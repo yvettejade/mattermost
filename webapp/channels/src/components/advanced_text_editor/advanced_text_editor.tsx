@@ -39,6 +39,7 @@ import {
     DropOverlayIdCreatePost,
     DropOverlayIdEditPost, FileUploadOverlay,
 } from 'components/file_upload_overlay/file_upload_overlay';
+import PollButton from 'components/poll/poll_button';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -687,11 +688,21 @@ const AdvancedTextEditor = ({
 
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
 
+    const pollAdditionalControl = useMemo(() => (
+        <PollButton
+            key='poll-button-key'
+            channelId={channelId}
+            rootId={rootId}
+            disabled={showPreview}
+        />
+    ), [channelId, rootId, showPreview]);
+
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
+        !isInEditMode && pollAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl, pollAdditionalControl]);
 
     const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();

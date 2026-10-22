@@ -146,6 +146,7 @@ import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'acti
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
+import {receivedPollResults} from 'actions/views/polls';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
@@ -458,6 +459,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.BurnOnReadPostAllRevealed:
         dispatch(handleBurnOnReadAllRevealed(msg.data));
+        break;
+
+    case WebSocketEvents.PollUpdated:
+        handlePollUpdatedEvent(msg);
         break;
 
     case WebSocketEvents.LeaveTeam:
@@ -1032,6 +1037,17 @@ async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {
     if (post.is_pinned) {
         dispatch(getChannelStats(post.channel_id));
     }
+}
+
+export function handlePollUpdatedEvent(msg: WebSocketMessages.PollUpdated) {
+    let results;
+    try {
+        results = JSON.parse(msg.data.results);
+    } catch (error) {
+        console.error('Failed to parse poll_updated event', error); //eslint-disable-line no-console
+        return;
+    }
+    dispatch(receivedPollResults(results));
 }
 
 export function handlePostUnreadEvent(msg: WebSocketMessages.PostUnread) {

@@ -28,6 +28,7 @@ import type {PostPluginComponent} from 'types/store/plugins';
 // These posts types must not be rendered with the collapsible "Show More" container.
 const FULL_HEIGHT_POST_TYPES = new Set([
     PostTypes.CUSTOM_DATA_SPILLAGE_REPORT,
+    PostTypes.CUSTOM_POLL,
 ]);
 
 type Props = {

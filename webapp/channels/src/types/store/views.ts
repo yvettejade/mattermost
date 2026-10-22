@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {PollResults} from '@mattermost/types/polls';
 import type {CursorPaginationDirection, ReportDuration} from '@mattermost/types/reports';
 import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
@@ -42,6 +43,10 @@ export type EditingPostDetails = {
     refocusId: string;
     isRHS: boolean;
     show: boolean;
+};
+
+export type PollsViewState = {
+    resultsByPostId: Record<string, PollResults>;
 };
 
 export type ViewsState = {
@@ -133,6 +138,8 @@ export type ViewsState = {
     readout: {
         message: string | null;
     };
+
+    polls: PollsViewState;
 
     search: {
         modalSearch: string;

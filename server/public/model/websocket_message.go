@@ -103,6 +103,7 @@ const (
 	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
 	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
 	WebsocketEventBurnOnReadAllRevealed               WebsocketEventType = "burn_on_read_all_revealed"
+	WebsocketEventPollUpdated                         WebsocketEventType = "poll_updated"
 
 	WebsocketEventBoardCreated WebsocketEventType = "board_created"
 
