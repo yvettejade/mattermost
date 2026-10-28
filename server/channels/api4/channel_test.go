@@ -601,6 +601,53 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("members can update header on DM and group channels", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		directChannel.Header = "dm header via put"
+		updatedDM, _, err := client.UpdateChannel(context.Background(), directChannel)
+		require.NoError(t, err)
+		require.Equal(t, "dm header via put", updatedDM.Header)
+
+		user3 := th.CreateUser(t)
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		groupChannel.Header = "gm header via put"
+		updatedGM, _, err := client.UpdateChannel(context.Background(), groupChannel)
+		require.NoError(t, err)
+		require.Equal(t, "gm header via put", updatedGM.Header)
+	})
+
+	t.Run("header longer than 1024 runes returns 400", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := th.CreatePublicChannel(t)
+		channel.Header = strings.Repeat("a", model.ChannelHeaderMaxRunes+1)
+		_, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("user without manage-properties cannot update header", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		channel := &model.Channel{Id: th.BasicChannel.Id, Header: "forbidden put header"}
+		_, resp, err := client.UpdateChannel(context.Background(), channel)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestPatchChannelGroupConstrained(t *testing.T) {
@@ -1698,6 +1745,103 @@ func TestPatchChannel(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Equal(t, newHeader, patchedChannel.Header)
 		require.True(t, patchedChannel.AutoTranslation)
+	})
+
+	t.Run("PATCH updates header on public, private, DM, and group channels", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		publicHeader := "public header via patch"
+		publicChannel := th.CreatePublicChannel(t)
+		patchedPublic, _, err := client.PatchChannel(context.Background(), publicChannel.Id, &model.ChannelPatch{Header: &publicHeader})
+		require.NoError(t, err)
+		require.Equal(t, publicHeader, patchedPublic.Header)
+
+		privateHeader := "private header via patch"
+		privateChannel := th.CreatePrivateChannel(t)
+		patchedPrivate, _, err := client.PatchChannel(context.Background(), privateChannel.Id, &model.ChannelPatch{Header: &privateHeader})
+		require.NoError(t, err)
+		require.Equal(t, privateHeader, patchedPrivate.Header)
+
+		dmHeader := "dm header via patch"
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		patchedDM, _, err := client.PatchChannel(context.Background(), dmChannel.Id, &model.ChannelPatch{Header: &dmHeader})
+		require.NoError(t, err)
+		require.Equal(t, dmHeader, patchedDM.Header)
+
+		user3 := th.CreateUser(t)
+		gmHeader := "gm header via patch"
+		gmChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		patchedGM, _, err := client.PatchChannel(context.Background(), gmChannel.Id, &model.ChannelPatch{Header: &gmHeader})
+		require.NoError(t, err)
+		require.Equal(t, gmHeader, patchedGM.Header)
+	})
+
+	t.Run("user without manage-properties cannot patch header", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		forbiddenHeader := "forbidden patch header"
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &forbiddenHeader})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("header longer than 1024 runes returns 400", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		tooLong := strings.Repeat("a", model.ChannelHeaderMaxRunes+1)
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Header: &tooLong})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("PATCH header change creates system_header_change post and channel_updated event", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := th.CreatePublicChannel(t)
+		oldHeader := channel.Header
+		newHeader := "system post header"
+
+		wsClient := th.CreateConnectedWebSocketClient(t)
+
+		patched, _, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &newHeader})
+		require.NoError(t, err)
+		require.Equal(t, newHeader, patched.Header)
+
+		assertExpectedWebsocketEvent(t, wsClient, model.WebsocketEventChannelUpdated, func(event *model.WebSocketEvent) {
+			channelJSON, ok := event.GetData()["channel"].(string)
+			require.True(t, ok)
+			var updated model.Channel
+			require.NoError(t, json.Unmarshal([]byte(channelJSON), &updated))
+			require.Equal(t, channel.Id, updated.Id)
+			require.Equal(t, newHeader, updated.Header)
+		})
+
+		posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+
+		var headerChange *model.Post
+		for _, post := range posts.Posts {
+			if post.Type == model.PostTypeHeaderChange {
+				headerChange = post
+				break
+			}
+		}
+		require.NotNil(t, headerChange, "expected a system_header_change post")
+		require.Equal(t, oldHeader, headerChange.GetProp("old_header"))
+		require.Equal(t, newHeader, headerChange.GetProp("new_header"))
 	})
 }
 
