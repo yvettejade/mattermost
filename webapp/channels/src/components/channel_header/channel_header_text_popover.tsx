@@ -51,6 +51,22 @@ const BORDER_WIDTH_OF_POPOVER = 1; // border of .channel-header-text-popover in 
 const HEIGHT_OF_HEADER_TEXT = 24; // height of .header-description__text in _headers.scss
 const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_Y_OF_POPOVER) - (2 * BORDER_WIDTH_OF_POPOVER));
 
+export function useHeaderMarkdownOptions(channelNamesMap?: ChannelNamesMap) {
+    return useMemo(() => ({
+        inHeader: {
+            ...TEXT_IN_HEADER_MARKDOWN_OPTIONS,
+            ...MENTION_MARKDOWN_OPTIONS,
+            channelNamesMap,
+        },
+        inPopover: {
+            ...TEXT_IN_POPOVER_MARKDOWN_OPTIONS,
+            ...MENTION_MARKDOWN_OPTIONS,
+            channelNamesMap,
+        },
+        imageProps: IMAGE_MARKDOWN_OPTIONS,
+    }), [channelNamesMap]);
+}
+
 interface Props {
     text: string;
     channelMentionsNameMap?: ChannelNamesMap;
@@ -62,23 +78,7 @@ export function ChannelHeaderTextPopover(props: Props) {
 
     const isTextOverflowing = checkIfTextIsOverflowing(rootElementRef?.current, props.text);
 
-    const markdownOptions = useMemo(() => {
-        const inHeader = {
-            ...TEXT_IN_HEADER_MARKDOWN_OPTIONS,
-            ...MENTION_MARKDOWN_OPTIONS,
-            channelNamesMap: props.channelMentionsNameMap,
-        };
-        const inPopover = {
-            ...TEXT_IN_POPOVER_MARKDOWN_OPTIONS,
-            ...MENTION_MARKDOWN_OPTIONS,
-            channelNamesMap: props.channelMentionsNameMap,
-        };
-
-        return {
-            inHeader,
-            inPopover,
-        };
-    }, [props.channelMentionsNameMap]);
+    const markdownOptions = useHeaderMarkdownOptions(props.channelMentionsNameMap);
 
     const [isPopoverOpen, setPopoverOpen] = useState(false);
 
@@ -131,7 +131,7 @@ export function ChannelHeaderTextPopover(props: Props) {
                 <Markdown
                     message={props.text}
                     options={markdownOptions.inHeader}
-                    imageProps={IMAGE_MARKDOWN_OPTIONS}
+                    imageProps={markdownOptions.imageProps}
                 />
             </div>
 
@@ -156,7 +156,7 @@ export function ChannelHeaderTextPopover(props: Props) {
                             <Markdown
                                 message={props.text}
                                 options={markdownOptions.inPopover}
-                                imageProps={IMAGE_MARKDOWN_OPTIONS}
+                                imageProps={markdownOptions.imageProps}
                             />
                         </div>
                     </FloatingOverlay>
