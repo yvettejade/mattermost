@@ -7,7 +7,8 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -100,6 +101,25 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
+        expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
+
+        fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Settings'}));
+
+        expect(screen.getByRole('menuitem', {name: 'Edit Header'})).toBeInTheDocument();
+    });
+
+    it('opens the edit header modal from Edit Header when Channel Settings is unavailable', () => {
+        const {store} = renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu {...defaultProps}/>
+            </WithTestMenuContext>,
+            getStateWithRestrictedDMAndGM(),
+        );
+
+        fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Settings'}));
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Edit Header'}));
+
+        expect(store.getState().views.modals.modalState[ModalIdentifiers.EDIT_CHANNEL_HEADER].open).toBe(true);
     });
 
     it('shows Auto-translation menu when isChannelAutotranslated is true', () => {

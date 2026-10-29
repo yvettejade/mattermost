@@ -317,4 +317,44 @@ describe('AdvancedTextbox', () => {
         label = document.querySelector('.AdvancedTextbox__label');
         expect(label).toHaveClass('AdvancedTextbox__label--active');
     });
+
+    test('counts JavaScript string length unless countCodePoints is set', () => {
+        const emoji = '😀';
+        const {rerender} = render(
+            <AdvancedTextbox
+                {...defaultProps}
+                maxLength={1}
+                value={emoji}
+                showCharacterCount={true}
+            />,
+        );
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('2/1')).toBeInTheDocument();
+
+        rerender(
+            <AdvancedTextbox
+                {...defaultProps}
+                maxLength={1}
+                value={emoji}
+                showCharacterCount={true}
+                countCodePoints={true}
+            />,
+        );
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+
+        rerender(
+            <AdvancedTextbox
+                {...defaultProps}
+                maxLength={1}
+                value={emoji + emoji}
+                showCharacterCount={true}
+                countCodePoints={true}
+            />,
+        );
+
+        expect(screen.getByText('2/1')).toBeInTheDocument();
+        expect(screen.queryByText('4/1')).not.toBeInTheDocument();
+    });
 });

@@ -6,8 +6,8 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -350,5 +350,145 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('renders Add a channel header only for an empty editable channel', () => {
+        const openModal = jest.fn();
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            actions: {
+                ...populatedProps.actions,
+                openModal,
+            },
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                team_id: 'team_id',
+                header: '   ',
+                delete_at: 0,
+                type: Constants.OPEN_CHANNEL as ChannelType,
+            }),
+        };
+
+        const {container} = renderWithContext(<ChannelHeader {...props}/>);
+
+        const description = container.querySelector('#channelHeaderDescription');
+        const button = screen.getByRole('button', {name: 'Add a channel header'});
+        expect(button).toHaveClass('header-placeholder');
+        expect(button).toHaveAttribute('type', 'button');
+        expect(description).toContainElement(button);
+        expect(description?.querySelector('.header-description__text')).toBeNull();
+        expect(button.querySelector('.icon')).not.toBeNull();
+
+        button.click();
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: expect.any(Function),
+            dialogProps: {channel: props.channel},
+        });
+    });
+
+    test('omits the header placeholder when a header is set, the channel is archived, the DM is a bot, or the viewer cannot edit', () => {
+        const withHeader = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                header: 'Already set',
+                delete_at: 0,
+                type: Constants.OPEN_CHANNEL as ChannelType,
+            }),
+        };
+        const {rerender} = renderWithContext(<ChannelHeader {...withHeader}/>);
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+        expect(screen.getByText('Already set')).toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                canEditChannelHeader={true}
+                channel={TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    header: '',
+                    delete_at: 1234,
+                    type: Constants.OPEN_CHANNEL as ChannelType,
+                })}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                canEditChannelHeader={true}
+                channel={TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    header: '',
+                    delete_at: 0,
+                    type: Constants.DM_CHANNEL as ChannelType,
+                })}
+                dmUser={TestHelper.getUserMock({id: 'bot_id', is_bot: true, bot_description: 'I am a bot'})}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                canEditChannelHeader={false}
+                channel={TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    header: '',
+                    delete_at: 0,
+                    type: Constants.OPEN_CHANNEL as ChannelType,
+                })}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                canEditChannelHeader={false}
+                channel={TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    header: '',
+                    delete_at: 0,
+                    type: Constants.PRIVATE_CHANNEL as ChannelType,
+                })}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+    });
+
+    test('renders the header placeholder for an empty direct or group message the viewer can edit', () => {
+        const {rerender} = renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                canEditChannelHeader={true}
+                channel={TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    header: '',
+                    delete_at: 0,
+                    type: Constants.DM_CHANNEL as ChannelType,
+                })}
+                dmUser={TestHelper.getUserMock({id: 'user_id', is_bot: false})}
+            />,
+        );
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                canEditChannelHeader={true}
+                channel={TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    header: '',
+                    delete_at: 0,
+                    type: Constants.GM_CHANNEL as ChannelType,
+                })}
+            />,
+        );
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
     });
 });

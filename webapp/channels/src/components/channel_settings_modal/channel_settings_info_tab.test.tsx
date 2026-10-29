@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,26 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('counts header length in Unicode code points and purpose length in UTF-16 code units', () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        const emoji = '😀';
+        fireEvent.input(screen.getByTestId('channel_settings_header_textbox'), {target: {value: emoji.repeat(1024)}});
+
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+
+        fireEvent.input(screen.getByTestId('channel_settings_header_textbox'), {target: {value: emoji.repeat(1025)}});
+
+        expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
+        expect(screen.getByText(/limited to 1024 characters/)).toBeInTheDocument();
+
+        fireEvent.input(screen.getByTestId('channel_settings_header_textbox'), {target: {value: 'short header'}});
+        fireEvent.input(screen.getByTestId('channel_settings_purpose_textbox'), {target: {value: emoji.repeat(126)}});
+
+        expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
+        expect(screen.getByText(/channel purpose is limited to 250 characters/)).toBeInTheDocument();
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {
