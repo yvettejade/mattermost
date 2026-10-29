@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -436,20 +436,77 @@ describe('ChannelSettingsInfoTab', () => {
         // Create a string that exceeds the header character limit.
         const longHeader = 'a'.repeat(1025);
 
-        // Wrap the interaction in act to handle state updates properly
         await act(async () => {
             const headerInput = screen.getByTestId('channel_settings_header_textbox');
-            await userEvent.clear(headerInput);
-            await userEvent.type(headerInput, longHeader);
+            fireEvent.input(headerInput, {target: {value: longHeader}});
         });
-
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('counts header length in Unicode code points and allows 1024 emoji', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        await act(async () => {
+            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            fireEvent.input(headerInput, {target: {value: '👍'.repeat(1024)}});
+        });
+
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+    });
+
+    it('rejects a 1025-code-point emoji header', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        await act(async () => {
+            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            fireEvent.input(headerInput, {target: {value: '👍'.repeat(1025)}});
+        });
+
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        expect(errorMessage.closest('.SaveChangesPanel')).toHaveClass('error');
+    });
+
+    it('does not count trailing spaces toward the header code-point limit', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        await act(async () => {
+            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            fireEvent.input(headerInput, {target: {value: `${'👍'.repeat(1024)}   `}});
+        });
+
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+    });
+
+    it('still uses string.length for the purpose limit', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        await act(async () => {
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            fireEvent.input(purposeInput, {target: {value: '👍'.repeat(126)}});
+        });
+
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        expect(errorMessage.closest('.SaveChangesPanel')).toHaveClass('error');
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {

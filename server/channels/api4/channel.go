@@ -239,6 +239,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	previousHeader := oldChannel.Header
 	oldChannel.Header = channel.Header
 	oldChannel.Purpose = channel.Purpose
 
@@ -261,6 +262,12 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if updatedChannel.Header != previousHeader {
+		if err := c.App.PostUpdateChannelHeaderMessage(c.AppContext, c.AppContext.Session().UserId, updatedChannel, previousHeader, updatedChannel.Header); err != nil {
+			c.Logger.Warn("Error while posting channel header message", mlog.Err(err))
+		}
 	}
 
 	if oldChannelDisplayName != channel.DisplayName {
@@ -459,6 +466,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+
+	if updatingProperties && oldChannel.DeleteAt > 0 {
+		c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.deleted.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
