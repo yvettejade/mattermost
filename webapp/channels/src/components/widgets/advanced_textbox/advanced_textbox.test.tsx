@@ -210,6 +210,51 @@ describe('AdvancedTextbox', () => {
         expect(screen.queryByText(/must be at least 5 characters/)).not.toBeInTheDocument();
     });
 
+    test('counts Unicode code points when countCodePoints is true', () => {
+        const emojiHeader = '👍'.repeat(5);
+        render(
+            <AdvancedTextbox
+                {...defaultProps}
+                value={emojiHeader}
+                maxLength={4}
+                countCodePoints={true}
+                showCharacterCount={true}
+            />,
+        );
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('5/4')).toBeInTheDocument();
+    });
+
+    test('ignores surrounding whitespace when counting code points', () => {
+        render(
+            <AdvancedTextbox
+                {...defaultProps}
+                value={`${'👍'.repeat(4)}   `}
+                maxLength={4}
+                countCodePoints={true}
+                showCharacterCount={true}
+            />,
+        );
+
+        expect(screen.queryByText(/exceeds the maximum character limit/)).not.toBeInTheDocument();
+    });
+
+    test('keeps UTF-16 string.length when countCodePoints is omitted', () => {
+        const emojiHeader = '👍'.repeat(5);
+        render(
+            <AdvancedTextbox
+                {...defaultProps}
+                value={emojiHeader}
+                maxLength={9}
+                showCharacterCount={true}
+            />,
+        );
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText(`${emojiHeader.length}/9`)).toBeInTheDocument();
+    });
+
     test('does not render preview toggle button when readOnly is true', () => {
         render(<AdvancedTextbox {...{...defaultProps, readOnly: true}}/>);
 

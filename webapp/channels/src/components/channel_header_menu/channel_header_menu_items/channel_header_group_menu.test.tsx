@@ -7,7 +7,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -91,7 +91,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
     });
 
-    it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', () => {
+    it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu {...defaultProps}/>
@@ -100,6 +100,20 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
+        await userEvent.hover(screen.getByText('Settings'));
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
+    });
+
+    it('does not add Edit Header beside Channel Settings', () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderGroupMenu {...defaultProps}/>
+            </WithTestMenuContext>,
+            getBaseState(),
+        );
+
+        expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
     });
 
     it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
