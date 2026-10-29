@@ -26,10 +26,6 @@ type Props = {
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
-
-    /**
-     * popover marks the button as the trigger of a dialog with the given id. The tooltip is hidden while it is open.
-     */
     popover?: {id: string; isOpen: boolean};
 }
 
