@@ -14,6 +14,7 @@ import {
     useInteractions,
     useRole,
 } from '@floating-ui/react';
+import type {OpenChangeReason} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {MouseEvent} from 'react';
@@ -92,9 +93,12 @@ export default function ChannelHeaderButton({channel}: Props) {
         [channel.props?.channel_mentions],
     );
 
-    const handleOpenChange = useCallback((open: boolean) => {
+    const handleOpenChange = useCallback((open: boolean, event?: Event, reason?: OpenChangeReason) => {
         setOpen(open);
-        if (!open) {
+
+        // Light dismiss (outside press, reference click) leaves focus on the
+        // clicked target. Only Escape has no new target to return focus to.
+        if (!open && reason === 'escape-key') {
             document.getElementById(CHANNEL_HEADER_BUTTON_ID)?.focus();
         }
     }, []);

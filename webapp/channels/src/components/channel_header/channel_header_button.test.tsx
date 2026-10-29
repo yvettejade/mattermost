@@ -129,6 +129,38 @@ describe('ChannelHeaderButton', () => {
         });
     });
 
+    test('outside press closes the panel without moving focus to the header button', async () => {
+        const composeName = 'Compose';
+        renderWithContext(
+            <>
+                <ChannelHeaderButton channel={channel}/>
+                <button
+                    type='button'
+                    aria-label={composeName}
+                />
+            </>,
+        );
+
+        const button = screen.getByRole('button', {name: 'Channel header'});
+        await userEvent.click(button);
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+        const compose = screen.getByRole('button', {name: composeName});
+        compose.focus();
+        const focus = jest.spyOn(button, 'focus');
+
+        await userEvent.pointer({
+            target: compose,
+            keys: '[MouseLeft>]',
+        });
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(focus).not.toHaveBeenCalled();
+        await waitFor(() => {
+            expect(compose).toHaveFocus();
+        });
+    });
+
     test('shows an empty state without add when the user cannot manage properties', async () => {
         renderWithContext(
             <ChannelHeaderButton
