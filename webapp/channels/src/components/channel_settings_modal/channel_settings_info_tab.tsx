@@ -218,7 +218,6 @@ function ChannelSettingsInfoTab({
         // Update the header value
         setChannelHeader(newValue);
 
-        // Check for character limit
         if (Array.from(newValue.trim()).length > HEADER_MAX_LENGTH) {
             setFormError(formatMessage({
                 id: 'edit_channel_header_modal.error',
@@ -293,7 +292,6 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
-        // write the code to validate if the channel is changing from public to private
         if (channel.type === Constants.OPEN_CHANNEL && channelType === Constants.PRIVATE_CHANNEL) {
             const {error} = await dispatch(updateChannelPrivacy(channel.id, General.PRIVATE_CHANNEL));
             if (error) {

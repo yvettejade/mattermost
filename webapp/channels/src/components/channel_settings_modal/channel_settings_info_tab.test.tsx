@@ -436,14 +436,10 @@ describe('ChannelSettingsInfoTab', () => {
         // Create a string that exceeds the header character limit.
         const longHeader = 'a'.repeat(1025);
 
-        // Wrap the interaction in act to handle state updates properly
         await act(async () => {
             const headerInput = screen.getByTestId('channel_settings_header_textbox');
             fireEvent.input(headerInput, {target: {value: longHeader}});
         });
-
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
@@ -463,8 +459,6 @@ describe('ChannelSettingsInfoTab', () => {
             fireEvent.input(headerInput, {target: {value: '👍'.repeat(1024)}});
         });
 
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
         expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
     });
 
@@ -479,8 +473,6 @@ describe('ChannelSettingsInfoTab', () => {
             const headerInput = screen.getByTestId('channel_settings_header_textbox');
             fireEvent.input(headerInput, {target: {value: '👍'.repeat(1025)}});
         });
-
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         const errorMessage = screen.getByText(/There are errors in the form above/);
         expect(errorMessage.closest('.SaveChangesPanel')).toHaveClass('error');
@@ -498,8 +490,6 @@ describe('ChannelSettingsInfoTab', () => {
             fireEvent.input(headerInput, {target: {value: `${'👍'.repeat(1024)}   `}});
         });
 
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
         expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
     });
 
@@ -514,8 +504,6 @@ describe('ChannelSettingsInfoTab', () => {
             const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
             fireEvent.input(purposeInput, {target: {value: '👍'.repeat(126)}});
         });
-
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         const errorMessage = screen.getByText(/There are errors in the form above/);
         expect(errorMessage.closest('.SaveChangesPanel')).toHaveClass('error');

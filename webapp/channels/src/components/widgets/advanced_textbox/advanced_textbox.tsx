@@ -30,7 +30,7 @@ type AdvancedTextboxProps = {
     onValidate?: (value: string) => { isValid: boolean; errorMessage?: string };
     showCharacterCount?: boolean;
     readOnly?: boolean;
-    name?: string; // Added name prop for floating label
+    name?: string;
     countCodePoints?: boolean;
 };
 
@@ -64,7 +64,6 @@ const AdvancedTextbox = ({
     const isTooLong = measuredLength > maxLength;
     const isTooShort = minLength !== undefined && value.length > 0 && value.length < minLength;
 
-    // Update internal error when prop changes or when validation state changes
     useEffect(() => {
         if (errorMessage) {
             setInternalError(errorMessage);
