@@ -65,4 +65,70 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
             expect(screen.queryByText('c')).toBeVisible();
         });
     });
+
+    test('should not mark a plain icon as a popup trigger', () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Recent mentions'});
+        expect(button).not.toHaveAttribute('aria-haspopup');
+        expect(button).not.toHaveAttribute('aria-expanded');
+        expect(button).not.toHaveAttribute('aria-controls');
+    });
+
+    test('should describe a closed popover and show its tooltip', async () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                popover={{id: 'popover_id', isOpen: false}}
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Recent mentions'});
+        expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+        expect(button).toHaveAttribute('aria-expanded', 'false');
+        expect(button).not.toHaveAttribute('aria-controls');
+
+        await userEvent.hover(button);
+
+        await waitFor(() => {
+            expect(screen.queryByText('Recent mentions')).toBeInTheDocument();
+        });
+    });
+
+    test('should describe an open popover, keep its name, and hide its tooltip', async () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                popover={{id: 'popover_id', isOpen: true}}
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Recent mentions'});
+        expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+        expect(button).toHaveAttribute('aria-expanded', 'true');
+        expect(button).toHaveAttribute('aria-controls', 'popover_id');
+
+        await userEvent.hover(button);
+
+        await expect(waitFor(() => {
+            expect(screen.queryByText('Recent mentions')).toBeInTheDocument();
+        }, {timeout: 1000})).rejects.toThrow();
+    });
+
+    test('should forward its ref to the button', () => {
+        const ref = React.createRef<HTMLButtonElement>();
+
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                ref={ref}
+            />,
+        );
+
+        expect(ref.current).toBe(screen.getByRole('button', {name: 'Recent mentions'}));
+    });
 });

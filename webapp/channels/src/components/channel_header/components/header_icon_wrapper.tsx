@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {forwardRef} from 'react';
 
 import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -26,9 +26,10 @@ type Props = {
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
+    popover?: {id: string; isOpen: boolean};
 }
 
-const HeaderIconWrapper = (props: Props) => {
+const HeaderIconWrapper = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     const {
         ariaLabelOverride,
         buttonClass,
@@ -39,21 +40,27 @@ const HeaderIconWrapper = (props: Props) => {
         tooltipShortcut,
         isRhsOpen,
         pluginId,
+        popover,
     } = props;
 
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
 
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
+    const isPopoverOpen = popover?.isOpen ?? false;
 
     return (
         <>
             <WithTooltip
-                title={isRhsOpen ? '' : tooltipText}
+                title={isRhsOpen || isPopoverOpen ? '' : tooltipText}
                 shortcut={tooltipShortcut}
             >
                 <button
+                    ref={ref}
                     id={buttonId}
                     aria-label={ariaLabelText}
+                    aria-haspopup={popover ? 'dialog' : undefined}
+                    aria-expanded={popover ? isPopoverOpen : undefined}
+                    aria-controls={isPopoverOpen ? popover?.id : undefined}
                     className={buttonClass || 'channel-header__icon'}
                     onClick={onClick}
                 >
@@ -68,6 +75,7 @@ const HeaderIconWrapper = (props: Props) => {
             }
         </>
     );
-};
+});
+HeaderIconWrapper.displayName = 'HeaderIconWrapper';
 
 export default HeaderIconWrapper;
