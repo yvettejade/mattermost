@@ -34,7 +34,15 @@ import './channel_header_text_popover.scss';
 const TEXT_IN_HEADER_MARKDOWN_OPTIONS = {singleline: true};
 const TEXT_IN_POPOVER_MARKDOWN_OPTIONS = {singleline: false};
 const MENTION_MARKDOWN_OPTIONS = {mentionHighlight: false, atMentions: true};
-const IMAGE_MARKDOWN_OPTIONS = {hideUtilities: true};
+export const IMAGE_MARKDOWN_OPTIONS = {hideUtilities: true};
+
+export function getChannelHeaderPopoverMarkdownOptions(channelNamesMap?: ChannelNamesMap) {
+    return {
+        ...TEXT_IN_POPOVER_MARKDOWN_OPTIONS,
+        ...MENTION_MARKDOWN_OPTIONS,
+        channelNamesMap,
+    };
+}
 
 const TRANSITION_STYLE_PROPS = {
     duration: {
@@ -68,11 +76,7 @@ export function ChannelHeaderTextPopover(props: Props) {
             ...MENTION_MARKDOWN_OPTIONS,
             channelNamesMap: props.channelMentionsNameMap,
         };
-        const inPopover = {
-            ...TEXT_IN_POPOVER_MARKDOWN_OPTIONS,
-            ...MENTION_MARKDOWN_OPTIONS,
-            channelNamesMap: props.channelMentionsNameMap,
-        };
+        const inPopover = getChannelHeaderPopoverMarkdownOptions(props.channelMentionsNameMap);
 
         return {
             inHeader,

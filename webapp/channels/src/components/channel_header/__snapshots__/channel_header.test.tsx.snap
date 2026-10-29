@@ -207,6 +207,33 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -292,6 +319,33 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -377,6 +431,33 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -462,6 +543,33 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -547,6 +655,33 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -642,6 +777,33 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -727,6 +889,33 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -981,6 +1170,33 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -1066,6 +1282,33 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -1151,6 +1394,33 @@ exports[`components/ChannelHeader should render properly when populated with cha
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -1236,6 +1506,33 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
@@ -1337,6 +1634,33 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                   class="icon icon-file-text-outline"
                 />
               </button>
+              <div
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="ChannelHeaderButton"
+              >
+                <button
+                  aria-controls="channelHeaderButtonPanel"
+                  aria-expanded="false"
+                  aria-label="Channel header"
+                  class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs"
+                  id="channelHeaderButton"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="currentColor"
+                    height="16"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7,4h2v6h6V4h2v14h-2v-6H9v6H7V4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div
               class="channel-header__description"
