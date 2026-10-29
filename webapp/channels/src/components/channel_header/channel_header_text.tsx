@@ -12,9 +12,6 @@ import {isChannelNamesMap} from 'utils/text_formatting';
 
 import {ChannelHeaderTextPopover} from './channel_header_text_popover';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const token = 'fOuNdMyLeAkeDaPIkEyrZW5fMTIzNDU=';
-
 interface Props {
     teamId?: Team['id'];
     channel: Channel;
