@@ -305,6 +305,47 @@ describe('components/ChannelHeader', () => {
         expect(container.querySelector('#channel-info-btn')).toBeNull();
     });
 
+    test('should render the channel header popover button in the icon row', () => {
+        const {container} = renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        const headerButton = container.querySelector('#channelHeaderPopoverButton');
+        expect(headerButton).not.toBeNull();
+        expect(container.querySelector('.channel-header__icons')?.contains(headerButton)).toBe(true);
+    });
+
+    test('should render the channel header popover button for private and group channels', () => {
+        const privateProps = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                type: Constants.PRIVATE_CHANNEL as ChannelType,
+            }),
+        };
+        const {container: privateContainer} = renderWithContext(
+            <ChannelHeader {...privateProps}/>,
+        );
+        const privateButton = privateContainer.querySelector('#channelHeaderPopoverButton');
+        expect(privateButton).not.toBeNull();
+        expect(privateContainer.querySelector('.channel-header__icons')?.contains(privateButton)).toBe(true);
+
+        const groupProps = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                type: Constants.GM_CHANNEL as ChannelType,
+            }),
+            gmMembers: [TestHelper.getUserMock({id: 'user_id'})],
+        };
+        const {container: groupContainer} = renderWithContext(
+            <ChannelHeader {...groupProps}/>,
+        );
+        const groupButton = groupContainer.querySelector('#channelHeaderPopoverButton');
+        expect(groupButton).not.toBeNull();
+        expect(groupContainer.querySelector('.channel-header__icons')?.contains(groupButton)).toBe(true);
+    });
+
     test('should match snapshot with last active display', () => {
         const props = {
             ...populatedProps,
