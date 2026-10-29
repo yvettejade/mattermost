@@ -12,6 +12,7 @@ import {isChannelNamesMap} from 'utils/text_formatting';
 
 import {ChannelHeaderTextPopover} from './channel_header_text_popover';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const token = 'fOuNdMyLeAkeDaPIkEyrZW5fMTIzNDU=';
 
 interface Props {
@@ -20,9 +21,13 @@ interface Props {
     dmUser?: UserProfile;
 }
 
+export function getChannelHeaderText(channel: Channel, dmUser?: UserProfile): string {
+    const isBotDMChannel = channel.type === Constants.DM_CHANNEL && (dmUser?.is_bot ?? false);
+    return isBotDMChannel ? dmUser?.bot_description ?? '' : channel.header ?? '';
+}
+
 export default function ChannelHeaderText(props: Props) {
-    const isBotDMChannel = props.channel.type === Constants.DM_CHANNEL && (props.dmUser?.is_bot ?? false);
-    const headerText = isBotDMChannel ? props.dmUser?.bot_description ?? '' : props.channel?.header ?? '';
+    const headerText = getChannelHeaderText(props.channel, props.dmUser);
     const hasHeaderText = headerText.trim().length > 0;
 
     if (!hasHeaderText) {

@@ -26,9 +26,13 @@ type Props = {
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
+
+    /** Set when this button toggles a panel. Omitted for every other caller. */
+    ariaExpanded?: boolean;
+    ariaControls?: string;
 }
 
-const HeaderIconWrapper = (props: Props) => {
+const HeaderIconWrapper = React.forwardRef<HTMLButtonElement, Props>((props, ref) => {
     const {
         ariaLabelOverride,
         buttonClass,
@@ -39,6 +43,8 @@ const HeaderIconWrapper = (props: Props) => {
         tooltipShortcut,
         isRhsOpen,
         pluginId,
+        ariaExpanded,
+        ariaControls,
     } = props;
 
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
@@ -52,8 +58,11 @@ const HeaderIconWrapper = (props: Props) => {
                 shortcut={tooltipShortcut}
             >
                 <button
+                    ref={ref}
                     id={buttonId}
                     aria-label={ariaLabelText}
+                    aria-expanded={ariaExpanded}
+                    aria-controls={ariaControls}
                     className={buttonClass || 'channel-header__icon'}
                     onClick={onClick}
                 >
@@ -68,6 +77,8 @@ const HeaderIconWrapper = (props: Props) => {
             }
         </>
     );
-};
+});
+
+HeaderIconWrapper.displayName = 'HeaderIconWrapper';
 
 export default HeaderIconWrapper;

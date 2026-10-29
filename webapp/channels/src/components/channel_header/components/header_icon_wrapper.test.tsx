@@ -65,4 +65,18 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
             expect(screen.queryByText('c')).toBeVisible();
         });
     });
+
+    test('should expose disclosure state when a panel is wired', () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                ariaExpanded={true}
+                ariaControls='channelHeaderPanel'
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Recent mentions'});
+        expect(button).toHaveAttribute('aria-expanded', 'true');
+        expect(button).toHaveAttribute('aria-controls', 'channelHeaderPanel');
+    });
 });

@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -350,5 +350,38 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('places the header button after files and keeps members and files when the panel is open', async () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        const icons = document.querySelector('.channel-header__icons');
+        expect(icons).not.toBeNull();
+        const ids = Array.from(icons?.querySelectorAll('button') ?? []).map((button) => button.id);
+        expect(ids).toEqual(['member_rhs', 'channelHeaderFilesButton', 'channelHeaderPanelButton']);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel header'}));
+
+        expect(screen.getByRole('region', {name: 'Channel header'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Members'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Channel files'})).toBeInTheDocument();
+        expect(screen.getAllByText('header').length).toBeGreaterThan(0);
+    });
+
+    test('still shows the header button when the description line is blank', () => {
+        renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                channel={TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    header: '   ',
+                })}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Channel header'})).toBeInTheDocument();
+        expect(screen.queryByText('header')).not.toBeInTheDocument();
     });
 });

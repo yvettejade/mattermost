@@ -1,0 +1,46 @@
+.ChannelHeaderPanel {
+    // Fixed positioning comes from Floating UI. Keep this inside the channel header stacking context
+    // so the edit modal, not this panel, is on top.
+    z-index: 1;
+    overflow: auto;
+    width: min(480px, calc(100vw - 16px));
+    padding: 12px 16px 16px;
+    border: var(--border-default);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-4);
+    color: var(--center-channel-color);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: normal;
+    word-break: break-word;
+
+    .ChannelHeaderPanel__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    .ChannelHeaderPanel__title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    .ChannelHeaderPanel__actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .ChannelHeaderPanel__body p:last-child {
+        margin-bottom: 0;
+    }
+
+    .ChannelHeaderPanel__empty {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}
