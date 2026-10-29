@@ -305,6 +305,36 @@ describe('components/ChannelHeader', () => {
         expect(container.querySelector('#channel-info-btn')).toBeNull();
     });
 
+    test('should render the channel header button in the icon row for a public channel', () => {
+        const {container} = renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        const icons = container.querySelector('.channel-header__icons');
+        expect(icons?.querySelector('#channelHeaderButton')).not.toBeNull();
+    });
+
+    test('should omit the channel header button for a DM', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                ...populatedProps.channel,
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: 'not the bot description',
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'user_id',
+                is_bot: false,
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(container.querySelector('#channelHeaderButton')).toBeNull();
+    });
+
     test('should match snapshot with last active display', () => {
         const props = {
             ...populatedProps,
