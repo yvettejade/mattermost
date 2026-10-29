@@ -12,11 +12,6 @@ import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-/**
- * Whether the current user may change `channel.header`.
- * Fails closed when the channel or a DM teammate is not loaded.
- * A bot DM shows `bot_description`, which `patchChannel` does not update.
- */
 export function canEditChannelHeader(state: GlobalState, channelId: string): boolean {
     const channel = getChannel(state, channelId);
     if (!channel || channel.delete_at !== 0) {

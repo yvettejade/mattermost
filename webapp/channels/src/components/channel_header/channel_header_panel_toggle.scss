@@ -1,6 +1,4 @@
 .ChannelHeaderPanel {
-    // Fixed positioning comes from Floating UI. Keep this inside the channel header stacking context
-    // so the edit modal, not this panel, is on top.
     z-index: 1;
     overflow: auto;
     width: min(480px, calc(100vw - 16px));

@@ -27,7 +27,6 @@ type Props = {
     isRhsOpen?: boolean;
     pluginId?: string;
 
-    /** Set when this button toggles a panel. Omitted for every other caller. */
     ariaExpanded?: boolean;
     ariaControls?: string;
 }

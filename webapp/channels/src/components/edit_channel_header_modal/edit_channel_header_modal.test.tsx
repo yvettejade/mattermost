@@ -80,7 +80,7 @@ describe('components/EditChannelHeaderModal', () => {
     });
 
     test('submitted', async () => {
-        const patchChannel = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves to keep saving state
+        const patchChannel = jest.fn().mockImplementation(() => new Promise(() => {}));
         const {baseElement} = renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
@@ -88,12 +88,10 @@ describe('components/EditChannelHeaderModal', () => {
             />,
         );
 
-        // Type a new header to enable save
         const textbox = screen.getByRole('textbox');
         await userEvent.clear(textbox);
         await userEvent.type(textbox, 'New header');
 
-        // Click save
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(baseElement).toMatchSnapshot();
@@ -110,12 +108,10 @@ describe('components/EditChannelHeaderModal', () => {
             />,
         );
 
-        // Type a new header
         const textbox = screen.getByRole('textbox');
         await userEvent.clear(textbox);
         await userEvent.type(textbox, 'New header');
 
-        // Click save
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         await waitFor(() => {
@@ -134,12 +130,10 @@ describe('components/EditChannelHeaderModal', () => {
             />,
         );
 
-        // Type a new header
         const textbox = screen.getByRole('textbox');
         await userEvent.clear(textbox);
         await userEvent.type(textbox, 'New header');
 
-        // Click save
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         await waitFor(() => {
@@ -159,10 +153,8 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            // Click save without making changes
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-            // Modal should be hidden
             await waitFor(() => {
                 expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
             });
@@ -179,18 +171,14 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            // Type a new header
             const textbox = screen.getByRole('textbox');
             await userEvent.clear(textbox);
             await userEvent.type(textbox, 'New header');
 
-            // Click save
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-            // Modal should still be visible
             expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-            // Error should be displayed
             await waitFor(() => {
                 expect(screen.getByText('some error')).toBeInTheDocument();
             });
@@ -207,15 +195,12 @@ describe('components/EditChannelHeaderModal', () => {
                 />,
             );
 
-            // Type a new header
             const textbox = screen.getByRole('textbox');
             await userEvent.clear(textbox);
             await userEvent.type(textbox, 'New header');
 
-            // Click save
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-            // Modal should be hidden
             await waitFor(() => {
                 expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
             });
@@ -333,7 +318,6 @@ describe('components/EditChannelHeaderModal', () => {
         await userEvent.clear(textbox);
         await userEvent.type(textbox, newHeader);
 
-        // Use keyDown as it works better in jsdom and triggers the same code path
         fireEvent.keyDown(textbox, {
             key: KeyCodes.ENTER[0],
             keyCode: KeyCodes.ENTER[1],
@@ -361,7 +345,6 @@ describe('components/EditChannelHeaderModal', () => {
         const textbox = screen.getByRole('textbox');
         await userEvent.clear(textbox);
 
-        // Type the header and press Enter in one go - userEvent.type handles the enter key properly
         await userEvent.type(textbox, newHeader + '{Enter}');
 
         await waitFor(() => {
@@ -399,7 +382,6 @@ describe('components/EditChannelHeaderModal', () => {
     });
 
     test('should show error only for invalid length', async () => {
-        // Render with a header value that's already very long (just under limit)
         const initialLongHeader = 'a'.repeat(1020);
         const {baseElement} = renderWithContext(
             <EditChannelHeaderModal
@@ -408,20 +390,16 @@ describe('components/EditChannelHeaderModal', () => {
             />,
         );
 
-        // Initially no error (1020 chars is under 1024 limit)
         expect(baseElement.querySelector('.has-error')).not.toBeInTheDocument();
 
-        // Get textarea and add more characters to exceed limit
         const textarea = screen.getByTestId('edit_textbox');
 
-        // Type a few more characters to exceed limit
-        await userEvent.type(textarea, 'aaaaa'); // Now 1025 chars
+        await userEvent.type(textarea, 'aaaaa');
 
         await waitFor(() => {
             expect(baseElement.querySelector('.has-error')).toBeInTheDocument();
         });
 
-        // Clear and type valid header
         await userEvent.clear(textarea);
         await userEvent.type(textarea, 'valid');
 

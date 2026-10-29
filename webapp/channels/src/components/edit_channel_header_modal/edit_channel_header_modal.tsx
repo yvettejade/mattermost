@@ -32,9 +32,6 @@ type OwnProps = {
      */
     onExited: () => void;
 
-    /*
-     * Object with info about current channel ,
-     */
     channel: Channel;
 };
 
@@ -131,7 +128,6 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
     private handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
         const {ctrlSend} = this.props;
 
-        // listen for line break key combo and insert new line character
         if (isUnhandledLineBreakKeyCombo(e)) {
             this.setState({header: insertLineBreakFromKeyEvent(e.nativeEvent)});
         } else if (ctrlSend && isKeyPressed(e, KeyCodes.ENTER) && e.ctrlKey === true) {

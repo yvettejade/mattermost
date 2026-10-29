@@ -4,7 +4,7 @@
 import {autoUpdate, flip, offset, shift, size, useFloating, useMergeRefs} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {KeyboardEvent, MouseEvent} from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -48,7 +48,6 @@ type Props = {
 };
 
 export default function ChannelHeaderPanelToggle(props: Props) {
-    // Remount per channel so switching channels closes the panel without a reset effect.
     return (
         <ChannelHeaderPanelDisclosure
             key={props.channel.id}
@@ -66,8 +65,6 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
     const buttonRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
 
-    // Fixed and inline (no portal): the title dropdown is position:relative, and a popover portal
-    // would paint above the edit modal.
     const {refs, floatingStyles} = useFloating({
         open: isOpen,
         strategy: 'fixed',
@@ -88,12 +85,6 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
     const setButtonRef = useMergeRefs([refs.setReference, buttonRef]);
     const setPanelRef = useMergeRefs([refs.setFloating, panelRef]);
 
-    useEffect(() => {
-        if (isOpen) {
-            panelRef.current?.focus();
-        }
-    }, [isOpen]);
-
     const toggle = useCallback(() => {
         setOpen((open) => !open);
     }, []);
@@ -111,12 +102,24 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
         }));
     }, [channel, dispatch]);
 
-    const handlePanelKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
-        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
-            event.stopPropagation();
-            closeAndRefocus();
+    useEffect(() => {
+        if (!isOpen) {
+            return undefined;
         }
-    }, [closeAndRefocus]);
+        const panel = panelRef.current;
+        if (!panel) {
+            return undefined;
+        }
+        panel.focus();
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
+                event.stopPropagation();
+                closeAndRefocus();
+            }
+        };
+        panel.addEventListener('keydown', onKeyDown);
+        return () => panel.removeEventListener('keydown', onKeyDown);
+    }, [isOpen, closeAndRefocus]);
 
     const closedLabel = intl.formatMessage({
         id: 'channel_header.channelHeader',
@@ -144,7 +147,6 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
                 />
             </HeaderIconWrapper>
             {isOpen && (
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Escape bubbles from the buttons inside this region
                 <div
                     ref={setPanelRef}
                     id={PANEL_ID}
@@ -153,7 +155,6 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
                     className='ChannelHeaderPanel'
                     style={floatingStyles}
                     tabIndex={-1}
-                    onKeyDown={handlePanelKeyDown}
                 >
                     <ChannelHeaderPanelBody
                         channel={channel}
