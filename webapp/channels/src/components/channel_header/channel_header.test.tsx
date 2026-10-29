@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -303,6 +303,24 @@ describe('components/ChannelHeader', () => {
         const channelInfo = container.querySelector('.channel-header__info');
         expect(channelInfo).not.toBeNull();
         expect(container.querySelector('#channel-info-btn')).toBeNull();
+    });
+
+    test.each([
+        ['public', Constants.OPEN_CHANNEL],
+        ['private', Constants.PRIVATE_CHANNEL],
+        ['group', Constants.GM_CHANNEL],
+    ])('should show the channel header button in the icon row of a %s channel', (_, type) => {
+        const props = {
+            ...populatedProps,
+            channel: {...populatedProps.channel, type: type as ChannelType},
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const button = screen.getByRole('button', {name: 'Channel header'});
+        expect(container.querySelector('.channel-header__icons')).toContainElement(button);
     });
 
     test('should match snapshot with last active display', () => {
