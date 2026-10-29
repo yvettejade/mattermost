@@ -6,12 +6,15 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {
     updateChannelNotifyProps,
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
-import {General} from 'mattermost-redux/constants';
+import {General, Permissions} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
@@ -20,6 +23,7 @@ import {
     isMyChannelAutotranslated,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -32,6 +36,7 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
+import {openModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
     showChannelFiles,
@@ -46,6 +51,25 @@ import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import type {GlobalState} from 'types/store';
 
 import ChannelHeader from './channel_header';
+
+function viewerMayEditChannelHeader(state: GlobalState, channel: Channel | null | undefined, dmUser: UserProfile | undefined, isMember: boolean) {
+    if (!channel || !isMember || channel.delete_at !== 0) {
+        return false;
+    }
+
+    switch (channel.type) {
+    case General.OPEN_CHANNEL:
+        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
+    case General.PRIVATE_CHANNEL:
+        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES);
+    case General.DM_CHANNEL:
+        return !dmUser?.is_bot;
+    case General.GM_CHANNEL:
+        return true;
+    default:
+        return false;
+    }
+}
 
 function makeMapStateToProps() {
     const doGetProfilesInChannel = makeGetProfilesInChannel();
@@ -77,6 +101,7 @@ function makeMapStateToProps() {
             remoteNames = getRemoteNamesForChannel(state, channel.id);
         }
 
+        const channelMember = getMyCurrentChannelMembership(state);
         const stats = getCurrentChannelStats(state);
 
         let isLastActiveEnabled = false;
@@ -88,7 +113,7 @@ function makeMapStateToProps() {
         return {
             team: getCurrentTeam(state),
             channel,
-            channelMember: getMyCurrentChannelMembership(state),
+            channelMember,
             memberCount: stats?.member_count || 0,
             currentUser: user,
             dmUser,
@@ -108,6 +133,7 @@ function makeMapStateToProps() {
             hideGuestTags: config.HideGuestTags === 'true',
             sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
+            canEditChannelHeader: viewerMayEditChannelHeader(state, channel, dmUser, Boolean(channelMember?.user_id)),
         };
     };
 }
@@ -121,6 +147,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         updateChannelNotifyProps,
         showChannelMembers,
         fetchChannelRemotes,
+        openModal,
     }, dispatch),
 });
 

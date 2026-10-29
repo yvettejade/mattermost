@@ -601,6 +601,35 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("posts one header system message only when the header changes", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Header Post Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		channel, _, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		_, _, err = client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		require.Empty(t, headerChangePosts(t, client, channel.Id))
+
+		channel.Header = "new header"
+		updated, _, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		require.Equal(t, "new header", updated.Header)
+
+		posts := headerChangePosts(t, client, channel.Id)
+		require.Len(t, posts, 1)
+		require.Equal(t, model.PostTypeHeaderChange, posts[0].Type)
+		require.Contains(t, posts[0].Message, "updated the channel header")
+		require.Equal(t, "", posts[0].GetProp("old_header"))
+		require.Equal(t, "new header", posts[0].GetProp("new_header"))
+
+		channel.Header = "new header"
+		_, _, err = client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		require.Len(t, headerChangePosts(t, client, channel.Id), 1)
+	})
 }
 
 func TestPatchChannelGroupConstrained(t *testing.T) {
@@ -1699,6 +1728,88 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, newHeader, patchedChannel.Header)
 		require.True(t, patchedChannel.AutoTranslation)
 	})
+
+	t.Run("header patch posts once and rejects archived channels and overlong headers", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		channel := &model.Channel{DisplayName: "Patch Header Channel", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id, Header: "before"}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		header := "after"
+		patched, _, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		require.Equal(t, header, patched.Header)
+
+		posts := headerChangePosts(t, client, channel.Id)
+		require.Len(t, posts, 1)
+		require.Equal(t, model.PostTypeHeaderChange, posts[0].Type)
+		require.Contains(t, posts[0].Message, "updated the channel header")
+		require.Equal(t, "before", posts[0].GetProp("old_header"))
+		require.Equal(t, "after", posts[0].GetProp("new_header"))
+
+		patched, _, err = client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		require.Equal(t, header, patched.Header)
+		require.Len(t, headerChangePosts(t, client, channel.Id), 1)
+
+		maxHeader := strings.Repeat("a", model.ChannelHeaderMaxRunes)
+		patched, _, err = client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &maxHeader})
+		require.NoError(t, err)
+		require.Equal(t, maxHeader, patched.Header)
+
+		tooLong := strings.Repeat("b", model.ChannelHeaderMaxRunes+1)
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &tooLong})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "model.channel.is_valid.header.app_error")
+
+		_, err = client.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		archivedHeader := "nope"
+		_, resp, err = client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &archivedHeader})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+		require.Len(t, headerChangePosts(t, client, channel.Id), 2)
+	})
+
+	t.Run("non-member patch on a group message returns forbidden", func(t *testing.T) {
+		th.LoginBasic(t)
+		member := th.CreateUser(t)
+		outsider := th.CreateUser(t)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser2.Id, member.Id})
+		require.NoError(t, err)
+
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), outsider.Email, outsider.Password)
+		require.NoError(t, err)
+
+		header := "not a member"
+		_, resp, err := client.PatchChannel(context.Background(), groupChannel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func headerChangePosts(t *testing.T, client *model.Client4, channelID string) []*model.Post {
+	t.Helper()
+
+	posts, _, err := client.GetPostsForChannel(context.Background(), channelID, 0, 100, "", false, false)
+	require.NoError(t, err)
+
+	headerPosts := []*model.Post{}
+	for _, id := range posts.Order {
+		post := posts.Posts[id]
+		if post.Type == model.PostTypeHeaderChange {
+			headerPosts = append(headerPosts, post)
+		}
+	}
+	return headerPosts
 }
 
 func TestCanEditChannelBanner(t *testing.T) {
