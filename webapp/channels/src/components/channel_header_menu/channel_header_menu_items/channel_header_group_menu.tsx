@@ -4,7 +4,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {
     ChevronRightIcon,
@@ -16,11 +16,15 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -52,7 +56,16 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+
+    const handleEditHeader = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        }));
+    };
 
     return (
         <>
@@ -96,25 +109,35 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                             )}
                         </>
                     ) : (
-                        (!isGroupConstrained && !isGuest(user.roles)) && (
-                            <Menu.SubMenu
-                                id={'channelSettings'}
+                        <Menu.SubMenu
+                            id={'channelSettings'}
+                            labels={
+                                <FormattedMessage
+                                    id='channel_header.settings'
+                                    defaultMessage='Settings'
+                                />
+                            }
+                            leadingElement={<CogOutlineIcon size={18}/>}
+                            trailingElements={<ChevronRightIcon size={16}/>}
+                            menuId={'channelSettings-menu'}
+                            menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
+                        >
+                            <Menu.Item
+                                id='channelEditHeader'
+                                onClick={handleEditHeader}
                                 labels={
                                     <FormattedMessage
-                                        id='channel_header.settings'
-                                        defaultMessage='Settings'
+                                        id='channel_header.setConversationHeader'
+                                        defaultMessage='Edit Header'
                                     />
                                 }
-                                leadingElement={<CogOutlineIcon size={18}/>}
-                                trailingElements={<ChevronRightIcon size={16}/>}
-                                menuId={'channelSettings-menu'}
-                                menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
-                            >
+                            />
+                            {(!isGroupConstrained && !isGuest(user.roles)) && (
                                 <MenuItemConvertToPrivate
                                     channel={channel}
                                 />
-                            </Menu.SubMenu>
-                        )
+                            )}
+                        </Menu.SubMenu>
                     )}
                 </>
             )}
