@@ -450,10 +450,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                                                 defaultMessage: 'Add a channel header',
                                             })}
                                         >
-                                            <FormattedMessage
-                                                id='channel_header.headerText.addNewButton'
-                                                defaultMessage='Add a channel header'
-                                            />
+                                            <span>
+                                                <FormattedMessage
+                                                    id='channel_header.headerText.addNewButton'
+                                                    defaultMessage='Add a channel header'
+                                                />
+                                            </span>
                                             <i className='icon icon-pencil-outline'/>
                                         </button>
                                     )}

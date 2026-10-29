@@ -370,6 +370,7 @@ describe('components/ChannelHeader', () => {
 
         expect(container.querySelector('button.header-placeholder')).not.toBeNull();
         expect(container.querySelector('button.header-placeholder')).toHaveAccessibleName('Add a channel header');
+        expect(container.querySelector('button.header-placeholder span')).toHaveTextContent('Add a channel header');
     });
 
     test('does not render the placeholder when a header is set', () => {
