@@ -239,8 +239,6 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// oldChannel.Header is overwritten before UpdateChannel, so the system post
-	// has to compare against the value loaded from the store.
 	oldHeader := oldChannel.Header
 	oldChannel.Header = channel.Header
 	oldChannel.Purpose = channel.Purpose
