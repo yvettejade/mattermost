@@ -3,7 +3,7 @@
 
 import {autoUpdate, flip, offset, shift, size, useFloating, useMergeRefs} from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -64,6 +64,7 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
     const canEdit = useSelector((state: GlobalState) => canEditChannelHeader(state, channel.id));
     const [isOpen, setOpen] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
 
     // Fixed and inline (no portal): the title dropdown is position:relative, and a popover portal
     // would paint above the edit modal.
@@ -85,6 +86,13 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
         ],
     });
     const setButtonRef = useMergeRefs([refs.setReference, buttonRef]);
+    const setPanelRef = useMergeRefs([refs.setFloating, panelRef]);
+
+    useEffect(() => {
+        if (isOpen) {
+            panelRef.current?.focus();
+        }
+    }, [isOpen]);
 
     const toggle = useCallback(() => {
         setOpen((open) => !open);
@@ -138,12 +146,13 @@ function ChannelHeaderPanelDisclosure({channel, dmUser}: Props) {
             {isOpen && (
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Escape bubbles from the buttons inside this region
                 <div
-                    ref={refs.setFloating}
+                    ref={setPanelRef}
                     id={PANEL_ID}
                     role='region'
                     aria-labelledby={TITLE_ID}
                     className='ChannelHeaderPanel'
                     style={floatingStyles}
+                    tabIndex={-1}
                     onKeyDown={handlePanelKeyDown}
                 >
                     <ChannelHeaderPanelBody

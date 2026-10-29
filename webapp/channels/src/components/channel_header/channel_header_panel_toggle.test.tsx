@@ -51,7 +51,7 @@ describe('components/channel_header/ChannelHeaderPanelToggle', () => {
     test('toggles the panel from the header button', async () => {
         const {button} = await openPanel();
 
-        expect(button).toHaveFocus();
+        expect(screen.getByRole('region', {name: 'Channel header'})).toHaveFocus();
         expect(button).toHaveAttribute('aria-expanded', 'true');
         expect(button).toHaveAttribute('aria-controls', 'channelHeaderPanel');
         expect(button).toHaveAccessibleName('Close channel header');
@@ -83,9 +83,10 @@ describe('components/channel_header/ChannelHeaderPanelToggle', () => {
         expect(button).toHaveFocus();
     });
 
-    test('closes on Escape inside the panel and returns focus to the header button', async () => {
+    test('closes on Escape immediately after open and returns focus to the header button', async () => {
         const {button} = await openPanel();
-        screen.getByRole('button', {name: 'Close'}).focus();
+
+        expect(screen.getByRole('region', {name: 'Channel header'})).toHaveFocus();
 
         await userEvent.keyboard('{Escape}');
 
