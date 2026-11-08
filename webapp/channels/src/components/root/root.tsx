@@ -52,6 +52,7 @@ const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => imp
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
 const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
 const Login = makeAsyncComponent('LoginController', lazy(() => import('components/login/login')));
+const InternationalMoney = makeAsyncComponent('InternationalMoney', lazy(() => import('components/international_money')));
 const PasswordResetSendLink = makeAsyncComponent('PasswordResedSendLink', lazy(() => import('components/password_reset_send_link')));
 const PasswordResetForm = makeAsyncComponent('PasswordResetForm', lazy(() => import('components/password_reset_form')));
 const Signup = makeAsyncComponent('SignupController', lazy(() => import('components/signup/signup')));
@@ -152,6 +153,11 @@ export default class Root extends React.PureComponent<Props, State> {
 
         // We don't want to show when resetting the password
         if (this.props.location.pathname === '/reset_password_complete') {
+            return;
+        }
+
+        // Public international money quote is available before log on
+        if (this.props.location.pathname === '/international') {
             return;
         }
 
@@ -320,6 +326,10 @@ export default class Root extends React.PureComponent<Props, State> {
                     <HFRoute
                         path={'/login'}
                         component={Login}
+                    />
+                    <HFRoute
+                        path={'/international'}
+                        component={InternationalMoney}
                     />
                     <HFTRoute
                         path={'/reset_password'}
