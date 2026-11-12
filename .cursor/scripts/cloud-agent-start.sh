@@ -34,6 +34,79 @@ ensure_docker_socket_access() {
   fi
 }
 
+
+ensure_image() {
+  local image="$1"
+  local mirror="${2:-}"
+  if docker image inspect "$image" >/dev/null 2>&1; then
+    return 0
+  fi
+  if docker pull "$image"; then
+    return 0
+  fi
+  if [ -n "$mirror" ] && docker pull "$mirror"; then
+    docker tag "$mirror" "$image"
+    log "Tagged $mirror as $image after Docker Hub pull failed."
+    return 0
+  fi
+  log "Could not ensure image $image."
+  return 1
+}
+
+ensure_wait_for_dep_image() {
+  if docker image inspect mattermost/mattermost-wait-for-dep:latest >/dev/null 2>&1; then
+    return 0
+  fi
+  local build_dir
+  build_dir="$(mktemp -d)"
+  cat >"$build_dir/wait-for-dep.sh" <<'EOS'
+#!/usr/bin/env bash
+set -euo pipefail
+targets=("$@")
+if [ ${#targets[@]} -eq 0 ]; then
+  echo "usage: wait-for-dep host:port ..." >&2
+  exit 1
+fi
+for target in "${targets[@]}"; do
+  host="${target%%:*}"
+  port="${target##*:}"
+  echo "waiting for $host:$port"
+  for i in $(seq 1 60); do
+    if (echo >"/dev/tcp/$host/$port") >/dev/null 2>&1; then
+      echo "$host:$port is up"
+      break
+    fi
+    if [ "$i" -eq 60 ]; then
+      echo "timeout waiting for $host:$port" >&2
+      exit 1
+    fi
+    sleep 1
+  done
+done
+echo "all dependencies ready"
+EOS
+  cat >"$build_dir/Dockerfile" <<'EOF'
+FROM public.ecr.aws/ubuntu/ubuntu:24.04
+COPY wait-for-dep.sh /usr/local/bin/wait-for-dep.sh
+RUN chmod +x /usr/local/bin/wait-for-dep.sh
+ENTRYPOINT ["/usr/local/bin/wait-for-dep.sh"]
+EOF
+  if docker build -t mattermost/mattermost-wait-for-dep:latest "$build_dir"; then
+    log "Built local mattermost/mattermost-wait-for-dep:latest fallback image."
+  else
+    log "Failed to build local wait-for-dep fallback image."
+  fi
+  rm -rf "$build_dir"
+}
+
+ensure_dev_images() {
+  # Docker Hub blob CDN (s3 dualstack) is often blocked in Cloud Agents.
+  # Prefer already-present images, then Hub, then public ECR library mirrors.
+  ensure_image "postgres:14" "public.ecr.aws/docker/library/postgres:14" || true
+  ensure_image "redis:7.4.0" "public.ecr.aws/docker/library/redis:7.4.0" || true
+  ensure_wait_for_dep_image || true
+}
+
 docker_login_if_configured() {
   if [ -z "${DOCKERHUB_USERNAME:-}" ] || [ -z "${DOCKERHUB_TOKEN:-}" ]; then
     log "Docker Hub credentials not configured; anonymous pulls may hit rate limits."
@@ -60,6 +133,7 @@ if docker info >/dev/null 2>&1; then
   log "Docker is already running."
   docker compose version
   docker_login_if_configured
+  ensure_dev_images
   exit 0
 fi
 
@@ -81,6 +155,7 @@ for _ in {1..60}; do
     docker version
     docker compose version
     docker_login_if_configured
+    ensure_dev_images
     exit 0
   fi
 
