@@ -8362,3 +8362,37 @@ func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error
 	defer closeBody(r)
 	return BuildResponse(r), nil
 }
+
+func (c *Client4) assistantRoute() clientRoute {
+	return newClientRoute("assistant")
+}
+
+// GetAssistantStatus reports whether the built-in assistant is configured on the server.
+func (c *Client4) GetAssistantStatus(ctx context.Context) (*AssistantStatus, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.assistantRoute().Join("status"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AssistantStatus](r)
+}
+
+// AssistantChat asks the built-in assistant a question grounded in content the user can read.
+func (c *Client4) AssistantChat(ctx context.Context, req *AssistantChatRequest) (*AssistantChatResponse, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.assistantRoute().Join("chat"), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AssistantChatResponse](r)
+}
+
+// ExecuteAssistantAction executes an assistant action the user has confirmed.
+func (c *Client4) ExecuteAssistantAction(ctx context.Context, req *AssistantExecuteActionRequest) (*AssistantExecuteActionResponse, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.assistantRoute().Join("actions", "execute"), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AssistantExecuteActionResponse](r)
+}

@@ -5275,6 +5275,26 @@
     "translation": "Unable to get the analytics."
   },
   {
+    "id": "app.assistant.forbidden.app_error",
+    "translation": "You do not have permission to access that channel or thread."
+  },
+  {
+    "id": "app.assistant.invalid_action.app_error",
+    "translation": "The assistant action is invalid."
+  },
+  {
+    "id": "app.assistant.llm_error.app_error",
+    "translation": "The assistant could not get a response from the AI provider. Please try again."
+  },
+  {
+    "id": "app.assistant.not_configured.app_error",
+    "translation": "The assistant is not configured. A system admin must set the Grok API key on the server."
+  },
+  {
+    "id": "app.assistant.not_found.app_error",
+    "translation": "The requested channel or thread could not be found."
+  },
+  {
     "id": "app.audit.get.finding.app_error",
     "translation": "We encountered an error finding the audits."
   },
@@ -10637,6 +10657,22 @@
   {
     "id": "model.acknowledgement.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.assistant.is_valid.channel_id.app_error",
+    "translation": "Invalid or missing channel ID for the assistant request."
+  },
+  {
+    "id": "model.assistant.is_valid.message.app_error",
+    "translation": "The assistant message is missing or too long."
+  },
+  {
+    "id": "model.assistant.is_valid.mode.app_error",
+    "translation": "Invalid assistant mode."
+  },
+  {
+    "id": "model.assistant.is_valid.root_id.app_error",
+    "translation": "Invalid or missing thread root ID for the assistant request."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
