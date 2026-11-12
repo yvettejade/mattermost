@@ -475,6 +475,8 @@ tags:
     description: Endpoints for creating and managing AI-powered channel recaps that summarize unread messages.
   - name: agents
     description: Endpoints for interacting with AI agents and LLM services.
+  - name: assistant
+    description: Endpoints for the built-in AI assistant that answers from content the user can access and executes user-confirmed actions.
 servers:
   - url: "{your-mattermost-url}"
     variables:

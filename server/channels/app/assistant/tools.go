@@ -140,7 +140,7 @@ func Tools(agents []Agent) []Tool {
 // ProposeAction converts a model tool call into an action proposal; nothing is executed.
 func ProposeAction(call ToolCall, defaultChannelID, defaultRootID string) (*model.AssistantAction, error) {
 	raw := []byte(call.Function.Arguments)
-	if len(strings.TrimSpace(call.Function.Arguments)) == 0 {
+	if strings.TrimSpace(call.Function.Arguments) == "" {
 		raw = []byte("{}")
 	}
 

@@ -103,7 +103,7 @@ func ExtractCitations(answer string, b *ContextBundle) []*model.AssistantCitatio
 	citations := []*model.AssistantCitation{}
 	seen := map[int]bool{}
 	for _, m := range citationPattern.FindAllStringSubmatch(answer, -1) {
-		for _, part := range strings.Split(m[1], ",") {
+		for part := range strings.SplitSeq(m[1], ",") {
 			n, err := strconv.Atoi(strings.TrimSpace(part))
 			if err != nil || seen[n] {
 				continue
