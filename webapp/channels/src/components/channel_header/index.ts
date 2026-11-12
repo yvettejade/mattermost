@@ -11,7 +11,7 @@ import {
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
-import {General} from 'mattermost-redux/constants';
+import {General, Permissions} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
@@ -20,6 +20,7 @@ import {
     isMyChannelAutotranslated,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -32,6 +33,7 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
+import {openModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
     showChannelFiles,
@@ -77,7 +79,24 @@ function makeMapStateToProps() {
             remoteNames = getRemoteNamesForChannel(state, channel.id);
         }
 
+        const channelMember = getMyCurrentChannelMembership(state);
         const stats = getCurrentChannelStats(state);
+
+        let canEditChannelHeader = false;
+        if (channel) {
+            switch (channel.type) {
+            case General.OPEN_CHANNEL:
+                canEditChannelHeader = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
+                break;
+            case General.PRIVATE_CHANNEL:
+                canEditChannelHeader = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES);
+                break;
+            case General.DM_CHANNEL:
+            case General.GM_CHANNEL:
+                canEditChannelHeader = Boolean(channelMember);
+                break;
+            }
+        }
 
         let isLastActiveEnabled = false;
         if (dmUser) {
@@ -88,7 +107,8 @@ function makeMapStateToProps() {
         return {
             team: getCurrentTeam(state),
             channel,
-            channelMember: getMyCurrentChannelMembership(state),
+            channelMember,
+            canEditChannelHeader,
             memberCount: stats?.member_count || 0,
             currentUser: user,
             dmUser,
@@ -121,6 +141,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         updateChannelNotifyProps,
         showChannelMembers,
         fetchChannelRemotes,
+        openModal,
     }, dispatch),
 });
 
