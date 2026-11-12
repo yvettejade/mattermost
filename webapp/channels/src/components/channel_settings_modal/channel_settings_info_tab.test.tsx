@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -447,6 +447,40 @@ describe('ChannelSettingsInfoTab', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should show error state.
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        const errorPanel = errorMessage.closest('.SaveChangesPanel');
+        expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should allow a 1024 code point header of emoji and reject one more code point', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        fireEvent.input(headerInput, {target: {value: '😀'.repeat(1024)}});
+
+        expect(screen.queryByText(/There are errors in the form above/)).not.toBeInTheDocument();
+
+        fireEvent.input(headerInput, {target: {value: '😀'.repeat(1025)}});
+
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        const errorPanel = errorMessage.closest('.SaveChangesPanel');
+        expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should keep the purpose limit on UTF-16 length', async () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+        fireEvent.input(purposeInput, {target: {value: '😀'.repeat(200)}});
+
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');

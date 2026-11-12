@@ -813,6 +813,84 @@ func TestPatchChannelGroupConstrained(t *testing.T) {
 	})
 }
 
+func countHeaderChangePosts(t *testing.T, client *model.Client4, channelID string) int {
+	t.Helper()
+
+	posts, _, err := client.GetPostsForChannel(context.Background(), channelID, 0, 100, "", false, true)
+	require.NoError(t, err)
+
+	count := 0
+	for _, post := range posts.Posts {
+		if post.Type == model.PostTypeHeaderChange {
+			count++
+		}
+	}
+	return count
+}
+
+func TestUpdateChannelHeaderSystemPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	channel := &model.Channel{
+		DisplayName: "Header Post Channel",
+		Name:        GenerateTestChannelName(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}
+	channel, _, err := client.CreateChannel(context.Background(), channel)
+	require.NoError(t, err)
+
+	channel.Header = ""
+	_, _, err = client.UpdateChannel(context.Background(), channel)
+	require.NoError(t, err)
+	require.Equal(t, 0, countHeaderChangePosts(t, client, channel.Id))
+
+	channel.Header = "only the header"
+	updated, _, err := client.UpdateChannel(context.Background(), channel)
+	require.NoError(t, err)
+	require.Equal(t, "only the header", updated.Header)
+	require.Equal(t, 1, countHeaderChangePosts(t, client, channel.Id))
+
+	_, _, err = client.UpdateChannel(context.Background(), updated)
+	require.NoError(t, err)
+	require.Equal(t, 1, countHeaderChangePosts(t, client, channel.Id))
+}
+
+func TestPatchChannelHeaderAndArchived(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	channel := &model.Channel{
+		DisplayName: "Patch Header Channel",
+		Name:        GenerateTestChannelName(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}
+	channel, _, err := client.CreateChannel(context.Background(), channel)
+	require.NoError(t, err)
+
+	newHeader := "patched header"
+	patched, _, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &newHeader})
+	require.NoError(t, err)
+	require.Equal(t, newHeader, patched.Header)
+	require.Equal(t, 1, countHeaderChangePosts(t, client, channel.Id))
+
+	_, err = client.DeleteChannel(context.Background(), channel.Id)
+	require.NoError(t, err)
+
+	archivedHeader := "should not apply"
+	_, resp, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &archivedHeader})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, "api.channel.update_channel.deleted.app_error", appErr.Id)
+	require.Equal(t, 1, countHeaderChangePosts(t, client, channel.Id))
+}
+
 func TestPatchChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

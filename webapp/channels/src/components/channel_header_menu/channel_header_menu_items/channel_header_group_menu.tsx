@@ -4,11 +4,12 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {
     ChevronRightIcon,
     CogOutlineIcon,
+    PencilOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -16,11 +17,15 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,6 +52,32 @@ interface Props extends Menu.FirstMenuItemProps {
     isChannelBookmarksEnabled: boolean;
     isChannelAutotranslated: boolean;
 }
+
+const EditHeaderMenuItem = ({channel}: {channel: Channel}) => {
+    const dispatch = useDispatch();
+
+    const openEditHeader = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        }));
+    };
+
+    return (
+        <Menu.Item
+            id='channelEditHeader'
+            leadingElement={<PencilOutlineIcon size={18}/>}
+            onClick={openEditHeader}
+            labels={
+                <FormattedMessage
+                    id='channel_header.setConversationHeader'
+                    defaultMessage='Edit Header'
+                />
+            }
+        />
+    );
+};
 
 const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
@@ -110,6 +141,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                                 menuId={'channelSettings-menu'}
                                 menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
                             >
+                                <EditHeaderMenuItem channel={channel}/>
                                 <MenuItemConvertToPrivate
                                     channel={channel}
                                 />

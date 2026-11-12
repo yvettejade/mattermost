@@ -12,6 +12,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
@@ -22,6 +23,7 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
@@ -101,6 +103,19 @@ class ChannelHeader extends React.PureComponent<Props> {
         }
     };
 
+    openEditChannelHeaderModal = () => {
+        const {channel} = this.props;
+        if (!channel) {
+            return;
+        }
+
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        });
+    };
+
     popoutChannelView = () => {
         const {channel, team, dmUser, intl} = this.props;
         if (channel && team) {
@@ -115,6 +130,35 @@ class ChannelHeader extends React.PureComponent<Props> {
         } else if (this.props.channel) {
             this.props.actions.showChannelMembers(this.props.channel.id);
         }
+    };
+
+    renderAddHeaderButton = (channel: Props['channel'], dmUser: Props['dmUser']) => {
+        if (!channel || !this.props.canEditChannelHeader) {
+            return null;
+        }
+
+        const isArchived = channel.delete_at !== 0;
+        const isBotDM = channel.type === Constants.DM_CHANNEL && Boolean(dmUser?.is_bot);
+        const hasHeaderText = (channel.header || '').trim().length > 0;
+        if (isArchived || isBotDM || hasHeaderText) {
+            return null;
+        }
+
+        return (
+            <button
+                type='button'
+                className='header-placeholder'
+                onClick={this.openEditChannelHeaderModal}
+            >
+                <span>
+                    <FormattedMessage
+                        id='channel_header.headerText.addNewButton'
+                        defaultMessage='Add a channel header'
+                    />
+                </span>
+                <i className='icon icon-pencil-outline'/>
+            </button>
+        );
     };
 
     renderCustomStatus = () => {
@@ -421,6 +465,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {dmHeaderTextStatus}
                                     {hasGuestsText}
                                     {autotranslationMessage}
+                                    {this.renderAddHeaderButton(channel, dmUser)}
                                     <ChannelHeaderText
                                         teamId={team?.id}
                                         channel={channel}
