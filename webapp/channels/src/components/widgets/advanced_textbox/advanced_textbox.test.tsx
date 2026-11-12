@@ -130,6 +130,36 @@ describe('AdvancedTextbox', () => {
         expect(screen.getByText('43/10')).toBeInTheDocument();
     });
 
+    test('counts Unicode code points when countCodePoints is set', () => {
+        const emoji = '😀'.repeat(3);
+        const props = {
+            ...defaultProps,
+            maxLength: 2,
+            value: `  ${emoji}  `,
+            showCharacterCount: true,
+            countCodePoints: true,
+        };
+
+        render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+        expect(screen.getByText('3/2')).toBeInTheDocument();
+    });
+
+    test('keeps UTF-16 length when countCodePoints is not set', () => {
+        const props = {
+            ...defaultProps,
+            maxLength: 2,
+            value: '😀😀',
+            showCharacterCount: true,
+        };
+
+        render(<AdvancedTextbox {...props}/>);
+
+        expect(screen.getByText('4/2')).toBeInTheDocument();
+        expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
+    });
+
     test('shows error when text exceeds character limit', async () => {
         const props = {
             ...defaultProps,

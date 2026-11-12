@@ -6,8 +6,8 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
@@ -22,7 +22,9 @@ describe('components/ChannelHeader', () => {
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
+            openModal: jest.fn(),
         },
+        canEditChannelHeader: false,
         team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
@@ -350,5 +352,76 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('shows the add header button only for an empty editable header', async () => {
+        const editableEmpty = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                header: '   ',
+                delete_at: 0,
+                type: 'O' as ChannelType,
+            }),
+        };
+
+        const {rerender} = renderWithContext(
+            <ChannelHeader {...editableEmpty}/>,
+        );
+        expect(screen.getByRole('button', {name: 'Add a channel header'})).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Add a channel header'}));
+        expect(editableEmpty.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogProps: {channel: editableEmpty.channel},
+        }));
+
+        rerender(
+            <ChannelHeader
+                {...editableEmpty}
+                channel={TestHelper.getChannelMock({id: 'channel_id', header: 'Already set'})}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...editableEmpty}
+                channel={TestHelper.getChannelMock({id: 'channel_id', header: '', delete_at: 1234})}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...editableEmpty}
+                canEditChannelHeader={false}
+                channel={TestHelper.getChannelMock({id: 'channel_id', header: ''})}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+    });
+
+    test('does not show the add header button on a bot direct message', () => {
+        const props = {
+            ...populatedProps,
+            canEditChannelHeader: true,
+            channel: TestHelper.getChannelMock({
+                header: '',
+                type: Constants.DM_CHANNEL as ChannelType,
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'bot_id',
+                is_bot: true,
+                bot_description: 'Tranquility',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
     });
 });

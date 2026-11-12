@@ -603,6 +603,75 @@ func TestUpdateChannel(t *testing.T) {
 	})
 }
 
+func countHeaderChangePosts(t *testing.T, client *model.Client4, channelID string) int {
+	t.Helper()
+
+	posts, _, err := client.GetPostsForChannel(context.Background(), channelID, 0, 100, "", false, false)
+	require.NoError(t, err)
+
+	count := 0
+	for _, post := range posts.Posts {
+		if post.Type == model.PostTypeHeaderChange {
+			count++
+		}
+	}
+	return count
+}
+
+func TestChannelHeaderSystemPostAndArchivedPatch(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	t.Run("PUT with an unchanged header does not create a header post", func(t *testing.T) {
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+
+		before := countHeaderChangePosts(t, client, channel.Id)
+		_, _, err = client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		require.Equal(t, before, countHeaderChangePosts(t, client, channel.Id))
+	})
+
+	t.Run("PUT that changes only the header creates one header post", func(t *testing.T) {
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+
+		before := countHeaderChangePosts(t, client, channel.Id)
+		channel.Header = "header from put " + model.NewId()
+		updated, _, err := client.UpdateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		require.Equal(t, channel.Header, updated.Header)
+		require.Equal(t, before+1, countHeaderChangePosts(t, client, channel.Id))
+	})
+
+	t.Run("PATCH on an active channel creates one header post", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		before := countHeaderChangePosts(t, client, channel.Id)
+
+		header := "header from patch " + model.NewId()
+		patched, _, err := client.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.NoError(t, err)
+		require.Equal(t, header, patched.Header)
+		require.Equal(t, before+1, countHeaderChangePosts(t, client, channel.Id))
+	})
+
+	t.Run("PATCH on an archived channel returns 400 and posts nothing", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		before := countHeaderChangePosts(t, th.SystemAdminClient, channel.Id)
+
+		_, err := th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+
+		header := "should not save"
+		_, resp, err := th.SystemAdminClient.PatchChannel(context.Background(), channel.Id, &model.ChannelPatch{Header: &header})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.update_channel.deleted.app_error")
+		require.Equal(t, before, countHeaderChangePosts(t, th.SystemAdminClient, channel.Id))
+	})
+}
+
 func TestPatchChannelGroupConstrained(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
