@@ -11,6 +11,7 @@ import EditChannelHeaderModal from './edit_channel_header_modal';
 jest.mock('mattermost-redux/actions/channels', () => ({
     ...jest.requireActual('mattermost-redux/actions/channels'),
     patchChannel: jest.fn(),
+    updateChannel: jest.fn(),
 }));
 
 jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () => (
@@ -22,9 +23,10 @@ describe('EditChannelHeaderModal', () => {
 
     beforeEach(() => {
         onHide.mockClear();
-        const {patchChannel} = require('mattermost-redux/actions/channels');
+        const {patchChannel, updateChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReset();
         patchChannel.mockReturnValue(() => Promise.resolve({data: {header: 'Updated header'}}));
+        updateChannel.mockReset();
     });
 
     test('prefills the current header', () => {
@@ -60,6 +62,39 @@ describe('EditChannelHeaderModal', () => {
             expect(patchChannel).toHaveBeenCalledWith('channel1', {header: 'Updated header'});
         });
         expect(onHide).toHaveBeenCalled();
+    });
+
+    test('saving calls patchChannel with only the header field', async () => {
+        const {patchChannel, updateChannel} = require('mattermost-redux/actions/channels');
+        const channel = TestHelper.getChannelMock({
+            id: 'channel1',
+            header: 'Old header',
+            purpose: 'Do not blank this purpose',
+            display_name: 'Town Square',
+            name: 'town-square',
+        });
+
+        renderWithContext(
+            <EditChannelHeaderModal
+                channel={channel}
+                onHide={onHide}
+            />,
+        );
+
+        const input = screen.getByTestId('edit_channel_header_textbox');
+        await userEvent.clear(input);
+        await userEvent.type(input, 'Updated header');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        await waitFor(() => {
+            expect(patchChannel).toHaveBeenCalledTimes(1);
+        });
+
+        const [channelId, patch] = patchChannel.mock.calls[0];
+        expect(channelId).toBe('channel1');
+        expect(patch).toEqual({header: 'Updated header'});
+        expect(Object.keys(patch)).toEqual(['header']);
+        expect(updateChannel).not.toHaveBeenCalled();
     });
 
     test('saving an empty header clears it through the patch API', async () => {
