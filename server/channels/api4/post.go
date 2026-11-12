@@ -1115,7 +1115,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		// PermissionEditPost already checked above
 	} else if c.AppContext.Session().UserId != originalPost.UserId {
 		// We don't need to check the member here, since we already checked it above
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost); !ok {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
 			return
 		}
