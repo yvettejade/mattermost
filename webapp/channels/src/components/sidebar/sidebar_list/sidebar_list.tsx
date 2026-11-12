@@ -32,6 +32,7 @@ import type {ModalData} from 'types/actions';
 import type {DraggingState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
 
+const AssistantLink = makeAsyncComponent('AssistantLink', lazy(() => import('components/assistant_link')));
 const DraftsLink = makeAsyncComponent('DraftsLink', lazy(() => import('components/drafts/drafts_link/drafts_link')));
 const GlobalThreadsLink = makeAsyncComponent('GlobalThreadsLink', lazy(() => import('components/threading/global_threads_link')));
 const RecapsLink = makeAsyncComponent('RecapsLink', lazy(() => import('components/recaps_link')));
@@ -560,6 +561,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                 <GlobalThreadsLink/>
                 <DraftsLink/>
                 <RecapsLink/>
+                <AssistantLink/>
                 <div
                     id='sidebar-left'
                     role='application'

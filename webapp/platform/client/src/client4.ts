@@ -7,6 +7,13 @@ import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, A
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
+import type {
+    AssistantChatRequest,
+    AssistantChatResponse,
+    AssistantExecuteActionRequest,
+    AssistantExecuteActionResponse,
+    AssistantStatus,
+} from '@mattermost/types/assistant';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
@@ -476,6 +483,10 @@ export default class Client4 {
 
     getLLMServicesRoute() {
         return `${this.getBaseRoute()}/llmservices`;
+    }
+
+    getAssistantRoute() {
+        return `${this.getBaseRoute()}/assistant`;
     }
 
     getPluginRoute(pluginId: string) {
@@ -3587,6 +3598,27 @@ export default class Client4 {
         return this.doFetch<{available: boolean; reason?: string}>(
             `${this.getAgentsRoute()}/status`,
             {method: 'get'},
+        );
+    };
+
+    getAssistantStatus = () => {
+        return this.doFetch<AssistantStatus>(
+            `${this.getAssistantRoute()}/status`,
+            {method: 'get'},
+        );
+    };
+
+    assistantChat = (request: AssistantChatRequest) => {
+        return this.doFetch<AssistantChatResponse>(
+            `${this.getAssistantRoute()}/chat`,
+            {method: 'post', body: JSON.stringify(request)},
+        );
+    };
+
+    executeAssistantAction = (request: AssistantExecuteActionRequest) => {
+        return this.doFetch<AssistantExecuteActionResponse>(
+            `${this.getAssistantRoute()}/actions/execute`,
+            {method: 'post', body: JSON.stringify(request)},
         );
     };
 

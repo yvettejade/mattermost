@@ -170,6 +170,7 @@ type Routes struct {
 
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
+	Assistant   *mux.Router // 'api/v4/assistant'
 
 	Boards *mux.Router // 'api/v4/boards'
 
@@ -333,6 +334,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
+	api.BaseRoutes.Assistant = api.BaseRoutes.APIRoot.PathPrefix("/assistant").Subrouter()
 
 	api.BaseRoutes.Boards = api.BaseRoutes.APIRoot.PathPrefix("/boards").Subrouter()
 
@@ -400,6 +402,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
 	api.InitAgents()
+	api.InitAssistant()
 	api.InitProperties()
 
 	// If we allow testing then listen for manual testing URL hits

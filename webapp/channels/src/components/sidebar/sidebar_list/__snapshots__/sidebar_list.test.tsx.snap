@@ -12,6 +12,9 @@ exports[`SidebarList should match snapshot 1`] = `
     data-testid="RecapsLink"
   />
   <div
+    data-testid="AssistantLink"
+  />
+  <div
     aria-label="channel sidebar region"
     class="SidebarNavContainer a11y__region"
     data-a11y-disable-nav="false"

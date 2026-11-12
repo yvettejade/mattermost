@@ -1,0 +1,195 @@
+  /api/v4/assistant/status:
+    get:
+      tags:
+        - assistant
+      summary: Get assistant status
+      description: >
+        Returns whether the built-in AI assistant is configured on the server and
+        which specialized agents it can route tasks to. The provider API key is never returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+      operationId: GetAssistantStatus
+      responses:
+        "200":
+          description: Assistant status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  configured:
+                    type: boolean
+                  agents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v4/assistant/chat:
+    post:
+      tags:
+        - assistant
+      summary: Ask the assistant
+      description: >
+        Answers a question or summarizes a thread, a channel's unread messages, or recent
+        activity. The answer is grounded only in posts the user has permission to read and
+        cites them. Tool calls from the model are returned as proposed actions and are never
+        executed by this endpoint.
+
+        ##### Permissions
+
+        Must be authenticated. When `channel_id` or `root_id` is provided, the user must be
+        able to read that channel or thread.
+      operationId: AssistantChat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: The user's question. Required for `ask` mode.
+                mode:
+                  type: string
+                  enum: [ask, summarize_thread, summarize_unread, summarize_recent]
+                channel_id:
+                  type: string
+                root_id:
+                  type: string
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant]
+                      content:
+                        type: string
+        required: true
+      responses:
+        "200":
+          description: Assistant response with citations and proposed actions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+                  citations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        post_id:
+                          type: string
+                        channel_id:
+                          type: string
+                        channel_display_name:
+                          type: string
+                        permalink:
+                          type: string
+                        snippet:
+                          type: string
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                          enum: [draft_document, create_post, schedule_meeting, create_canvas, route_to_agent]
+                        title:
+                          type: string
+                        channel_id:
+                          type: string
+                        args:
+                          type: object
+                        preview:
+                          type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/assistant/actions/execute:
+    post:
+      tags:
+        - assistant
+      summary: Execute a confirmed assistant action
+      description: >
+        Executes an action previously proposed by the assistant after the user confirmed it.
+        Post-creating actions (`draft_document`, `create_post`, `schedule_meeting`,
+        `create_canvas`) create a post as the user; `route_to_agent` runs a specialized agent
+        over content the user can read and returns its output without posting.
+
+        ##### Permissions
+
+        Must be authenticated. Post-creating actions require the same permissions as
+        `POST /api/v4/posts` in the target channel.
+      operationId: ExecuteAssistantAction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - args
+              properties:
+                type:
+                  type: string
+                  enum: [draft_document, create_post, schedule_meeting, create_canvas, route_to_agent]
+                args:
+                  type: object
+        required: true
+      responses:
+        "200":
+          description: Agent output
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+        "201":
+          description: Post created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
