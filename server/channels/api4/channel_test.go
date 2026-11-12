@@ -603,6 +603,158 @@ func TestUpdateChannel(t *testing.T) {
 	})
 }
 
+// TestChannelHeaderPermissions checks that a channel member can set the header
+// through PUT /channels/{id}/patch and PUT /channels/{id} when they hold the
+// edit-channel permission, and that the same member is rejected with 403 when
+// that permission is removed. Public channels use manage_public_channel_properties
+// and private channels use manage_private_channel_properties.
+func TestChannelHeaderPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		// Permission denials include the permission id only when developer mode is on.
+		*cfg.ServiceSettings.EnableDeveloper = true
+	}).InitBasic(t)
+
+	memberClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, memberClient)
+
+	publicMember, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	require.True(t, publicMember.SchemeUser)
+	require.False(t, publicMember.SchemeAdmin)
+
+	privateMember, appErr := th.App.GetChannelMember(th.Context, th.BasicPrivateChannel.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	require.True(t, privateMember.SchemeUser)
+	require.False(t, privateMember.SchemeAdmin)
+
+	t.Run("patch", func(t *testing.T) {
+		assertMemberCanPatchChannelHeader(t, th, memberClient, th.BasicChannel.Id, "public-header-"+model.NewId())
+		assertMemberCanPatchChannelHeader(t, th, memberClient, th.BasicPrivateChannel.Id, "private-header-"+model.NewId())
+
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		t.Cleanup(func() {
+			th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		})
+
+		assertMemberCannotPatchChannelHeader(t, th, memberClient, th.BasicChannel.Id, model.PermissionManagePublicChannelProperties.Id)
+		assertMemberCanPatchChannelHeader(t, th, memberClient, th.BasicPrivateChannel.Id, "private-header-still-"+model.NewId())
+
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+		t.Cleanup(func() {
+			th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+		})
+
+		assertMemberCannotPatchChannelHeader(t, th, memberClient, th.BasicPrivateChannel.Id, model.PermissionManagePrivateChannelProperties.Id)
+		assertMemberCanPatchChannelHeader(t, th, memberClient, th.BasicChannel.Id, "public-header-still-"+model.NewId())
+	})
+
+	t.Run("update", func(t *testing.T) {
+		assertMemberCanUpdateChannelHeader(t, th, memberClient, th.BasicChannel.Id, "public-update-header-"+model.NewId())
+		assertMemberCanUpdateChannelHeader(t, th, memberClient, th.BasicPrivateChannel.Id, "private-update-header-"+model.NewId())
+
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		t.Cleanup(func() {
+			th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		})
+
+		assertMemberCannotUpdateChannelHeader(t, th, memberClient, th.BasicChannel.Id, model.PermissionManagePublicChannelProperties.Id)
+		assertMemberCanUpdateChannelHeader(t, th, memberClient, th.BasicPrivateChannel.Id, "private-update-header-still-"+model.NewId())
+
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+		t.Cleanup(func() {
+			th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+		})
+
+		assertMemberCannotUpdateChannelHeader(t, th, memberClient, th.BasicPrivateChannel.Id, model.PermissionManagePrivateChannelProperties.Id)
+		assertMemberCanUpdateChannelHeader(t, th, memberClient, th.BasicChannel.Id, "public-update-header-still-"+model.NewId())
+	})
+}
+
+func assertMemberCanPatchChannelHeader(t *testing.T, th *TestHelper, client *model.Client4, channelID, header string) {
+	t.Helper()
+
+	updated, resp, err := client.PatchChannel(context.Background(), channelID, &model.ChannelPatch{Header: &header})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Equal(t, header, updated.Header)
+
+	stored, appErr := th.App.GetChannel(th.Context, channelID)
+	require.Nil(t, appErr)
+	require.Equal(t, header, stored.Header)
+}
+
+func assertMemberCannotPatchChannelHeader(t *testing.T, th *TestHelper, client *model.Client4, channelID, permission string) {
+	t.Helper()
+
+	before, appErr := th.App.GetChannel(th.Context, channelID)
+	require.Nil(t, appErr)
+
+	rejected := "rejected-header-" + model.NewId()
+	_, resp, err := client.PatchChannel(context.Background(), channelID, &model.ChannelPatch{Header: &rejected})
+	requireChannelHeaderPermissionDenied(t, err, resp, permission)
+
+	after, appErr := th.App.GetChannel(th.Context, channelID)
+	require.Nil(t, appErr)
+	require.Equal(t, before.Header, after.Header)
+}
+
+func assertMemberCanUpdateChannelHeader(t *testing.T, th *TestHelper, client *model.Client4, channelID, header string) {
+	t.Helper()
+
+	channel, resp, err := client.GetChannel(context.Background(), channelID)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	channel.Header = header
+	updated, resp, err := client.UpdateChannel(context.Background(), channel)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Equal(t, header, updated.Header)
+
+	stored, appErr := th.App.GetChannel(th.Context, channelID)
+	require.Nil(t, appErr)
+	require.Equal(t, header, stored.Header)
+	require.Equal(t, channel.Purpose, stored.Purpose)
+	require.Equal(t, channel.DisplayName, stored.DisplayName)
+	require.Equal(t, channel.Name, stored.Name)
+}
+
+func assertMemberCannotUpdateChannelHeader(t *testing.T, th *TestHelper, client *model.Client4, channelID, permission string) {
+	t.Helper()
+
+	before, appErr := th.App.GetChannel(th.Context, channelID)
+	require.Nil(t, appErr)
+
+	channel, resp, err := client.GetChannel(context.Background(), channelID)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	channel.Header = "rejected-header-" + model.NewId()
+	_, resp, err = client.UpdateChannel(context.Background(), channel)
+	requireChannelHeaderPermissionDenied(t, err, resp, permission)
+
+	after, appErr := th.App.GetChannel(th.Context, channelID)
+	require.Nil(t, appErr)
+	require.Equal(t, before.Header, after.Header)
+	require.Equal(t, before.Purpose, after.Purpose)
+}
+
+func requireChannelHeaderPermissionDenied(t *testing.T, err error, resp *model.Response, permission string) {
+	t.Helper()
+
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
+	require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+	require.Contains(t, appErr.DetailedError, "permission="+permission)
+}
+
 func TestPatchChannelGroupConstrained(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
