@@ -2,13 +2,24 @@
 // See LICENSE.txt for license information.
 
 .AssistantModal {
-    .modal-dialog {
+    &.modal-dialog {
         width: 720px;
         max-width: calc(100vw - 32px);
     }
 
+    .modal-content {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .modal-body,
+    .GenericModal__body {
+        min-width: 0;
+    }
+
     &__body {
         display: flex;
+        min-width: 0;
         height: min(60vh, 560px);
         flex-direction: column;
         padding: 0 32px;
@@ -23,11 +34,13 @@
 
     &__messages {
         display: flex;
+        min-width: 0;
         min-height: 0;
         flex: 1;
         flex-direction: column;
         padding: 4px 0 12px;
         gap: 12px;
+        overflow-x: hidden;
         overflow-y: auto;
     }
 
@@ -73,11 +86,13 @@
     &__composer {
         display: flex;
         width: 100%;
+        min-width: 0;
         align-items: flex-end;
         gap: 8px;
     }
 
     &__input.form-control {
+        min-width: 0;
         min-height: 44px;
         max-height: 160px;
         flex: 1;
@@ -86,6 +101,7 @@
 }
 
 .AssistantMessage {
+    min-width: 0;
     max-width: 92%;
     padding: 10px 14px;
     border-radius: var(--radius-m);
@@ -111,8 +127,48 @@
         font-weight: 600;
     }
 
-    &__content p:last-child {
-        margin-bottom: 0;
+    &__content {
+        min-width: 0;
+        overflow-wrap: anywhere;
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        a {
+            overflow-wrap: anywhere;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        pre {
+            max-width: 100%;
+            white-space: pre-wrap;
+        }
+
+        pre code,
+        code {
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        table {
+            display: block;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        th,
+        td {
+            overflow-wrap: break-word;
+        }
+
+        .table-responsive {
+            max-width: 100%;
+        }
     }
 
     &__citations {
@@ -137,12 +193,15 @@
 
     &__citation {
         display: flex;
+        min-width: 0;
         flex-direction: column;
         margin-bottom: 6px;
         font-size: 12px;
 
         a {
             display: inline-flex;
+            min-width: 0;
+            flex-wrap: wrap;
             color: var(--link-color);
             gap: 6px;
         }
@@ -154,6 +213,7 @@
 
     &__citationSnippet {
         overflow: hidden;
+        max-width: 100%;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -161,6 +221,7 @@
 }
 
 .AssistantActionCard {
+    min-width: 0;
     padding: 12px;
     border: 1px solid rgba(var(--button-bg-rgb), 0.32);
     border-radius: var(--radius-m);
@@ -171,6 +232,7 @@
         margin: 0 0 8px;
         font-size: 14px;
         font-weight: 600;
+        overflow-wrap: anywhere;
     }
 
     &__preview {
@@ -180,7 +242,30 @@
         margin-bottom: 8px;
         background: var(--center-channel-bg);
         font-size: 13px;
+        overflow-wrap: anywhere;
+        overflow-x: hidden;
         overflow-y: auto;
+
+        pre,
+        code {
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        table {
+            display: block;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        th,
+        td {
+            overflow-wrap: break-word;
+        }
 
         h1,
         h2,
@@ -203,6 +288,7 @@
         margin: 0 0 8px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: 12px;
+        overflow-wrap: anywhere;
     }
 
     &__buttons {
