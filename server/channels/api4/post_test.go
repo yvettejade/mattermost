@@ -1991,6 +1991,27 @@ func TestUpdatePost(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("edit others posts permission can function independently of edit own post", func(t *testing.T) {
+		th.LoginBasic2(t)
+
+		update := rpost.Clone()
+		update.Message = "edited by another user " + model.NewId()
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, update)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Add permission to edit others'
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		updated, _, err := client.UpdatePost(context.Background(), rpost.Id, update)
+		require.NoError(t, err)
+		assert.Equal(t, update.Message, updated.Message)
+		assert.Equal(t, rpost.UserId, updated.UserId)
+	})
+
 	t.Run("should be able to add new files", func(t *testing.T) {
 		th.LoginBasic(t)
 		// create new file
