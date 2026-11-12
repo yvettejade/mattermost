@@ -1,0 +1,14 @@
+.channel-header__description {
+    .header-description__text {
+        min-width: 0;
+    }
+
+    .EditChannelHeaderButton {
+        height: 20px;
+        flex: 0 0 auto;
+        padding: 0 8px;
+        font-size: 12px;
+        line-height: 18px;
+        white-space: nowrap;
+    }
+}
