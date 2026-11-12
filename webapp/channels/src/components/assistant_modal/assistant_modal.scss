@@ -1,0 +1,212 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AssistantModal {
+    .modal-dialog {
+        width: 720px;
+        max-width: calc(100vw - 32px);
+    }
+
+    &__body {
+        display: flex;
+        height: min(60vh, 560px);
+        flex-direction: column;
+        padding: 0 32px;
+    }
+
+    &__quickActions {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 8px 0 12px;
+        gap: 8px;
+    }
+
+    &__messages {
+        display: flex;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
+        padding: 4px 0 12px;
+        gap: 12px;
+        overflow-y: auto;
+    }
+
+    &__empty {
+        padding: 24px;
+        border-radius: var(--radius-m);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+        text-align: center;
+    }
+
+    &__loading {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        gap: 8px;
+    }
+
+    &__banner {
+        display: flex;
+        align-items: flex-start;
+        padding: 10px 12px;
+        border-radius: var(--radius-s);
+        margin-bottom: 12px;
+        font-size: 14px;
+        gap: 8px;
+        line-height: 20px;
+
+        &--warning {
+            border: 1px solid rgba(var(--away-indicator-rgb), 0.48);
+            background: rgba(var(--away-indicator-rgb), 0.12);
+        }
+
+        &--error {
+            border: 1px solid rgba(var(--error-text-color-rgb), 0.48);
+            background: rgba(var(--error-text-color-rgb), 0.08);
+            color: var(--error-text);
+        }
+    }
+
+    &__composer {
+        display: flex;
+        width: 100%;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    &__input.form-control {
+        min-height: 44px;
+        max-height: 160px;
+        flex: 1;
+        resize: vertical;
+    }
+}
+
+.AssistantMessage {
+    max-width: 92%;
+    padding: 10px 14px;
+    border-radius: var(--radius-m);
+    font-size: 14px;
+    line-height: 20px;
+
+    &--user {
+        align-self: flex-end;
+        background: rgba(var(--button-bg-rgb), 0.12);
+        white-space: pre-wrap;
+    }
+
+    &--assistant {
+        align-self: flex-start;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background: var(--center-channel-bg);
+    }
+
+    &__author {
+        margin-bottom: 2px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    &__content p:last-child {
+        margin-bottom: 0;
+    }
+
+    &__citations {
+        padding-top: 8px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 8px;
+
+        ul {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+    }
+
+    &__citationsTitle {
+        margin-bottom: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    &__citation {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 6px;
+        font-size: 12px;
+
+        a {
+            display: inline-flex;
+            color: var(--link-color);
+            gap: 6px;
+        }
+    }
+
+    &__citationIndex {
+        font-weight: 600;
+    }
+
+    &__citationSnippet {
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.AssistantActionCard {
+    padding: 12px;
+    border: 1px solid rgba(var(--button-bg-rgb), 0.32);
+    border-radius: var(--radius-m);
+    margin-top: 10px;
+    background: rgba(var(--button-bg-rgb), 0.04);
+
+    &__title {
+        margin: 0 0 8px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__preview {
+        max-height: 220px;
+        padding: 8px 10px;
+        border-radius: var(--radius-s);
+        margin-bottom: 8px;
+        background: var(--center-channel-bg);
+        overflow-y: auto;
+    }
+
+    &__description {
+        margin: 0 0 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+    }
+
+    &__buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    &__status {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+
+        &--done {
+            color: var(--online-indicator);
+            font-weight: 600;
+        }
+    }
+
+    &__error {
+        margin-bottom: 8px;
+        color: var(--error-text);
+        font-size: 12px;
+    }
+}
