@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,27 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('uses code points for the header limit and string length for the purpose', async () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await act(async () => {
+            fireEvent.input(headerInput, {target: {value: '👍'.repeat(1024)}});
+        });
+        expect(screen.queryByText(/channel header is limited to 1024/)).not.toBeInTheDocument();
+
+        await act(async () => {
+            fireEvent.input(headerInput, {target: {value: '👍'.repeat(1025)}});
+        });
+        expect(screen.getByText(/channel header is limited to 1024/)).toBeInTheDocument();
+
+        const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+        await act(async () => {
+            fireEvent.input(purposeInput, {target: {value: '👍'.repeat(200)}});
+        });
+        expect(screen.getByText(/channel purpose is limited to 250/)).toBeInTheDocument();
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {

@@ -12,6 +12,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
@@ -22,6 +23,7 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
@@ -107,6 +109,42 @@ class ChannelHeader extends React.PureComponent<Props> {
             const {path, identifier} = getChannelRoutePathAndIdentifier(channel, dmUser?.username);
             popoutChannel(intl.formatMessage(getPopoutChannelTitle(channel.type)), team.name, path, identifier);
         }
+    };
+
+    showEditChannelHeaderModal = () => {
+        const {channel} = this.props;
+        if (!channel) {
+            return;
+        }
+
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        });
+    };
+
+    canShowAddChannelHeaderButton = () => {
+        const {channel, channelMember, dmUser, canEditChannelProperties} = this.props;
+        if (!channel || channel.delete_at) {
+            return false;
+        }
+
+        if ((channel.header || '').trim().length > 0) {
+            return false;
+        }
+
+        const isBotDM = channel.type === Constants.DM_CHANNEL && Boolean(dmUser?.is_bot);
+        if (isBotDM) {
+            return false;
+        }
+
+        const isDirectOrGroup = channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
+        if (isDirectOrGroup) {
+            return Boolean(channelMember);
+        }
+
+        return Boolean(canEditChannelProperties);
     };
 
     toggleChannelMembersRHS = () => {
@@ -421,6 +459,18 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {dmHeaderTextStatus}
                                     {hasGuestsText}
                                     {autotranslationMessage}
+                                    {this.canShowAddChannelHeaderButton() && (
+                                        <button
+                                            type='button'
+                                            className='header-placeholder'
+                                            onClick={this.showEditChannelHeaderModal}
+                                        >
+                                            <FormattedMessage
+                                                id='channel_header.headerText.addNewButton'
+                                                defaultMessage='Add a channel header'
+                                            />
+                                        </button>
+                                    )}
                                     <ChannelHeaderText
                                         teamId={team?.id}
                                         channel={channel}
