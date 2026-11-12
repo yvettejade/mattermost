@@ -1991,6 +1991,63 @@ func TestUpdatePost(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("edit others posts permission can function independently of edit own post", func(t *testing.T) {
+		th.LoginBasic2(t)
+
+		before, _, err := client.GetPost(context.Background(), rpost.Id, "")
+		require.NoError(t, err)
+
+		update := rpost.Clone()
+		update.Message = "edited by another user " + model.NewId()
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, update)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		unchanged, _, err := client.GetPost(context.Background(), rpost.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, before.Message, unchanged.Message)
+
+		// Add permission to edit others'
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		updated, _, err := client.UpdatePost(context.Background(), rpost.Id, update)
+		require.NoError(t, err)
+		assert.Equal(t, update.Message, updated.Message)
+		assert.Equal(t, rpost.UserId, updated.UserId)
+
+		fetched, _, err := client.GetPost(context.Background(), rpost.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, update.Message, fetched.Message)
+		assert.Equal(t, rpost.UserId, fetched.UserId)
+
+		// Keep the local post in sync so a later full update of rpost does not revert this edit.
+		rpost.Message = fetched.Message
+	})
+
+	t.Run("author without edit_post", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+
+		before, _, err := client.GetPost(context.Background(), rpost.Id, "")
+		require.NoError(t, err)
+
+		update := before.Clone()
+		update.Message = "author edit without edit_post " + model.NewId()
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, update)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		fetched, _, err := client.GetPost(context.Background(), rpost.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, before.Message, fetched.Message)
+	})
+
 	t.Run("should be able to add new files", func(t *testing.T) {
 		th.LoginBasic(t)
 		// create new file
