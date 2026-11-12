@@ -2,25 +2,69 @@
 // See LICENSE.txt for license information.
 
 .AssistantModal {
+    $dialog-width: min(720px, calc(100vw - 32px));
+    $dialog-height: calc(100vh - 32px);
+
+    // Prefixed to outrank GenericModal's `.app__body .modal .GenericModal` rules.
+    .app__body .modal &.GenericModal,
     &.modal-dialog {
-        width: 720px;
-        max-width: calc(100vw - 32px);
-    }
+        width: $dialog-width;
+        max-width: $dialog-width;
+        height: 100%;
+        max-height: 100vh;
+        padding: 16px 0;
+        margin: 0 auto;
 
-    .modal-content {
-        width: 100%;
-        min-width: 0;
-    }
+        .modal-content {
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            max-height: $dialog-height;
+            flex: 0 1 auto;
+            flex-direction: column;
+        }
 
-    .modal-body,
-    .GenericModal__body {
-        min-width: 0;
+        .GenericModal__wrapper-enter-key-press-catcher {
+            display: flex;
+            min-width: 0;
+            height: auto;
+            min-height: 0;
+            flex: 1 1 auto;
+            flex-direction: column;
+        }
+
+        .modal-header,
+        .modal-footer {
+            flex: 0 0 auto;
+        }
+
+        .modal-body {
+            display: flex;
+            overflow: hidden;
+            min-width: 0;
+            min-height: 0;
+            max-height: none;
+            flex: 1 1 auto;
+            flex-direction: column;
+        }
+
+        .GenericModal__body {
+            display: flex;
+            min-width: 0;
+            min-height: 0;
+            flex: 1 1 auto;
+            flex-direction: column;
+        }
     }
 
     &__body {
         display: flex;
         min-width: 0;
-        height: min(60vh, 560px);
+        height: 560px;
+        min-height: 0;
+        flex: 0 1 auto;
         flex-direction: column;
         padding: 0 32px;
     }
