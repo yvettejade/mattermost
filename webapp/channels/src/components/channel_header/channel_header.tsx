@@ -6,12 +6,21 @@ import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {Permissions} from 'mattermost-redux/constants';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import {openModal} from 'actions/views/modals';
 
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
@@ -22,17 +31,71 @@ import Pluggable from 'plugins/pluggable';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
+    ModalIdentifiers,
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
 import {canPopout, isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
 import {isEmptyObject} from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import HeaderIconWrapper from './components/header_icon_wrapper';
 
 import type {PropsFromRedux} from './index';
+
+type AddChannelHeaderButtonProps = {
+    channel: Channel;
+    channelMember?: ChannelMembership;
+    dmUser?: UserProfile;
+}
+
+function AddChannelHeaderButton({channel, channelMember, dmUser}: AddChannelHeaderButtonProps) {
+    const dispatch = useDispatch();
+    const canEditHeader = useSelector((state: GlobalState) => {
+        if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+            return Boolean(channelMember?.user_id);
+        }
+
+        const permission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+        return haveIChannelPermission(state, channel.team_id, channel.id, permission);
+    });
+
+    const isArchived = channel.delete_at !== 0;
+    const isBotDM = channel.type === Constants.DM_CHANNEL && Boolean(dmUser?.is_bot);
+    if (!canEditHeader || isArchived || isBotDM || (channel.header ?? '').trim().length > 0) {
+        return null;
+    }
+
+    const openEditHeader = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        }));
+    };
+
+    return (
+        <button
+            type='button'
+            className='header-placeholder style--none'
+            onClick={openEditHeader}
+        >
+            <span>
+                <FormattedMessage
+                    id='channel_header.headerText.addNewButton'
+                    defaultMessage='Add a channel header'
+                />
+            </span>
+            <i
+                className='icon icon-pencil-outline'
+                aria-hidden='true'
+            />
+        </button>
+    );
+}
 
 export type Props = WrappedComponentProps & PropsFromRedux;
 
@@ -421,6 +484,11 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {dmHeaderTextStatus}
                                     {hasGuestsText}
                                     {autotranslationMessage}
+                                    <AddChannelHeaderButton
+                                        channel={channel}
+                                        channelMember={channelMember}
+                                        dmUser={dmUser}
+                                    />
                                     <ChannelHeaderText
                                         teamId={team?.id}
                                         channel={channel}

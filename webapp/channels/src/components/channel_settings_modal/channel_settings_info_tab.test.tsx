@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -450,6 +450,30 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('uses code points for the header limit and string length for the purpose', () => {
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+            />,
+        );
+
+        const emoji = '😀';
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        fireEvent.input(headerInput, {target: {value: emoji.repeat(1024)}});
+        expect(screen.queryByText(/The channel header is limited to/)).not.toBeInTheDocument();
+
+        fireEvent.input(headerInput, {target: {value: emoji.repeat(1025)}});
+        expect(screen.getByText(/The channel header is limited to 1024 characters/)).toBeInTheDocument();
+
+        fireEvent.input(headerInput, {target: {value: 'Initial header'}});
+        expect(screen.queryByText(/The channel header is limited to/)).not.toBeInTheDocument();
+
+        // 200 emoji are 200 code points and 400 UTF-16 units. Purpose still uses string.length.
+        const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+        fireEvent.input(purposeInput, {target: {value: emoji.repeat(200)}});
+        expect(screen.getByText(/The channel purpose is limited to 250 characters/)).toBeInTheDocument();
     });
 
     it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {

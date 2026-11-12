@@ -31,6 +31,7 @@ type AdvancedTextboxProps = {
     showCharacterCount?: boolean;
     readOnly?: boolean;
     name?: string; // Added name prop for floating label
+    countCodePoints?: boolean;
 };
 
 const AdvancedTextbox = ({
@@ -53,13 +54,15 @@ const AdvancedTextbox = ({
     showCharacterCount = false,
     readOnly = false,
     name,
+    countCodePoints = false,
 }: AdvancedTextboxProps) => {
     const {formatMessage} = useIntl();
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Derived values
-    const isTooLong = value.length > maxLength;
+    // Header fields opt into Unicode code points. Purpose and other callers stay on UTF-16 length.
+    const textLength = countCodePoints ? Array.from(value.trim()).length : value.length;
+    const isTooLong = textLength > maxLength;
     const isTooShort = minLength !== undefined && value.length > 0 && value.length < minLength;
 
     // Update internal error when prop changes or when validation state changes
@@ -163,7 +166,7 @@ const AdvancedTextbox = ({
                             'below-minimum': isTooShort,
                         })}
                     >
-                        {value.length}{'/'}
+                        {textLength}{'/'}
                         {isTooShort ? minLength : maxLength}
                     </div>
                 )}

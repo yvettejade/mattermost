@@ -5,10 +5,15 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import Constants, {RHSStates} from 'utils/constants';
+import * as modalActions from 'actions/views/modals';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelHeader from './channel_header';
 
@@ -50,6 +55,32 @@ describe('components/ChannelHeader', () => {
         sharedChannelsPluginsEnabled: false,
         isChannelAutotranslated: false,
     };
+
+    function stateWithHeaderPermission(): DeepPartial<GlobalState> {
+        return {
+            entities: {
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: TestHelper.getUserMock({
+                            id: 'user_id',
+                            roles: 'system_user',
+                        }),
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [
+                                'manage_public_channel_properties',
+                                'manage_private_channel_properties',
+                            ],
+                        },
+                    },
+                },
+            },
+        };
+    }
 
     const populatedProps = {
         ...baseProps,
@@ -350,5 +381,68 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('shows the add header button only for an empty header the viewer can edit', async () => {
+        const openModal = jest.spyOn(modalActions, 'openModal').mockReturnValue({type: 'OPEN_MODAL'} as never);
+        const editableChannel = TestHelper.getChannelMock({
+            id: 'channel_id',
+            header: '   ',
+            delete_at: 0,
+            type: 'O',
+        });
+
+        const {rerender} = renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                channel={editableChannel}
+            />,
+            stateWithHeaderPermission(),
+        );
+
+        const addButton = screen.getByRole('button', {name: 'Add a channel header'});
+        expect(addButton).toHaveClass('header-placeholder');
+        await userEvent.click(addButton);
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogProps: {channel: editableChannel},
+        }));
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                channel={{...editableChannel, header: 'already set'}}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                channel={{...editableChannel, header: '', delete_at: 1234}}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelHeader
+                {...populatedProps}
+                channel={TestHelper.getChannelMock({type: 'D', header: ''})}
+                dmUser={TestHelper.getUserMock({is_bot: true, bot_description: 'bot description'})}
+            />,
+        );
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
+        openModal.mockRestore();
+    });
+
+    test('hides the add header button when the viewer cannot edit the channel', () => {
+        renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                channel={TestHelper.getChannelMock({header: ''})}
+            />,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Add a channel header'})).not.toBeInTheDocument();
     });
 });

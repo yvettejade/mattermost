@@ -5,9 +5,12 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import * as modalActions from 'actions/views/modals';
+
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -91,7 +94,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
     });
 
-    it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', () => {
+    it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', async () => {
+        const openModal = jest.spyOn(modalActions, 'openModal').mockReturnValue({type: 'OPEN_MODAL'} as never);
         renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu {...defaultProps}/>
@@ -100,6 +104,17 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+
+        await userEvent.hover(screen.getByRole('menuitem', {name: 'Settings'}));
+        const editHeader = screen.getByRole('menuitem', {name: 'Edit Header'});
+        expect(editHeader).toBeInTheDocument();
+        await userEvent.click(editHeader);
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogProps: {channel},
+        }));
+        openModal.mockRestore();
     });
 
     it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
