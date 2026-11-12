@@ -288,10 +288,10 @@ func RenderMeeting(a *ScheduleMeetingArgs) string {
 		when = t.UTC().Format("Mon Jan 2, 2006 15:04 MST")
 	}
 	if when != "" {
-		fmt.Fprintf(&b, "**When:** %s\n", when)
+		fmt.Fprintf(&b, "- **When:** %s\n", when)
 	}
 	if a.DurationMinutes > 0 {
-		fmt.Fprintf(&b, "**Duration:** %d minutes\n", a.DurationMinutes)
+		fmt.Fprintf(&b, "- **Duration:** %d minutes\n", a.DurationMinutes)
 	}
 	if len(a.Attendees) > 0 {
 		mentions := make([]string, 0, len(a.Attendees))
@@ -300,7 +300,7 @@ func RenderMeeting(a *ScheduleMeetingArgs) string {
 				mentions = append(mentions, "@"+u)
 			}
 		}
-		fmt.Fprintf(&b, "**Attendees:** %s\n", strings.Join(mentions, ", "))
+		fmt.Fprintf(&b, "- **Attendees:** %s\n", strings.Join(mentions, ", "))
 	}
 	if len(a.Agenda) > 0 {
 		b.WriteString("\n**Agenda**\n")
@@ -311,7 +311,7 @@ func RenderMeeting(a *ScheduleMeetingArgs) string {
 	if n := strings.TrimSpace(a.Notes); n != "" {
 		fmt.Fprintf(&b, "\n%s\n", n)
 	}
-	b.WriteString("\nReact with :white_check_mark: if you can attend or :x: if you can't.")
+	b.WriteString("\n\nReact with :white_check_mark: if you can attend or :x: if you can't.")
 	return b.String()
 }
 

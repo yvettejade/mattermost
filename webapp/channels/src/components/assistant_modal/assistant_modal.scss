@@ -179,7 +179,24 @@
         border-radius: var(--radius-s);
         margin-bottom: 8px;
         background: var(--center-channel-bg);
+        font-size: 13px;
         overflow-y: auto;
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin: 4px 0 6px;
+            font-size: 15px;
+            line-height: 20px;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 6px;
+        }
     }
 
     &__description {
