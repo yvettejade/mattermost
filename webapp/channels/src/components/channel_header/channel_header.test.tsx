@@ -6,7 +6,9 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {Permissions} from 'mattermost-redux/constants';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -350,5 +352,60 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    describe('edit header button', () => {
+        const permissionState = (permissions: string[]) => ({
+            entities: {
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: TestHelper.getUserMock({id: 'user_id', roles: 'custom_role'}),
+                    },
+                },
+                roles: {
+                    roles: {
+                        custom_role: {id: 'custom_role', name: 'custom_role', permissions},
+                    },
+                },
+            },
+        });
+
+        test('should show "Set header" for users who can manage channel properties when the header is empty', () => {
+            const props = {
+                ...populatedProps,
+                channel: TestHelper.getChannelMock({...populatedProps.channel, header: ''}),
+            };
+
+            renderWithContext(
+                <ChannelHeader {...props}/>,
+                permissionState([Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]),
+            );
+
+            expect(screen.getByRole('button', {name: 'Set header'})).toHaveAttribute('id', 'channelHeaderEditHeaderButton');
+        });
+
+        test('should show "Edit header" for users who can manage channel properties when a header exists', () => {
+            const props = {
+                ...populatedProps,
+                channel: TestHelper.getChannelMock({...populatedProps.channel, header: 'Existing header'}),
+            };
+
+            renderWithContext(
+                <ChannelHeader {...props}/>,
+                permissionState([Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]),
+            );
+
+            expect(screen.getByRole('button', {name: 'Edit header'})).toBeInTheDocument();
+        });
+
+        test('should not show the edit header button without permission', () => {
+            renderWithContext(
+                <ChannelHeader {...populatedProps}/>,
+                permissionState([]),
+            );
+
+            expect(screen.queryByRole('button', {name: /(Set|Edit) header/})).not.toBeInTheDocument();
+        });
     });
 });

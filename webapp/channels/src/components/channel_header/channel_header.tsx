@@ -31,6 +31,7 @@ import {isEmptyObject} from 'utils/utils';
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import HeaderIconWrapper from './components/header_icon_wrapper';
+import EditChannelHeaderButton from './edit_channel_header_button';
 
 import type {PropsFromRedux} from './index';
 
@@ -426,6 +427,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                         channel={channel}
                                         dmUser={dmUser}
                                     />
+                                    <EditChannelHeaderButton channel={channel}/>
                                 </div>
                             </div>
                         </div>
