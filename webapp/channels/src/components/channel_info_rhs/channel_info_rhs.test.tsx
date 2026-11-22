@@ -7,7 +7,7 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelInfoRHS from './channel_info_rhs';
@@ -33,6 +33,11 @@ describe('channel_info_rhs', () => {
         canManageMembers: true,
         canManageProperties: true,
         channelMembers: [],
+        unreadCount: {messages: 7, mentions: 2, showUnread: true, hasUrgent: false},
+        bookmarksCount: 4,
+        isBookmarksEnabled: true,
+        scheduledPostsCount: 3,
+        isScheduledPostsEnabled: true,
         actions: {
             closeRightHandSide: jest.fn(),
             unfavoriteChannel: jest.fn(),
@@ -44,6 +49,7 @@ describe('channel_info_rhs', () => {
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {}})),
+            fetchChannelBookmarks: jest.fn(),
         },
     };
     let props = {...OriginalProps};
@@ -113,5 +119,46 @@ describe('channel_info_rhs', () => {
                 }),
             }),
         );
+    });
+
+    describe('menu props', () => {
+        test('should pass unread, bookmark and scheduled post data to the menu', async () => {
+            props.currentTeam = {name: 'team-1'} as Team;
+            props.channel = {id: 'channel1', display_name: 'my channel title', type: 'O'} as Channel;
+
+            renderWithContext(
+                <ChannelInfoRHS
+                    {...props}
+                />,
+            );
+
+            await act(async () => {
+                props.actions.getChannelStats();
+            });
+
+            expect(screen.getByRole('group', {name: '7 unread messages, 2 mentions'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Bookmarks'})).toHaveTextContent('4');
+            expect(screen.getByRole('link', {name: 'Scheduled posts'})).toHaveAttribute('href', '/team-1/scheduled_posts');
+            expect(props.actions.fetchChannelBookmarks).toHaveBeenCalledWith('channel1');
+        });
+
+        test('should hide the bookmarks and scheduled posts rows when disabled', async () => {
+            props.currentTeam = {name: 'team-1'} as Team;
+            props.isBookmarksEnabled = false;
+            props.isScheduledPostsEnabled = false;
+
+            renderWithContext(
+                <ChannelInfoRHS
+                    {...props}
+                />,
+            );
+
+            await act(async () => {
+                props.actions.getChannelStats();
+            });
+
+            expect(screen.queryByText('Bookmarks')).not.toBeInTheDocument();
+            expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
+        });
     });
 });

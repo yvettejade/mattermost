@@ -35,26 +35,21 @@ const ChannelInfoButton = ({channel}: Props) => {
 
     const rhsState: RhsState = useSelector(getRhsState);
     const isRhsOpen: boolean = useSelector(getIsRhsOpen);
-    const isChannelInfo = rhsState === RHSStates.CHANNEL_INFO ||
-        rhsState === RHSStates.CHANNEL_MEMBERS ||
-        rhsState === RHSStates.CHANNEL_FILES ||
-        rhsState === RHSStates.PIN;
+    const buttonActive = isRhsOpen && rhsState === RHSStates.CHANNEL_INFO;
 
-    const buttonActive = isRhsOpen && isChannelInfo;
     const toggleRHS = useCallback(() => {
         if (buttonActive) {
-            const action = isChannelInfo ? closeRightHandSide() : showChannelInfo(channel.id);
-            dispatch(action);
+            dispatch(closeRightHandSide());
         } else {
             dispatch(showChannelInfo(channel.id));
         }
-    }, [buttonActive, channel.id, isChannelInfo, dispatch]);
+    }, [buttonActive, channel.id, dispatch]);
 
     let tooltip;
     if (buttonActive) {
-        tooltip = intl.formatMessage({id: 'channel_header.closeChannelInfo', defaultMessage: 'Close Info'});
+        tooltip = intl.formatMessage({id: 'channel_header.closeChannelInfo', defaultMessage: 'Close channel info'});
     } else {
-        tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'});
+        tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'Open channel info'});
     }
 
     let buttonClass = 'channel-header__icon';
@@ -65,7 +60,7 @@ const ChannelInfoButton = ({channel}: Props) => {
     return (
         <HeaderIconWrapper
             buttonClass={buttonClass}
-            buttonId='channel-info-btn'
+            buttonId='channel-info-rhs-btn'
             onClick={toggleRHS}
             tooltip={tooltip}
         >
