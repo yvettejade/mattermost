@@ -2391,6 +2391,31 @@ func TestUpdatePost(t *testing.T) {
 		require.Equal(t, "original message", unchanged.Message)
 		require.Equal(t, post.EditAt, unchanged.EditAt)
 	})
+
+	t.Run("author without edit_post is denied on update", func(t *testing.T) {
+		th.LoginBasic(t)
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+
+		_, resp, err := client.UpdatePost(context.Background(), post.Id, &model.Post{
+			Id:        post.Id,
+			ChannelId: channel.Id,
+			Message:   "edited by author",
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		unchanged, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, "original message", unchanged.Message)
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
