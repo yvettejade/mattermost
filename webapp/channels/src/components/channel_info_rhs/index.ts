@@ -7,19 +7,24 @@ import type {AnyAction, Dispatch} from 'redux';
 
 import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
+import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
-import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, makeGetChannelUnreadCount, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getChannelScheduledPostsCount, isScheduledPostsEnabled as isScheduledPostsEnabledSelector} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesInCurrentChannel, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {muteChannel, unmuteChannel} from 'actions/channel_actions';
+import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isModalOpen} from 'selectors/views/modals';
+
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
@@ -27,7 +32,7 @@ import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import RHS from './channel_info_rhs';
-import type {Props} from './channel_info_rhs';
+import type {DMUser, Props} from './channel_info_rhs';
 
 const EMPTY_CHANNEL_STATS = {
     member_count: 0,
@@ -36,52 +41,75 @@ const EMPTY_CHANNEL_STATS = {
     files_count: 0,
 };
 
-function mapStateToProps(state: GlobalState) {
-    const channel = getCurrentChannel(state);
-    const currentUser = getCurrentUser(state);
-    const currentTeam = getCurrentTeam(state);
-    const channelStats = getCurrentChannelStats(state) || EMPTY_CHANNEL_STATS;
-    const isArchived = isCurrentChannelArchived(state);
-    const isFavorite = isCurrentChannelFavorite(state);
-    const isMuted = isCurrentChannelMuted(state);
-    const isInvitingPeople = isModalOpen(state, ModalIdentifiers.CHANNEL_INVITE) || isModalOpen(state, ModalIdentifiers.CREATE_DM_CHANNEL);
-    const isMobile = getIsMobileView(state);
+function makeMapStateToProps() {
+    const getUnreadCount = makeGetChannelUnreadCount();
+    let lastDmUser: DMUser | undefined;
 
-    const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
-    const canManageMembers = haveIChannelPermission(state, currentTeam?.id, channel?.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
-    const canManageProperties = haveIChannelPermission(state, currentTeam?.id, channel?.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
+    return function mapStateToProps(state: GlobalState) {
+        const channel = getCurrentChannel(state);
+        const currentUser = getCurrentUser(state);
+        const currentTeam = getCurrentTeam(state);
+        const channelStats = getCurrentChannelStats(state) || EMPTY_CHANNEL_STATS;
+        const isArchived = isCurrentChannelArchived(state);
+        const isFavorite = isCurrentChannelFavorite(state);
+        const isMuted = isCurrentChannelMuted(state);
+        const isInvitingPeople = isModalOpen(state, ModalIdentifiers.CHANNEL_INVITE) || isModalOpen(state, ModalIdentifiers.CREATE_DM_CHANNEL);
+        const isMobile = getIsMobileView(state);
 
-    const channelMembers = getProfilesInCurrentChannel(state);
+        const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
+        const canManageMembers = haveIChannelPermission(state, currentTeam?.id, channel?.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
+        const canManageProperties = haveIChannelPermission(state, currentTeam?.id, channel?.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
 
-    const isInManagedCategory = channel ? isChannelInManagedCategory(state, channel.id) : false;
+        const channelMembers = getProfilesInCurrentChannel(state);
 
-    const props = {
-        channel,
-        currentUser,
-        currentTeam,
-        isArchived,
-        isFavorite,
-        isMuted,
-        isInvitingPeople,
-        isMobile,
-        isInManagedCategory,
-        canManageMembers,
-        canManageProperties,
-        channelStats,
-        channelMembers,
-    } as Props;
+        const isInManagedCategory = channel ? isChannelInManagedCategory(state, channel.id) : false;
 
-    if (channel?.type === Constants.DM_CHANNEL) {
-        const user = getUser(state, getUserIdFromChannelId(channel.name, currentUser.id));
-        props.dmUser = {
-            user,
-            display_name: getDisplayNameByUser(state, user),
-            is_guest: isGuest(user.roles),
-            status: getStatusForUserId(state, user.id),
-        };
-    }
+        const channelId = channel?.id ?? '';
+        const unreadCount = getUnreadCount(state, channelId);
+        const isBookmarksEnabled = getIsChannelBookmarksEnabled(state);
+        const bookmarksCount = isBookmarksEnabled ? Object.keys(getChannelBookmarks(state, channelId)).length : 0;
+        const isScheduledPostsEnabled = isScheduledPostsEnabledSelector(state);
+        const scheduledPostsCount = isScheduledPostsEnabled ? getChannelScheduledPostsCount(state, channelId) : 0;
 
-    return props;
+        const props = {
+            channel,
+            currentUser,
+            currentTeam,
+            isArchived,
+            isFavorite,
+            isMuted,
+            isInvitingPeople,
+            isMobile,
+            isInManagedCategory,
+            canManageMembers,
+            canManageProperties,
+            channelStats,
+            channelMembers,
+            unreadCount,
+            bookmarksCount,
+            isBookmarksEnabled,
+            scheduledPostsCount,
+            isScheduledPostsEnabled,
+        } as Props;
+
+        if (channel?.type === Constants.DM_CHANNEL) {
+            const user = getUser(state, getUserIdFromChannelId(channel.name, currentUser.id));
+            const dmUser: DMUser = {
+                user,
+                display_name: getDisplayNameByUser(state, user),
+                is_guest: isGuest(user.roles),
+                status: getStatusForUserId(state, user.id),
+            };
+
+            // Reuse the previous object when nothing changed so that unrelated store updates don't re-render the pane
+            if (!lastDmUser || lastDmUser.user !== dmUser.user || lastDmUser.display_name !== dmUser.display_name || lastDmUser.is_guest !== dmUser.is_guest || lastDmUser.status !== dmUser.status) {
+                lastDmUser = dmUser;
+            }
+            props.dmUser = lastDmUser;
+        }
+
+        return props;
+    };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
@@ -97,8 +125,9 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             showPinnedPosts,
             showChannelMembers,
             getChannelStats,
+            fetchChannelBookmarks,
         }, dispatch),
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(RHS);
+export default connect(makeMapStateToProps, mapDispatchToProps)(RHS);

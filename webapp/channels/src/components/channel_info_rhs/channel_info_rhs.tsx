@@ -10,6 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
+import type {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
@@ -90,6 +91,11 @@ export interface Props {
     canManageProperties: boolean;
     dmUser?: DMUser;
     channelMembers: UserProfile[];
+    unreadCount: ReturnType<typeof calculateUnreadCount>;
+    bookmarksCount: number;
+    isBookmarksEnabled: boolean;
+    scheduledPostsCount: number;
+    isScheduledPostsEnabled: boolean;
     actions: {
         closeRightHandSide: () => void;
         unfavoriteChannel: (channelId: string) => void;
@@ -101,6 +107,7 @@ export interface Props {
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
         getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
+        fetchChannelBookmarks: (channelId: string) => void;
     };
 }
 
@@ -119,6 +126,11 @@ const ChannelInfoRhs = ({
     channelMembers,
     canManageMembers,
     canManageProperties,
+    unreadCount,
+    bookmarksCount,
+    isBookmarksEnabled,
+    scheduledPostsCount,
+    isScheduledPostsEnabled,
     actions,
 }: Props) => {
     const currentUserId = currentUser.id;
@@ -261,12 +273,19 @@ const ChannelInfoRhs = ({
                         channel={channel}
                         channelStats={channelStats}
                         isArchived={isArchived}
+                        teamName={currentTeam.name}
+                        unreadCount={unreadCount}
+                        bookmarksCount={bookmarksCount}
+                        isBookmarksEnabled={isBookmarksEnabled}
+                        scheduledPostsCount={scheduledPostsCount}
+                        isScheduledPostsEnabled={isScheduledPostsEnabled}
                         actions={{
                             openNotificationSettings,
                             showChannelFiles: actions.showChannelFiles,
                             showPinnedPosts: actions.showPinnedPosts,
                             showChannelMembers: actions.showChannelMembers,
                             getChannelStats: actions.getChannelStats,
+                            fetchChannelBookmarks: actions.fetchChannelBookmarks,
                         }}
                     />
                 </Container>

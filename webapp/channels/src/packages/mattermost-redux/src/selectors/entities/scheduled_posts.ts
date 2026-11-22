@@ -78,6 +78,19 @@ export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, ch
     return data;
 }
 
+// Counts the root-level (non-reply) scheduled posts of a channel that have not failed to send.
+export function getChannelScheduledPostsCount(state: GlobalState, channelId: string): number {
+    const scheduledPostIds = state.entities.scheduledPosts.byChannelOrThreadId[channelId] || emptyList;
+
+    return scheduledPostIds.reduce((count, scheduledPostId) => {
+        const scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
+        if (scheduledPost && !scheduledPost.root_id && !scheduledPost.error_code) {
+            return count + 1;
+        }
+        return count;
+    }, 0);
+}
+
 export const isScheduledPostsEnabled: (a: GlobalState) => boolean = createSelector(
     'isScheduledPostsEnabled',
     getConfig,
