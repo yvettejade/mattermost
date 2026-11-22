@@ -37,6 +37,7 @@ import {
     suppressRHS,
     unsuppressRHS,
     goBack,
+    showChannelInfo,
     showChannelMembers,
     openShowEditHistory,
     updateSearchTeam,
@@ -453,6 +454,20 @@ describe('rhs view actions', () => {
         });
     });
 
+    describe('showChannelInfo', () => {
+        test('it dispatches UPDATE_RHS_STATE for the given channel', async () => {
+            await store.dispatch(showChannelInfo('someChannelId'));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: 'someChannelId',
+                    state: RHSStates.CHANNEL_INFO,
+                },
+            ]);
+        });
+    });
+
     describe('openShowEditHistory', () => {
         test('it dispatches the right actions', async () => {
             const post = TestHelper.getPostMock();
@@ -736,6 +751,18 @@ describe('rhs view actions', () => {
             store.dispatch(openAtPrevious(null));
 
             expect(store.getActions()).toEqual(actionsForEmptySearch());
+        });
+
+        it('opens channel info for the current channel', async () => {
+            await store.dispatch(openAtPrevious({isChannelInfo: true}));
+
+            expect(store.getActions()).toEqual([
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    channelId: currentChannelId,
+                    state: RHSStates.CHANNEL_INFO,
+                },
+            ]);
         });
 
         it('opens a mention search', () => {

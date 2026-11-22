@@ -90,6 +90,11 @@ export interface Props {
     canManageProperties: boolean;
     dmUser?: DMUser;
     channelMembers: UserProfile[];
+    unreadCount?: {messages: number; mentions: number};
+    isBookmarksEnabled?: boolean;
+    bookmarksCount?: number;
+    isScheduledPostsEnabled?: boolean;
+    scheduledPostsCount?: number;
     actions: {
         closeRightHandSide: () => void;
         unfavoriteChannel: (channelId: string) => void;
@@ -101,6 +106,7 @@ export interface Props {
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
         getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
+        fetchChannelBookmarks?: (channelId: string) => void;
     };
 }
 
@@ -119,6 +125,11 @@ const ChannelInfoRhs = ({
     channelMembers,
     canManageMembers,
     canManageProperties,
+    unreadCount,
+    isBookmarksEnabled,
+    bookmarksCount,
+    isScheduledPostsEnabled,
+    scheduledPostsCount,
     actions,
 }: Props) => {
     const currentUserId = currentUser.id;
@@ -261,12 +272,19 @@ const ChannelInfoRhs = ({
                         channel={channel}
                         channelStats={channelStats}
                         isArchived={isArchived}
+                        teamName={currentTeam.name}
+                        unreadCount={unreadCount}
+                        isBookmarksEnabled={isBookmarksEnabled}
+                        bookmarksCount={bookmarksCount}
+                        isScheduledPostsEnabled={isScheduledPostsEnabled}
+                        scheduledPostsCount={scheduledPostsCount}
                         actions={{
                             openNotificationSettings,
                             showChannelFiles: actions.showChannelFiles,
                             showPinnedPosts: actions.showPinnedPosts,
                             showChannelMembers: actions.showChannelMembers,
                             getChannelStats: actions.getChannelStats,
+                            fetchChannelBookmarks: actions.fetchChannelBookmarks,
                         }}
                     />
                 </Container>

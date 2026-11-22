@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -21,55 +21,40 @@ interface Props {
     channel: Channel;
 }
 
-const Icon = styled.i`
-    font-size:18px;
-    line-height:18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-`;
-
 const ChannelInfoButton = ({channel}: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
 
     const rhsState: RhsState = useSelector(getRhsState);
     const isRhsOpen: boolean = useSelector(getIsRhsOpen);
-    const isChannelInfo = rhsState === RHSStates.CHANNEL_INFO ||
-        rhsState === RHSStates.CHANNEL_MEMBERS ||
-        rhsState === RHSStates.CHANNEL_FILES ||
-        rhsState === RHSStates.PIN;
 
-    const buttonActive = isRhsOpen && isChannelInfo;
+    const buttonActive = isRhsOpen && rhsState === RHSStates.CHANNEL_INFO;
+
     const toggleRHS = useCallback(() => {
         if (buttonActive) {
-            const action = isChannelInfo ? closeRightHandSide() : showChannelInfo(channel.id);
-            dispatch(action);
+            dispatch(closeRightHandSide());
         } else {
             dispatch(showChannelInfo(channel.id));
         }
-    }, [buttonActive, channel.id, isChannelInfo, dispatch]);
+    }, [buttonActive, channel.id, dispatch]);
 
-    let tooltip;
-    if (buttonActive) {
-        tooltip = intl.formatMessage({id: 'channel_header.closeChannelInfo', defaultMessage: 'Close Info'});
-    } else {
-        tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'});
-    }
+    const tooltip = buttonActive ? intl.formatMessage({id: 'channel_header.closeChannelInfo', defaultMessage: 'Close channel info'}) : intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'Channel info'});
 
-    let buttonClass = 'channel-header__icon';
-    if (buttonActive) {
-        buttonClass += ' channel-header__icon--active-inverted';
-    }
+    const buttonClass = classNames('channel-header__icon channel-header__icon--left btn btn-icon btn-xs', {
+        'channel-header__icon--active': buttonActive,
+    });
 
     return (
         <HeaderIconWrapper
             buttonClass={buttonClass}
-            buttonId='channel-info-btn'
+            buttonId='channel-info-rhs-btn'
             onClick={toggleRHS}
             tooltip={tooltip}
         >
-            <Icon className='icon-information-outline'/>
+            <i
+                aria-hidden='true'
+                className='icon icon-information-outline'
+            />
         </HeaderIconWrapper>
     );
 };

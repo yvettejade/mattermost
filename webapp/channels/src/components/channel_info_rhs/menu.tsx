@@ -4,6 +4,7 @@
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
@@ -14,7 +15,7 @@ import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {Constants, ModalIdentifiers, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,6 +48,16 @@ const MenuItemButton = styled.button`
     }
 `;
 
+const MenuItemStatic = styled.div`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    padding: 8px 16px;
+    text-align: left;
+`;
+
 const Icon = styled.div`
     color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 `;
@@ -64,9 +75,22 @@ const RightSide = styled.div`
 const Badge = styled.div`
     font-size: 12px;
     line-height: 18px;
-    width: 20px;
+    min-width: 20px;
     display: flex;
     place-content: center;
+    gap: 4px;
+`;
+
+const MentionBadge = styled.span`
+    min-width: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--mention-bg);
+    color: var(--mention-color);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
 `;
 
 interface MenuItemProps {
@@ -74,7 +98,7 @@ interface MenuItemProps {
     text: string;
     opensSubpanel?: boolean;
     badge?: string | number | JSX.Element;
-    onClick: () => void;
+    onClick?: () => void;
     id?: string;
 }
 
@@ -82,13 +106,8 @@ function MenuItem(props: MenuItemProps) {
     const {icon, text, opensSubpanel, badge, onClick, id} = props;
     const hasRightSide = (badge !== undefined) || opensSubpanel;
 
-    return (
-        <MenuItemButton
-            onClick={onClick}
-            aria-label={text}
-            type='button'
-            id={id || ''}
-        >
+    const content = (
+        <>
             <Icon>{icon}</Icon>
             <MenuItemText>{text}</MenuItemText>
             {hasRightSide && (
@@ -101,6 +120,25 @@ function MenuItem(props: MenuItemProps) {
                     )}
                 </RightSide>
             )}
+        </>
+    );
+
+    if (!onClick) {
+        return (
+            <MenuItemStatic id={id || ''}>
+                {content}
+            </MenuItemStatic>
+        );
+    }
+
+    return (
+        <MenuItemButton
+            onClick={onClick}
+            aria-label={text}
+            type='button'
+            id={id || ''}
+        >
+            {content}
         </MenuItemButton>
     );
 }
@@ -109,6 +147,12 @@ interface MenuProps {
     channel: Channel;
     channelStats: ChannelStats;
     isArchived: boolean;
+    teamName?: string;
+    unreadCount?: {messages: number; mentions: number};
+    isBookmarksEnabled?: boolean;
+    bookmarksCount?: number;
+    isScheduledPostsEnabled?: boolean;
+    scheduledPostsCount?: number;
 
     className?: string;
 
@@ -118,6 +162,7 @@ interface MenuProps {
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
         getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<{data: ChannelStats}>;
+        fetchChannelBookmarks?: (channelId: string) => void;
     };
 }
 
@@ -130,7 +175,14 @@ export default function Menu(props: MenuProps) {
         isArchived,
         className,
         actions,
+        teamName,
+        unreadCount,
+        isBookmarksEnabled = false,
+        bookmarksCount = 0,
+        isScheduledPostsEnabled = false,
+        scheduledPostsCount = 0,
     } = props;
+    const history = useHistory();
 
     const [loadingStats, setLoadingStats] = useState(true);
 
@@ -148,6 +200,29 @@ export default function Menu(props: MenuProps) {
             setLoadingStats(true);
         };
     }, [channel.id]);
+
+    useEffect(() => {
+        if (isBookmarksEnabled) {
+            actions.fetchChannelBookmarks?.(channel.id);
+        }
+    }, [channel.id, isBookmarksEnabled]);
+
+    const focusBookmarksBar = () => {
+        const bar = document.querySelector<HTMLElement>('[data-testid="channel-bookmarks-container"]');
+        if (!bar) {
+            return;
+        }
+
+        bar.scrollIntoView?.({block: 'nearest'});
+        const focusTarget = bar.querySelector<HTMLElement>('button, a, [tabindex]:not([tabindex="-1"])');
+        focusTarget?.focus();
+    };
+
+    const openScheduledPosts = () => {
+        if (teamName) {
+            history.push(`/${teamName}/${SCHEDULED_POST_URL_SUFFIX}`);
+        }
+    };
 
     const openChannelSettings = () => {
         dispatch(
@@ -194,6 +269,40 @@ export default function Menu(props: MenuProps) {
                     onClick={actions.openNotificationSettings}
                 />
             )}
+            {unreadCount && (
+                <MenuItem
+                    id='channelInfoRHSUnread'
+                    icon={<i className='icon icon-message-text-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.unread',
+                        defaultMessage: 'Unread',
+                    })}
+                    badge={
+                        <>
+                            <span
+                                data-testid='channelInfoRHSUnreadMessages'
+                                aria-label={formatMessage({
+                                    id: 'channel_info_rhs.menu.unread.messages',
+                                    defaultMessage: '{count, plural, one {# unread message} other {# unread messages}}',
+                                }, {count: unreadCount.messages})}
+                            >
+                                {unreadCount.messages}
+                            </span>
+                            {unreadCount.mentions > 0 && (
+                                <MentionBadge
+                                    data-testid='channelInfoRHSUnreadMentions'
+                                    aria-label={formatMessage({
+                                        id: 'channel_info_rhs.menu.unread.mentions',
+                                        defaultMessage: '{count, plural, one {# mention} other {# mentions}}',
+                                    }, {count: unreadCount.mentions})}
+                                >
+                                    {unreadCount.mentions}
+                                </MentionBadge>
+                            )}
+                        </>
+                    }
+                />
+            )}
             {showMembers && (
                 <MenuItem
                     icon={<i className='icon icon-account-outline'/>}
@@ -216,6 +325,31 @@ export default function Menu(props: MenuProps) {
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
+            {isBookmarksEnabled && (
+                <MenuItem
+                    id='channelInfoRHSBookmarks'
+                    icon={<i className='icon icon-bookmark-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.bookmarks',
+                        defaultMessage: 'Bookmarks',
+                    })}
+                    badge={bookmarksCount}
+                    onClick={focusBookmarksBar}
+                />
+            )}
+            {isScheduledPostsEnabled && (
+                <MenuItem
+                    id='channelInfoRHSScheduledPosts'
+                    icon={<i className='icon icon-clock-send-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.scheduled_posts',
+                        defaultMessage: 'Scheduled posts',
+                    })}
+                    opensSubpanel={true}
+                    badge={scheduledPostsCount}
+                    onClick={openScheduledPosts}
+                />
+            )}
             <MenuItem
                 icon={<i className='icon icon-file-text-outline'/>}
                 text={formatMessage({

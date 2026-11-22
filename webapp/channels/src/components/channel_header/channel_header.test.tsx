@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -112,6 +112,39 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render the channel info button', () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+        );
+
+        expect(screen.getByRole('button', {name: 'Channel info'})).toHaveAttribute('id', 'channel-info-rhs-btn');
+    });
+
+    test('should render the channel info button as active when the channel info RHS is open', () => {
+        renderWithContext(
+            <ChannelHeader {...populatedProps}/>,
+            {views: {rhs: {rhsState: RHSStates.CHANNEL_INFO, isSidebarOpen: true}}},
+        );
+
+        expect(screen.getByRole('button', {name: 'Close channel info'})).toHaveClass('channel-header__icon--active');
+    });
+
+    test('should render the channel info button in direct message channels', () => {
+        const dmUser = TestHelper.getUserMock({id: 'dm_user_id'});
+        renderWithContext(
+            <ChannelHeader
+                {...populatedProps}
+                channel={TestHelper.getChannelMock({
+                    ...populatedProps.channel,
+                    type: Constants.DM_CHANNEL as ChannelType,
+                })}
+                dmUser={dmUser}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Channel info'})).toBeInTheDocument();
     });
 
     test('should render archived view', () => {

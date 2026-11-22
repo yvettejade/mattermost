@@ -7,7 +7,7 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelInfoRHS from './channel_info_rhs';
@@ -113,5 +113,57 @@ describe('channel_info_rhs', () => {
                 }),
             }),
         );
+    });
+
+    describe('menu rows', () => {
+        test('passes the unread, bookmarks and scheduled posts data to the menu', async () => {
+            props.currentTeam = {name: 'team-1'} as Team;
+            props.channelStats = {member_count: 8, pinnedpost_count: 2, files_count: 0} as ChannelStats;
+            const fetchChannelBookmarks = jest.fn();
+
+            renderWithContext(
+                <ChannelInfoRHS
+                    {...props}
+                    unreadCount={{messages: 6, mentions: 2}}
+                    isBookmarksEnabled={true}
+                    bookmarksCount={4}
+                    isScheduledPostsEnabled={true}
+                    scheduledPostsCount={3}
+                    actions={{...props.actions, fetchChannelBookmarks}}
+                />,
+            );
+
+            await act(async () => {
+                props.actions.getChannelStats();
+            });
+
+            expect(screen.getByTestId('channelInfoRHSUnreadMessages')).toHaveTextContent('6');
+            expect(screen.getByTestId('channelInfoRHSUnreadMentions')).toHaveTextContent('2');
+            expect(screen.getByText('Members').parentElement).toHaveTextContent('8');
+            expect(screen.getByText('Pinned messages').parentElement).toHaveTextContent('2');
+            expect(screen.getByText('Bookmarks').parentElement).toHaveTextContent('4');
+            expect(screen.getByText('Scheduled posts').parentElement).toHaveTextContent('3');
+            expect(fetchChannelBookmarks).toHaveBeenCalled();
+        });
+
+        test('omits the bookmarks and scheduled posts rows when they are disabled', async () => {
+            props.currentTeam = {name: 'team-1'} as Team;
+
+            renderWithContext(
+                <ChannelInfoRHS
+                    {...props}
+                    unreadCount={{messages: 0, mentions: 0}}
+                    isBookmarksEnabled={false}
+                    isScheduledPostsEnabled={false}
+                />,
+            );
+
+            await act(async () => {
+                props.actions.getChannelStats();
+            });
+
+            expect(screen.queryByText('Bookmarks')).not.toBeInTheDocument();
+            expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
+        });
     });
 });

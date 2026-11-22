@@ -26,6 +26,8 @@ jest.mock('actions/views/modals', () => ({
 
 import Menu from './menu';
 
+const scrollIntoViewMock = jest.fn();
+
 const mockedCanAccessChannelSettings = canAccessChannelSettings as unknown as jest.Mock;
 const mockedOpenModal = openModal as unknown as jest.Mock;
 
@@ -283,5 +285,204 @@ describe('channel_info_rhs/menu', () => {
         );
         await act(async () => props.actions.getChannelStats());
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    describe('unread row', () => {
+        test('should display unread messages and mentions', async () => {
+            const props = {...defaultProps, unreadCount: {messages: 7, mentions: 2}};
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            const row = screen.getByText('Unread').parentElement!;
+            expect(screen.getByTestId('channelInfoRHSUnreadMessages')).toHaveTextContent('7');
+            expect(screen.getByTestId('channelInfoRHSUnreadMentions')).toHaveTextContent('2');
+            expect(row).toHaveTextContent('72');
+        });
+
+        test('should not display the mentions badge when there are no mentions', async () => {
+            const props = {...defaultProps, unreadCount: {messages: 4, mentions: 0}};
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByTestId('channelInfoRHSUnreadMessages')).toHaveTextContent('4');
+            expect(screen.queryByTestId('channelInfoRHSUnreadMentions')).not.toBeInTheDocument();
+        });
+
+        test('should display zero when nothing is unread', async () => {
+            const props = {...defaultProps, unreadCount: {messages: 0, mentions: 0}};
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByTestId('channelInfoRHSUnreadMessages')).toHaveTextContent('0');
+        });
+
+        test('should be displayed in DMs and archived channels', async () => {
+            const props = {
+                ...defaultProps,
+                channel: {type: Constants.DM_CHANNEL} as Channel,
+                isArchived: true,
+                unreadCount: {messages: 1, mentions: 1},
+            };
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByText('Unread')).toBeInTheDocument();
+        });
+    });
+
+    describe('bookmarks row', () => {
+        beforeEach(() => {
+            scrollIntoViewMock.mockClear();
+            window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+        });
+
+        test('should display the bookmarks count and fetch bookmarks', async () => {
+            const props = {
+                ...defaultProps,
+                channel: {id: 'channel_id', type: Constants.OPEN_CHANNEL} as Channel,
+                isBookmarksEnabled: true,
+                bookmarksCount: 5,
+            };
+            const fetchChannelBookmarks = jest.fn();
+
+            renderWithContext(
+                <Menu
+                    {...props}
+                    actions={{...props.actions, fetchChannelBookmarks}}
+                />,
+            );
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByText('Bookmarks').parentElement).toHaveTextContent('5');
+            expect(fetchChannelBookmarks).toHaveBeenCalledWith('channel_id');
+        });
+
+        test('should NOT display bookmarks when channel bookmarks are disabled', async () => {
+            const fetchChannelBookmarks = jest.fn();
+            const props = {
+                ...defaultProps,
+                isBookmarksEnabled: false,
+                bookmarksCount: 5,
+                actions: {...defaultProps.actions, fetchChannelBookmarks},
+            };
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.queryByText('Bookmarks')).not.toBeInTheDocument();
+            expect(fetchChannelBookmarks).not.toHaveBeenCalled();
+        });
+
+        test('should scroll to and focus the channel bookmarks bar when clicked', async () => {
+            const bar = document.createElement('div');
+            bar.setAttribute('data-testid', 'channel-bookmarks-container');
+            const barButton = document.createElement('button');
+            bar.appendChild(barButton);
+            document.body.appendChild(bar);
+
+            const props = {...defaultProps, isBookmarksEnabled: true, bookmarksCount: 1};
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            await userEvent.click(screen.getByText('Bookmarks'));
+
+            expect(scrollIntoViewMock).toHaveBeenCalled();
+            expect(document.activeElement).toBe(barButton);
+
+            document.body.removeChild(bar);
+        });
+
+        test('should do nothing when clicked and there is no bookmarks bar', async () => {
+            const props = {...defaultProps, isBookmarksEnabled: true, bookmarksCount: 0};
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            await userEvent.click(screen.getByText('Bookmarks'));
+
+            expect(scrollIntoViewMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('scheduled posts row', () => {
+        test('should display the scheduled posts count and link to the scheduled posts page', async () => {
+            const historyMock = (global as any).historyMock;
+            historyMock.push.mockClear();
+            const props = {
+                ...defaultProps,
+                teamName: 'my-team',
+                isScheduledPostsEnabled: true,
+                scheduledPostsCount: 3,
+            };
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            const row = screen.getByText('Scheduled posts');
+            expect(row.parentElement).toHaveTextContent('3');
+
+            await userEvent.click(row);
+            expect(historyMock.push).toHaveBeenCalledWith('/my-team/scheduled_posts');
+        });
+
+        test('should NOT display scheduled posts when disabled or unlicensed', async () => {
+            const props = {
+                ...defaultProps,
+                teamName: 'my-team',
+                isScheduledPostsEnabled: false,
+                scheduledPostsCount: 3,
+            };
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.queryByText('Scheduled posts')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('visibility by channel type', () => {
+        const allRowProps = {
+            ...defaultProps,
+            teamName: 'my-team',
+            unreadCount: {messages: 1, mentions: 0},
+            isBookmarksEnabled: true,
+            bookmarksCount: 1,
+            isScheduledPostsEnabled: true,
+            scheduledPostsCount: 1,
+        };
+
+        test.each([
+            [Constants.OPEN_CHANNEL, false],
+            [Constants.PRIVATE_CHANNEL, false],
+            [Constants.GM_CHANNEL, false],
+            [Constants.DM_CHANNEL, true],
+        ])('Members row is hidden only in DMs (%s)', async (type, hidden) => {
+            const props = {...allRowProps, channel: {type} as Channel};
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.queryByText('Members') === null).toBe(hidden);
+            expect(screen.getByText('Pinned messages')).toBeInTheDocument();
+            expect(screen.getByText('Unread')).toBeInTheDocument();
+            expect(screen.getByText('Bookmarks')).toBeInTheDocument();
+            expect(screen.getByText('Scheduled posts')).toBeInTheDocument();
+        });
+
+        test('should display all rows in an archived channel', async () => {
+            const props = {...allRowProps, isArchived: true};
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByText('Unread')).toBeInTheDocument();
+            expect(screen.getByText('Members')).toBeInTheDocument();
+            expect(screen.getByText('Pinned messages')).toBeInTheDocument();
+            expect(screen.getByText('Bookmarks')).toBeInTheDocument();
+            expect(screen.getByText('Scheduled posts')).toBeInTheDocument();
+        });
     });
 });
