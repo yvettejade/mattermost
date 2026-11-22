@@ -2286,6 +2286,136 @@ func TestUpdatePost(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("non-owner with edit_others_posts via channel_user role can update", func(t *testing.T) {
+		th.LoginBasic(t)
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
+
+		th.LoginBasic2(t)
+		update := &model.Post{
+			Id:        post.Id,
+			ChannelId: channel.Id,
+			Message:   "edited by another user",
+		}
+		updated, _, err := client.UpdatePost(context.Background(), post.Id, update)
+		require.NoError(t, err)
+		require.Equal(t, "edited by another user", updated.Message)
+
+		fetched, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, "edited by another user", fetched.Message)
+	})
+
+	t.Run("owner can update within the edit time limit and not after it expires", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 300
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		recent, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "recent message",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		updated, _, err := client.UpdatePost(context.Background(), recent.Id, &model.Post{
+			Id:        recent.Id,
+			ChannelId: channel.Id,
+			Message:   "recent message, edited",
+		})
+		require.NoError(t, err)
+		require.Equal(t, "recent message, edited", updated.Message)
+
+		expired, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "expired message",
+			CreateAt:  model.GetMillis() - 301*1000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		_, resp, err := client.UpdatePost(context.Background(), expired.Id, &model.Post{
+			Id:        expired.Id,
+			ChannelId: channel.Id,
+			Message:   "expired message, edited",
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Contains(t, err.Error(), "Post edit is only allowed for 300 seconds")
+
+		unchanged, _, err := client.GetPost(context.Background(), expired.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, "expired message", unchanged.Message)
+	})
+
+	t.Run("non-owner without edit_others_posts is denied on update and patch", func(t *testing.T) {
+		th.LoginBasic(t)
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		th.LoginBasic2(t)
+
+		_, resp, err := client.UpdatePost(context.Background(), post.Id, &model.Post{
+			Id:        post.Id,
+			ChannelId: channel.Id,
+			Message:   "edited via update",
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = client.PatchPost(context.Background(), post.Id, &model.PostPatch{
+			Message: new("edited via patch"),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.LoginBasic(t)
+		unchanged, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, "original message", unchanged.Message)
+		require.Equal(t, post.EditAt, unchanged.EditAt)
+	})
+
+	t.Run("author without edit_post is denied on update", func(t *testing.T) {
+		th.LoginBasic(t)
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+
+		_, resp, err := client.UpdatePost(context.Background(), post.Id, &model.Post{
+			Id:        post.Id,
+			ChannelId: channel.Id,
+			Message:   "edited by author",
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		unchanged, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, "original message", unchanged.Message)
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
