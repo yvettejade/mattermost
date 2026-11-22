@@ -85,8 +85,8 @@ const MentionBadge = styled.span`
     min-width: 18px;
     padding: 0 5px;
     border-radius: 9px;
-    background: var(--mention-bg);
-    color: var(--mention-color);
+    background: var(--button-bg);
+    color: var(--button-color);
     font-size: 11px;
     font-weight: 700;
     line-height: 18px;
