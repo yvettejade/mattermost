@@ -100,10 +100,16 @@ interface MenuItemProps {
     badge?: string | number | JSX.Element;
     onClick?: () => void;
     id?: string;
+
+    /**
+     * For non-interactive rows only: a single accessible name covering the whole row,
+     * so screen readers announce the counts as one unit.
+     */
+    ariaLabel?: string;
 }
 
 function MenuItem(props: MenuItemProps) {
-    const {icon, text, opensSubpanel, badge, onClick, id} = props;
+    const {icon, text, opensSubpanel, badge, onClick, id, ariaLabel} = props;
     const hasRightSide = (badge !== undefined) || opensSubpanel;
 
     const content = (
@@ -125,7 +131,11 @@ function MenuItem(props: MenuItemProps) {
 
     if (!onClick) {
         return (
-            <MenuItemStatic id={id || ''}>
+            <MenuItemStatic
+                id={id || ''}
+                role={ariaLabel ? 'img' : undefined}
+                aria-label={ariaLabel}
+            >
                 {content}
             </MenuItemStatic>
         );
@@ -277,25 +287,17 @@ export default function Menu(props: MenuProps) {
                         id: 'channel_info_rhs.menu.unread',
                         defaultMessage: 'Unread',
                     })}
+                    ariaLabel={formatMessage({
+                        id: 'channel_info_rhs.menu.unread.summary',
+                        defaultMessage: '{messages, plural, one {# unread message} other {# unread messages}}, {mentions, plural, one {# mention} other {# mentions}}',
+                    }, {messages: unreadCount.messages, mentions: unreadCount.mentions})}
                     badge={
                         <>
-                            <span
-                                data-testid='channelInfoRHSUnreadMessages'
-                                aria-label={formatMessage({
-                                    id: 'channel_info_rhs.menu.unread.messages',
-                                    defaultMessage: '{count, plural, one {# unread message} other {# unread messages}}',
-                                }, {count: unreadCount.messages})}
-                            >
+                            <span data-testid='channelInfoRHSUnreadMessages'>
                                 {unreadCount.messages}
                             </span>
                             {unreadCount.mentions > 0 && (
-                                <MentionBadge
-                                    data-testid='channelInfoRHSUnreadMentions'
-                                    aria-label={formatMessage({
-                                        id: 'channel_info_rhs.menu.unread.mentions',
-                                        defaultMessage: '{count, plural, one {# mention} other {# mentions}}',
-                                    }, {count: unreadCount.mentions})}
-                                >
+                                <MentionBadge data-testid='channelInfoRHSUnreadMentions'>
                                     {unreadCount.mentions}
                                 </MentionBadge>
                             )}
@@ -334,7 +336,7 @@ export default function Menu(props: MenuProps) {
                         defaultMessage: 'Bookmarks',
                     })}
                     badge={bookmarksCount}
-                    onClick={focusBookmarksBar}
+                    onClick={bookmarksCount > 0 ? focusBookmarksBar : undefined}
                 />
             )}
             {isScheduledPostsEnabled && (

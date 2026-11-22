@@ -288,6 +288,24 @@ describe('channel_info_rhs/menu', () => {
     });
 
     describe('unread row', () => {
+        test('should expose one accessible name covering messages and mentions', async () => {
+            const props = {...defaultProps, unreadCount: {messages: 7, mentions: 2}};
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByRole('img', {name: '7 unread messages, 2 mentions'})).toBeInTheDocument();
+        });
+
+        test('should use singular forms and report zero mentions in the accessible name', async () => {
+            const props = {...defaultProps, unreadCount: {messages: 1, mentions: 0}};
+
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByRole('img', {name: '1 unread message, 0 mentions'})).toBeInTheDocument();
+        });
+
         test('should display unread messages and mentions', async () => {
             const props = {...defaultProps, unreadCount: {messages: 7, mentions: 2}};
 
@@ -396,14 +414,24 @@ describe('channel_info_rhs/menu', () => {
             document.body.removeChild(bar);
         });
 
-        test('should do nothing when clicked and there is no bookmarks bar', async () => {
+        test('should render a non-interactive row when there are no bookmarks', async () => {
             const props = {...defaultProps, isBookmarksEnabled: true, bookmarksCount: 0};
             renderWithContext(<Menu {...props}/>);
             await act(async () => props.actions.getChannelStats());
 
-            await userEvent.click(screen.getByText('Bookmarks'));
+            expect(screen.getByText('Bookmarks').parentElement).toHaveTextContent('0');
+            expect(screen.queryByRole('button', {name: 'Bookmarks'})).not.toBeInTheDocument();
 
+            await userEvent.click(screen.getByText('Bookmarks'));
             expect(scrollIntoViewMock).not.toHaveBeenCalled();
+        });
+
+        test('should render an interactive row when there are bookmarks', async () => {
+            const props = {...defaultProps, isBookmarksEnabled: true, bookmarksCount: 2};
+            renderWithContext(<Menu {...props}/>);
+            await act(async () => props.actions.getChannelStats());
+
+            expect(screen.getByRole('button', {name: 'Bookmarks'})).toBeInTheDocument();
         });
     });
 
